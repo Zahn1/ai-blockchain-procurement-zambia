@@ -1,0 +1,11 @@
+clean awarded pool: 8,095 · value-band edges: [20000, 67100, 200000, 561000]
+synthetic tenders: 10,000 · contracts: 10,000
+
+How well do the rules alone catch each pattern? (rule_label = 1)
+  none                       0 / 5,000  (0.0%)
+  single_bidder_high       832 / 1,000  (83.2%)
+  inflated_award           668 / 1,000  (66.8%)
+  rushed_tender            522 / 1,000  (52.2%)
+  favoured_supplier         86 / 1,000  (8.6%)
+  split_purchase           103 / 1,000  (10.3%)
+contract patterns: {'none': 8449, 'payment_before_completion': 525, 'duplicate_payment': 520, 'overpayment': 506}

@@ -1,0 +1,13 @@
+rows 178,732 · columns 37 · rule_label=1: 5,420 (3.0%)
+value band edges (ZMW): ['20,000', '67,100', '200,000', '560,600']
+categories: {'goods': 106801, 'services': 34533, 'works': 21570, 'unknown': 15828}
+value errors: 6693
+  flag_single_bidder: 59,284
+  flag_single_bidder_high_value: 18,343
+  flag_short_period: 7,520
+  flag_award_above_estimate: 3,994
+  flag_award_far_above: 1,915
+  flag_favoured_supplier: 48
+  flag_weekend_close: 2,742
+  flag_budget_exceeded: 2,826
+risk_points: {0: 110738, 1: 44802, 2: 1756, 3: 16016, 4: 4736, 5: 458, 6: 123, 7: 101, 8: 2}
