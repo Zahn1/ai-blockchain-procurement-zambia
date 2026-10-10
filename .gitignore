@@ -22,3 +22,6 @@ network/*.tar.gz
 # OS / editor
 .DS_Store
 .vscode/
+
+# Raw datasets (re-downloadable)
+ai/data/raw/
