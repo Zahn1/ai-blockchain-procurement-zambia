@@ -26,3 +26,6 @@ network/*.tar.gz
 # Raw datasets (re-downloadable)
 ai/data/raw/
 ai/data/processed/tenders.csv
+
+# Go dependencies (recreate with: go mod vendor)
+chaincode/vendor/

@@ -1,0 +1,83 @@
+# Phase 2 step 1: chaincode unit tests (10 October 2026 13:30)
+go test -mod=vendor -race -cover -v ./contracts/
+=== RUN   TestSubmitBid_BeforeClosingGivesReceipt
+--- PASS: TestSubmitBid_BeforeClosingGivesReceipt (0.00s)
+=== RUN   TestSubmitBid_AtOrAfterClosingRejected
+--- PASS: TestSubmitBid_AtOrAfterClosingRejected (0.00s)
+=== RUN   TestSubmitBid_Rejections
+=== RUN   TestSubmitBid_Rejections/same_supplier_twice
+=== RUN   TestSubmitBid_Rejections/duplicate_bid_ID
+=== RUN   TestSubmitBid_Rejections/cancelled_tender
+=== RUN   TestSubmitBid_Rejections/officer_cannot_submit_for_a_supplier
+=== RUN   TestSubmitBid_Rejections/bad_cipher_hash
+=== RUN   TestSubmitBid_Rejections/unknown_tender
+--- PASS: TestSubmitBid_Rejections (0.00s)
+    --- PASS: TestSubmitBid_Rejections/same_supplier_twice (0.00s)
+    --- PASS: TestSubmitBid_Rejections/duplicate_bid_ID (0.00s)
+    --- PASS: TestSubmitBid_Rejections/cancelled_tender (0.00s)
+    --- PASS: TestSubmitBid_Rejections/officer_cannot_submit_for_a_supplier (0.00s)
+    --- PASS: TestSubmitBid_Rejections/bad_cipher_hash (0.00s)
+    --- PASS: TestSubmitBid_Rejections/unknown_tender (0.00s)
+=== RUN   TestApproveOpening_BeforeClosingRejected
+--- PASS: TestApproveOpening_BeforeClosingRejected (0.00s)
+=== RUN   TestApproveOpening_QuorumOfDistinctMembers
+--- PASS: TestApproveOpening_QuorumOfDistinctMembers (0.00s)
+=== RUN   TestApproveOpening_RequiresCommitteeRole
+--- PASS: TestApproveOpening_RequiresCommitteeRole (0.00s)
+=== RUN   TestOpenBid_AfterClosingAndQuorum
+--- PASS: TestOpenBid_AfterClosingAndQuorum (0.00s)
+=== RUN   TestOpenBid_BlockedWithoutQuorum
+--- PASS: TestOpenBid_BlockedWithoutQuorum (0.00s)
+=== RUN   TestOpenBid_UnknownBid
+--- PASS: TestOpenBid_UnknownBid (0.00s)
+=== RUN   TestGetBidsForTender_InKeyOrder
+--- PASS: TestGetBidsForTender_InKeyOrder (0.00s)
+=== RUN   TestPublishTender_RecordsTenderAndEmitsEvent
+--- PASS: TestPublishTender_RecordsTenderAndEmitsEvent (0.00s)
+=== RUN   TestPublishTender_DefaultQuorumIsTwo
+--- PASS: TestPublishTender_DefaultQuorumIsTwo (0.00s)
+=== RUN   TestPublishTender_Rejections
+=== RUN   TestPublishTender_Rejections/auditor_organisation
+=== RUN   TestPublishTender_Rejections/supplier_gateway_role
+=== RUN   TestPublishTender_Rejections/closing_in_the_past
+=== RUN   TestPublishTender_Rejections/closing_equals_now
+=== RUN   TestPublishTender_Rejections/zero_value
+=== RUN   TestPublishTender_Rejections/bad_hash
+=== RUN   TestPublishTender_Rejections/no_documents
+=== RUN   TestPublishTender_Rejections/unsafe_ID
+=== RUN   TestPublishTender_Rejections/quorum_too_large
+--- PASS: TestPublishTender_Rejections (0.00s)
+    --- PASS: TestPublishTender_Rejections/auditor_organisation (0.00s)
+    --- PASS: TestPublishTender_Rejections/supplier_gateway_role (0.00s)
+    --- PASS: TestPublishTender_Rejections/closing_in_the_past (0.00s)
+    --- PASS: TestPublishTender_Rejections/closing_equals_now (0.00s)
+    --- PASS: TestPublishTender_Rejections/zero_value (0.00s)
+    --- PASS: TestPublishTender_Rejections/bad_hash (0.00s)
+    --- PASS: TestPublishTender_Rejections/no_documents (0.00s)
+    --- PASS: TestPublishTender_Rejections/unsafe_ID (0.00s)
+    --- PASS: TestPublishTender_Rejections/quorum_too_large (0.00s)
+=== RUN   TestPublishTender_DuplicateRejected
+--- PASS: TestPublishTender_DuplicateRejected (0.00s)
+=== RUN   TestAmendTender_ExtendsClosingAndAddsAddendum
+--- PASS: TestAmendTender_ExtendsClosingAndAddsAddendum (0.00s)
+=== RUN   TestAmendTender_Rejections
+=== RUN   TestAmendTender_Rejections/bring_closing_forward
+=== RUN   TestAmendTender_Rejections/after_closing
+=== RUN   TestAmendTender_Rejections/no_change
+=== RUN   TestAmendTender_Rejections/unknown_tender
+--- PASS: TestAmendTender_Rejections (0.00s)
+    --- PASS: TestAmendTender_Rejections/bring_closing_forward (0.00s)
+    --- PASS: TestAmendTender_Rejections/after_closing (0.00s)
+    --- PASS: TestAmendTender_Rejections/no_change (0.00s)
+    --- PASS: TestAmendTender_Rejections/unknown_tender (0.00s)
+=== RUN   TestCancelTender
+--- PASS: TestCancelTender (0.00s)
+=== RUN   TestTenderExists
+--- PASS: TestTenderExists (0.00s)
+=== RUN   TestTenderRecord_HoldsNoFreeText
+--- PASS: TestTenderRecord_HoldsNoFreeText (0.00s)
+=== RUN   TestDeterminism_SameInputsSameState
+--- PASS: TestDeterminism_SameInputsSameState (0.00s)
+PASS
+coverage: 75.4% of statements
+ok  	github.com/Zahn1/ai-blockchain-procurement-zambia/chaincode/contracts	(cached)	coverage: 75.4% of statements
