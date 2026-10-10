@@ -1,0 +1,11 @@
+Admin@oag.example.com              
+User1@oag.example.com              
+auditor1@oag.example.com           "role":"auditor"
+Admin@zppa.example.com             
+User1@zppa.example.com             
+committee1@zppa.example.com        "role":"committee"
+committee2@zppa.example.com        "role":"committee"
+gateway@zppa.example.com           "role":"gateway"
+officer1@zppa.example.com          "role":"officer"
+regulator1@zppa.example.com        "role":"regulator"
+risk-service@zppa.example.com      "role":"ai"

@@ -1,0 +1,522 @@
+[0;34mUsing docker and docker-compose[0m
+[0;34mCreating channel 'procurement'.[0m
+[0;34mIf network is not up, starting nodes with CLI timeout of '5' tries and CLI delay of '3' seconds and using database 'leveldb with crypto from 'Certificate Authorities'[0m
+[0;34mBringing up network[0m
+[0;34mLOCAL_VERSION=v2.5.16[0m
+[0;34mDOCKER_IMAGE_VERSION=v2.5.16[0m
+[0;34mCA_LOCAL_VERSION=v1.5.17[0m
+[0;34mCA_DOCKER_IMAGE_VERSION=v1.5.17[0m
+[0;34mGenerating certificates using Fabric CA[0m
+ Network fabric_test Creating 
+ Network fabric_test Creating 
+ Network fabric_test Created 
+ Network fabric_test Created 
+ Container ca_orderer Creating 
+ Container ca_zppa Creating 
+ Container ca_oag Creating 
+ Container ca_oag Created 
+ Container ca_zppa Created 
+ Container ca_orderer Created 
+ Container ca_orderer Starting 
+ Container ca_zppa Starting 
+ Container ca_oag Starting 
+ Container ca_orderer Started 
+ Container ca_zppa Started 
+ Container ca_oag Started 
++ fabric-ca-client getcainfo -u https://admin:adminpw@localhost:7054 --caname ca-zppa --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:47 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:47 [INFO] TLS Enabled
+2026/10/10 15:02:47 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/msp/cacerts/localhost-7054-ca-zppa.pem
+2026/10/10 15:02:47 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:47 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/msp/IssuerRevocationPublicKey
++ res=0
+[0;34mCreating ZPPA Identities[0m
+[0;34mEnrolling the CA admin[0m
++ fabric-ca-client enroll -u https://admin:adminpw@localhost:7054 --caname ca-zppa --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:47 [INFO] Created a default configuration file at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:47 [INFO] TLS Enabled
+2026/10/10 15:02:47 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:47 [INFO] encoded CSR
+2026/10/10 15:02:47 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:47 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/msp/cacerts/localhost-7054-ca-zppa.pem
+2026/10/10 15:02:47 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:47 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/msp/IssuerRevocationPublicKey
+[0;34mRegistering peer0[0m
++ fabric-ca-client register --caname ca-zppa --id.name peer0 --id.secret peer0pw --id.type peer --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:47 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:47 [INFO] TLS Enabled
+2026/10/10 15:02:47 [INFO] TLS Enabled
+Password: peer0pw
+[0;34mRegistering user[0m
++ fabric-ca-client register --caname ca-zppa --id.name user1 --id.secret user1pw --id.type client --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:47 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:47 [INFO] TLS Enabled
+2026/10/10 15:02:47 [INFO] TLS Enabled
+Password: user1pw
+[0;34mRegistering the org admin[0m
++ fabric-ca-client register --caname ca-zppa --id.name zppaadmin --id.secret zppaadminpw --id.type admin --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:48 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:48 [INFO] TLS Enabled
+2026/10/10 15:02:48 [INFO] TLS Enabled
+Password: zppaadminpw
+[0;34mGenerating the peer0 msp[0m
++ fabric-ca-client enroll -u https://peer0:peer0pw@localhost:7054 --caname ca-zppa -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/peers/peer0.zppa.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:48 [INFO] TLS Enabled
+2026/10/10 15:02:48 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:48 [INFO] encoded CSR
+2026/10/10 15:02:48 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/peers/peer0.zppa.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:48 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/peers/peer0.zppa.example.com/msp/cacerts/localhost-7054-ca-zppa.pem
+2026/10/10 15:02:48 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/peers/peer0.zppa.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:48 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/peers/peer0.zppa.example.com/msp/IssuerRevocationPublicKey
+[0;34mGenerating the peer0-tls certificates, use --csr.hosts to specify Subject Alternative Names[0m
++ fabric-ca-client enroll -u https://peer0:peer0pw@localhost:7054 --caname ca-zppa -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/peers/peer0.zppa.example.com/tls --enrollment.profile tls --csr.hosts peer0.zppa.example.com --csr.hosts localhost --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:48 [INFO] TLS Enabled
+2026/10/10 15:02:48 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:48 [INFO] encoded CSR
+2026/10/10 15:02:48 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/peers/peer0.zppa.example.com/tls/signcerts/cert.pem
+2026/10/10 15:02:48 [INFO] Stored TLS root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/peers/peer0.zppa.example.com/tls/tlscacerts/tls-localhost-7054-ca-zppa.pem
+2026/10/10 15:02:48 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/peers/peer0.zppa.example.com/tls/IssuerPublicKey
+2026/10/10 15:02:48 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/peers/peer0.zppa.example.com/tls/IssuerRevocationPublicKey
+[0;34mGenerating the user msp[0m
++ fabric-ca-client enroll -u https://user1:user1pw@localhost:7054 --caname ca-zppa -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/User1@zppa.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:48 [INFO] TLS Enabled
+2026/10/10 15:02:48 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:48 [INFO] encoded CSR
+2026/10/10 15:02:48 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/User1@zppa.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:48 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/User1@zppa.example.com/msp/cacerts/localhost-7054-ca-zppa.pem
+2026/10/10 15:02:48 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/User1@zppa.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:48 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/User1@zppa.example.com/msp/IssuerRevocationPublicKey
+[0;34mGenerating the org admin msp[0m
++ fabric-ca-client enroll -u https://zppaadmin:zppaadminpw@localhost:7054 --caname ca-zppa -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/Admin@zppa.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:48 [INFO] TLS Enabled
+2026/10/10 15:02:48 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:48 [INFO] encoded CSR
+2026/10/10 15:02:48 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/Admin@zppa.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:48 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/Admin@zppa.example.com/msp/cacerts/localhost-7054-ca-zppa.pem
+2026/10/10 15:02:48 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/Admin@zppa.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:48 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/Admin@zppa.example.com/msp/IssuerRevocationPublicKey
+[0;34mRegistering officer1 with role officer[0m
++ fabric-ca-client register --caname ca-zppa --id.name officer1 --id.secret officer1pw --id.type client --id.attrs role=officer:ecert --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:48 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:48 [INFO] TLS Enabled
+2026/10/10 15:02:48 [INFO] TLS Enabled
+Password: officer1pw
++ fabric-ca-client enroll -u https://officer1:officer1pw@localhost:7054 --caname ca-zppa --enrollment.attrs role -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/officer1@zppa.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:48 [INFO] TLS Enabled
+2026/10/10 15:02:48 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:48 [INFO] encoded CSR
+2026/10/10 15:02:49 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/officer1@zppa.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:49 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/officer1@zppa.example.com/msp/cacerts/localhost-7054-ca-zppa.pem
+2026/10/10 15:02:49 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/officer1@zppa.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:49 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/officer1@zppa.example.com/msp/IssuerRevocationPublicKey
+[0;34mRegistering committee1 with role committee[0m
++ fabric-ca-client register --caname ca-zppa --id.name committee1 --id.secret committee1pw --id.type client --id.attrs role=committee:ecert --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:49 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:49 [INFO] TLS Enabled
+2026/10/10 15:02:49 [INFO] TLS Enabled
+Password: committee1pw
++ fabric-ca-client enroll -u https://committee1:committee1pw@localhost:7054 --caname ca-zppa --enrollment.attrs role -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/committee1@zppa.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:49 [INFO] TLS Enabled
+2026/10/10 15:02:49 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:49 [INFO] encoded CSR
+2026/10/10 15:02:49 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/committee1@zppa.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:49 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/committee1@zppa.example.com/msp/cacerts/localhost-7054-ca-zppa.pem
+2026/10/10 15:02:49 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/committee1@zppa.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:49 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/committee1@zppa.example.com/msp/IssuerRevocationPublicKey
+[0;34mRegistering committee2 with role committee[0m
++ fabric-ca-client register --caname ca-zppa --id.name committee2 --id.secret committee2pw --id.type client --id.attrs role=committee:ecert --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:49 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:49 [INFO] TLS Enabled
+2026/10/10 15:02:49 [INFO] TLS Enabled
+Password: committee2pw
++ fabric-ca-client enroll -u https://committee2:committee2pw@localhost:7054 --caname ca-zppa --enrollment.attrs role -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/committee2@zppa.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:49 [INFO] TLS Enabled
+2026/10/10 15:02:49 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:49 [INFO] encoded CSR
+2026/10/10 15:02:49 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/committee2@zppa.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:49 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/committee2@zppa.example.com/msp/cacerts/localhost-7054-ca-zppa.pem
+2026/10/10 15:02:49 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/committee2@zppa.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:49 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/committee2@zppa.example.com/msp/IssuerRevocationPublicKey
+[0;34mRegistering gateway with role gateway[0m
++ fabric-ca-client register --caname ca-zppa --id.name gateway --id.secret gatewaypw --id.type client --id.attrs role=gateway:ecert --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:49 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:49 [INFO] TLS Enabled
+2026/10/10 15:02:49 [INFO] TLS Enabled
+Password: gatewaypw
++ fabric-ca-client enroll -u https://gateway:gatewaypw@localhost:7054 --caname ca-zppa --enrollment.attrs role -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/gateway@zppa.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:49 [INFO] TLS Enabled
+2026/10/10 15:02:49 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:49 [INFO] encoded CSR
+2026/10/10 15:02:49 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/gateway@zppa.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:49 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/gateway@zppa.example.com/msp/cacerts/localhost-7054-ca-zppa.pem
+2026/10/10 15:02:49 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/gateway@zppa.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:49 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/gateway@zppa.example.com/msp/IssuerRevocationPublicKey
+[0;34mRegistering risk-service with role ai[0m
++ fabric-ca-client register --caname ca-zppa --id.name risk-service --id.secret risk-servicepw --id.type client --id.attrs role=ai:ecert --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:49 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:49 [INFO] TLS Enabled
+2026/10/10 15:02:49 [INFO] TLS Enabled
+Password: risk-servicepw
++ fabric-ca-client enroll -u https://risk-service:risk-servicepw@localhost:7054 --caname ca-zppa --enrollment.attrs role -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/risk-service@zppa.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:50 [INFO] TLS Enabled
+2026/10/10 15:02:50 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:50 [INFO] encoded CSR
+2026/10/10 15:02:50 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/risk-service@zppa.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:50 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/risk-service@zppa.example.com/msp/cacerts/localhost-7054-ca-zppa.pem
+2026/10/10 15:02:50 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/risk-service@zppa.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:50 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/risk-service@zppa.example.com/msp/IssuerRevocationPublicKey
+[0;34mRegistering regulator1 with role regulator[0m
++ fabric-ca-client register --caname ca-zppa --id.name regulator1 --id.secret regulator1pw --id.type client --id.attrs role=regulator:ecert --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:50 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:50 [INFO] TLS Enabled
+2026/10/10 15:02:50 [INFO] TLS Enabled
+Password: regulator1pw
++ fabric-ca-client enroll -u https://regulator1:regulator1pw@localhost:7054 --caname ca-zppa --enrollment.attrs role -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/regulator1@zppa.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/zppa/ca-cert.pem
+2026/10/10 15:02:50 [INFO] TLS Enabled
+2026/10/10 15:02:50 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:50 [INFO] encoded CSR
+2026/10/10 15:02:50 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/regulator1@zppa.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:50 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/regulator1@zppa.example.com/msp/cacerts/localhost-7054-ca-zppa.pem
+2026/10/10 15:02:50 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/regulator1@zppa.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:50 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/users/regulator1@zppa.example.com/msp/IssuerRevocationPublicKey
+[0;34mCreating OAG Identities[0m
+[0;34mEnrolling the CA admin[0m
++ fabric-ca-client enroll -u https://admin:adminpw@localhost:8054 --caname ca-oag --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/oag/ca-cert.pem
+2026/10/10 15:02:50 [INFO] Created a default configuration file at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:50 [INFO] TLS Enabled
+2026/10/10 15:02:50 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:50 [INFO] encoded CSR
+2026/10/10 15:02:50 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:50 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/msp/cacerts/localhost-8054-ca-oag.pem
+2026/10/10 15:02:50 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:50 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/msp/IssuerRevocationPublicKey
+[0;34mRegistering peer0[0m
++ fabric-ca-client register --caname ca-oag --id.name peer0 --id.secret peer0pw --id.type peer --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/oag/ca-cert.pem
+2026/10/10 15:02:50 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:50 [INFO] TLS Enabled
+2026/10/10 15:02:50 [INFO] TLS Enabled
+Password: peer0pw
+[0;34mRegistering user[0m
++ fabric-ca-client register --caname ca-oag --id.name user1 --id.secret user1pw --id.type client --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/oag/ca-cert.pem
+2026/10/10 15:02:50 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:50 [INFO] TLS Enabled
+2026/10/10 15:02:50 [INFO] TLS Enabled
+Password: user1pw
+[0;34mRegistering the org admin[0m
++ fabric-ca-client register --caname ca-oag --id.name oagadmin --id.secret oagadminpw --id.type admin --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/oag/ca-cert.pem
+2026/10/10 15:02:50 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:50 [INFO] TLS Enabled
+2026/10/10 15:02:50 [INFO] TLS Enabled
+Password: oagadminpw
+[0;34mGenerating the peer0 msp[0m
++ fabric-ca-client enroll -u https://peer0:peer0pw@localhost:8054 --caname ca-oag -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/peers/peer0.oag.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/oag/ca-cert.pem
+2026/10/10 15:02:51 [INFO] TLS Enabled
+2026/10/10 15:02:51 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:51 [INFO] encoded CSR
+2026/10/10 15:02:51 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/peers/peer0.oag.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:51 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/peers/peer0.oag.example.com/msp/cacerts/localhost-8054-ca-oag.pem
+2026/10/10 15:02:51 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/peers/peer0.oag.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:51 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/peers/peer0.oag.example.com/msp/IssuerRevocationPublicKey
+[0;34mGenerating the peer0-tls certificates, use --csr.hosts to specify Subject Alternative Names[0m
++ fabric-ca-client enroll -u https://peer0:peer0pw@localhost:8054 --caname ca-oag -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/peers/peer0.oag.example.com/tls --enrollment.profile tls --csr.hosts peer0.oag.example.com --csr.hosts localhost --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/oag/ca-cert.pem
+2026/10/10 15:02:51 [INFO] TLS Enabled
+2026/10/10 15:02:51 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:51 [INFO] encoded CSR
+2026/10/10 15:02:51 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/peers/peer0.oag.example.com/tls/signcerts/cert.pem
+2026/10/10 15:02:51 [INFO] Stored TLS root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/peers/peer0.oag.example.com/tls/tlscacerts/tls-localhost-8054-ca-oag.pem
+2026/10/10 15:02:51 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/peers/peer0.oag.example.com/tls/IssuerPublicKey
+2026/10/10 15:02:51 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/peers/peer0.oag.example.com/tls/IssuerRevocationPublicKey
+[0;34mGenerating the user msp[0m
++ fabric-ca-client enroll -u https://user1:user1pw@localhost:8054 --caname ca-oag -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/User1@oag.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/oag/ca-cert.pem
+2026/10/10 15:02:51 [INFO] TLS Enabled
+2026/10/10 15:02:51 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:51 [INFO] encoded CSR
+2026/10/10 15:02:51 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/User1@oag.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:51 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/User1@oag.example.com/msp/cacerts/localhost-8054-ca-oag.pem
+2026/10/10 15:02:51 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/User1@oag.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:51 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/User1@oag.example.com/msp/IssuerRevocationPublicKey
+[0;34mGenerating the org admin msp[0m
++ fabric-ca-client enroll -u https://oagadmin:oagadminpw@localhost:8054 --caname ca-oag -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/Admin@oag.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/oag/ca-cert.pem
+2026/10/10 15:02:51 [INFO] TLS Enabled
+2026/10/10 15:02:51 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:51 [INFO] encoded CSR
+2026/10/10 15:02:51 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/Admin@oag.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:51 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/Admin@oag.example.com/msp/cacerts/localhost-8054-ca-oag.pem
+2026/10/10 15:02:51 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/Admin@oag.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:51 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/Admin@oag.example.com/msp/IssuerRevocationPublicKey
+[0;34mRegistering auditor1 with role auditor[0m
++ fabric-ca-client register --caname ca-oag --id.name auditor1 --id.secret auditor1pw --id.type client --id.attrs role=auditor:ecert --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/oag/ca-cert.pem
+2026/10/10 15:02:51 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:51 [INFO] TLS Enabled
+2026/10/10 15:02:51 [INFO] TLS Enabled
+Password: auditor1pw
++ fabric-ca-client enroll -u https://auditor1:auditor1pw@localhost:8054 --caname ca-oag --enrollment.attrs role -M /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/auditor1@oag.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/oag/ca-cert.pem
+2026/10/10 15:02:51 [INFO] TLS Enabled
+2026/10/10 15:02:51 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:51 [INFO] encoded CSR
+2026/10/10 15:02:51 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/auditor1@oag.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:51 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/auditor1@oag.example.com/msp/cacerts/localhost-8054-ca-oag.pem
+2026/10/10 15:02:51 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/auditor1@oag.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:51 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/users/auditor1@oag.example.com/msp/IssuerRevocationPublicKey
+[0;34mCreating Orderer Org Identities[0m
+[0;34mEnrolling the CA admin[0m
++ fabric-ca-client enroll -u https://admin:adminpw@localhost:9054 --caname ca-orderer --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:51 [INFO] Created a default configuration file at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:51 [INFO] TLS Enabled
+2026/10/10 15:02:51 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:51 [INFO] encoded CSR
+2026/10/10 15:02:51 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:51 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/msp/cacerts/localhost-9054-ca-orderer.pem
+2026/10/10 15:02:51 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/msp/IssuerPublicKey
+2026/10/10 15:02:51 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/msp/IssuerRevocationPublicKey
+[0;34mRegistering orderer[0m
++ fabric-ca-client register --caname ca-orderer --id.name orderer --id.secret ordererpw --id.type orderer --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:52 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:52 [INFO] TLS Enabled
+2026/10/10 15:02:52 [INFO] TLS Enabled
+Password: ordererpw
+[0;34mGenerating the orderer MSP[0m
++ fabric-ca-client enroll -u https://orderer:ordererpw@localhost:9054 --caname ca-orderer -M /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:52 [INFO] TLS Enabled
+2026/10/10 15:02:52 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:52 [INFO] encoded CSR
+2026/10/10 15:02:52 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:52 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/cacerts/localhost-9054-ca-orderer.pem
+2026/10/10 15:02:52 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:52 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/IssuerRevocationPublicKey
+[0;34mGenerating the orderer TLS certificates, use --csr.hosts to specify Subject Alternative Names[0m
++ fabric-ca-client enroll -u https://orderer:ordererpw@localhost:9054 --caname ca-orderer -M /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls --enrollment.profile tls --csr.hosts orderer.example.com --csr.hosts localhost --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:52 [INFO] TLS Enabled
+2026/10/10 15:02:52 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:52 [INFO] encoded CSR
+2026/10/10 15:02:52 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/signcerts/cert.pem
+2026/10/10 15:02:52 [INFO] Stored TLS root CA certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/tlscacerts/tls-localhost-9054-ca-orderer.pem
+2026/10/10 15:02:52 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/IssuerPublicKey
+2026/10/10 15:02:52 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/IssuerRevocationPublicKey
+[0;34mRegistering orderer2[0m
++ fabric-ca-client register --caname ca-orderer --id.name orderer2 --id.secret orderer2pw --id.type orderer --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:52 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:52 [INFO] TLS Enabled
+2026/10/10 15:02:52 [INFO] TLS Enabled
+Password: orderer2pw
+[0;34mGenerating the orderer2 MSP[0m
++ fabric-ca-client enroll -u https://orderer2:orderer2pw@localhost:9054 --caname ca-orderer -M /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:52 [INFO] TLS Enabled
+2026/10/10 15:02:52 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:52 [INFO] encoded CSR
+2026/10/10 15:02:52 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:52 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/msp/cacerts/localhost-9054-ca-orderer.pem
+2026/10/10 15:02:52 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:52 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/msp/IssuerRevocationPublicKey
+[0;34mGenerating the orderer2 TLS certificates, use --csr.hosts to specify Subject Alternative Names[0m
++ fabric-ca-client enroll -u https://orderer2:orderer2pw@localhost:9054 --caname ca-orderer -M /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/tls --enrollment.profile tls --csr.hosts orderer2.example.com --csr.hosts localhost --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:52 [INFO] TLS Enabled
+2026/10/10 15:02:52 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:52 [INFO] encoded CSR
+2026/10/10 15:02:52 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/signcerts/cert.pem
+2026/10/10 15:02:52 [INFO] Stored TLS root CA certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/tlscacerts/tls-localhost-9054-ca-orderer.pem
+2026/10/10 15:02:52 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/IssuerPublicKey
+2026/10/10 15:02:52 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/IssuerRevocationPublicKey
+[0;34mRegistering orderer3[0m
++ fabric-ca-client register --caname ca-orderer --id.name orderer3 --id.secret orderer3pw --id.type orderer --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:52 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:52 [INFO] TLS Enabled
+2026/10/10 15:02:52 [INFO] TLS Enabled
+Password: orderer3pw
+[0;34mGenerating the orderer3 MSP[0m
++ fabric-ca-client enroll -u https://orderer3:orderer3pw@localhost:9054 --caname ca-orderer -M /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:53 [INFO] TLS Enabled
+2026/10/10 15:02:53 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:53 [INFO] encoded CSR
+2026/10/10 15:02:53 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:53 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/msp/cacerts/localhost-9054-ca-orderer.pem
+2026/10/10 15:02:53 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:53 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/msp/IssuerRevocationPublicKey
+[0;34mGenerating the orderer3 TLS certificates, use --csr.hosts to specify Subject Alternative Names[0m
++ fabric-ca-client enroll -u https://orderer3:orderer3pw@localhost:9054 --caname ca-orderer -M /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/tls --enrollment.profile tls --csr.hosts orderer3.example.com --csr.hosts localhost --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:53 [INFO] TLS Enabled
+2026/10/10 15:02:53 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:53 [INFO] encoded CSR
+2026/10/10 15:02:53 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/signcerts/cert.pem
+2026/10/10 15:02:53 [INFO] Stored TLS root CA certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/tlscacerts/tls-localhost-9054-ca-orderer.pem
+2026/10/10 15:02:53 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/IssuerPublicKey
+2026/10/10 15:02:53 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/IssuerRevocationPublicKey
+[0;34mRegistering orderer4[0m
++ fabric-ca-client register --caname ca-orderer --id.name orderer4 --id.secret orderer4pw --id.type orderer --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:53 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:53 [INFO] TLS Enabled
+2026/10/10 15:02:53 [INFO] TLS Enabled
+Password: orderer4pw
+[0;34mGenerating the orderer4 MSP[0m
++ fabric-ca-client enroll -u https://orderer4:orderer4pw@localhost:9054 --caname ca-orderer -M /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:53 [INFO] TLS Enabled
+2026/10/10 15:02:53 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:53 [INFO] encoded CSR
+2026/10/10 15:02:53 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:53 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/msp/cacerts/localhost-9054-ca-orderer.pem
+2026/10/10 15:02:53 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/msp/IssuerPublicKey
+2026/10/10 15:02:53 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/msp/IssuerRevocationPublicKey
+[0;34mGenerating the orderer4 TLS certificates, use --csr.hosts to specify Subject Alternative Names[0m
++ fabric-ca-client enroll -u https://orderer4:orderer4pw@localhost:9054 --caname ca-orderer -M /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/tls --enrollment.profile tls --csr.hosts orderer4.example.com --csr.hosts localhost --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:53 [INFO] TLS Enabled
+2026/10/10 15:02:53 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:53 [INFO] encoded CSR
+2026/10/10 15:02:53 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/signcerts/cert.pem
+2026/10/10 15:02:53 [INFO] Stored TLS root CA certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/tlscacerts/tls-localhost-9054-ca-orderer.pem
+2026/10/10 15:02:53 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/IssuerPublicKey
+2026/10/10 15:02:53 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/IssuerRevocationPublicKey
+[0;34mRegistering the orderer admin[0m
++ fabric-ca-client register --caname ca-orderer --id.name ordererAdmin --id.secret ordererAdminpw --id.type admin --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:53 [INFO] Configuration file location: /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/fabric-ca-client-config.yaml
+2026/10/10 15:02:53 [INFO] TLS Enabled
+2026/10/10 15:02:53 [INFO] TLS Enabled
+Password: ordererAdminpw
+[0;34mGenerating the admin msp[0m
++ fabric-ca-client enroll -u https://ordererAdmin:ordererAdminpw@localhost:9054 --caname ca-orderer -M /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/users/Admin@example.com/msp --tls.certfiles /Users/zhani/procurement/network/zambia/organizations/fabric-ca/ordererOrg/ca-cert.pem
+2026/10/10 15:02:53 [INFO] TLS Enabled
+2026/10/10 15:02:53 [INFO] generating key: &{A:ecdsa S:256}
+2026/10/10 15:02:53 [INFO] encoded CSR
+2026/10/10 15:02:54 [INFO] Stored client certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/users/Admin@example.com/msp/signcerts/cert.pem
+2026/10/10 15:02:54 [INFO] Stored root CA certificate at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/users/Admin@example.com/msp/cacerts/localhost-9054-ca-orderer.pem
+2026/10/10 15:02:54 [INFO] Stored Issuer public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/users/Admin@example.com/msp/IssuerPublicKey
+2026/10/10 15:02:54 [INFO] Stored Issuer revocation public key at /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/users/Admin@example.com/msp/IssuerRevocationPublicKey
+[0;34mGenerating CCP files for ZPPA and OAG[0m
+time="2026-10-10T15:02:54+02:00" level=warning msg="Found orphan containers (ca_zppa, ca_orderer, ca_oag) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+ Volume compose_peer0.zppa.example.com Creating 
+ Volume compose_peer0.zppa.example.com Creating 
+ Volume compose_orderer.example.com Creating 
+ Volume compose_orderer.example.com Creating 
+ Volume compose_peer0.oag.example.com Creating 
+ Volume compose_peer0.oag.example.com Creating 
+ Volume compose_peer0.zppa.example.com Created 
+ Volume compose_peer0.zppa.example.com Created 
+ Container peer0.zppa.example.com Creating 
+ Volume compose_orderer.example.com Created 
+ Volume compose_orderer.example.com Created 
+ Container orderer.example.com Creating 
+ Volume compose_peer0.oag.example.com Created 
+ Volume compose_peer0.oag.example.com Created 
+ Container peer0.oag.example.com Creating 
+ Container peer0.zppa.example.com Created 
+ Container peer0.oag.example.com Created 
+ Container orderer.example.com Created 
+ Container peer0.oag.example.com Starting 
+ Container orderer.example.com Starting 
+ Container peer0.zppa.example.com Starting 
+ Container peer0.oag.example.com Started 
+ Container orderer.example.com Started 
+ Container peer0.zppa.example.com Started 
+CONTAINER ID   IMAGE                               COMMAND                   CREATED          STATUS                   PORTS                                                                                                                                   NAMES
+fb978645c363   hyperledger/fabric-orderer:latest   "orderer"                 1 second ago     Up Less than a second    0.0.0.0:7050->7050/tcp, [::]:7050->7050/tcp, 0.0.0.0:7053->7053/tcp, [::]:7053->7053/tcp, 0.0.0.0:9443->9443/tcp, [::]:9443->9443/tcp   orderer.example.com
+2fb88c89385b   hyperledger/fabric-peer:latest      "peer node start"         1 second ago     Up Less than a second    0.0.0.0:9051->9051/tcp, [::]:9051->9051/tcp, 7051/tcp, 0.0.0.0:9445->9445/tcp, [::]:9445->9445/tcp                                      peer0.oag.example.com
+80c2c1573370   hyperledger/fabric-peer:latest      "peer node start"         1 second ago     Up Less than a second    0.0.0.0:7051->7051/tcp, [::]:7051->7051/tcp, 0.0.0.0:9444->9444/tcp, [::]:9444->9444/tcp                                                peer0.zppa.example.com
+36860b40f52a   hyperledger/fabric-ca:latest        "sh -c 'fabric-ca-se…"    11 seconds ago   Up 10 seconds            0.0.0.0:7054->7054/tcp, [::]:7054->7054/tcp, 0.0.0.0:17054->17054/tcp, [::]:17054->17054/tcp                                            ca_zppa
+bb9029d274b8   hyperledger/fabric-ca:latest        "sh -c 'fabric-ca-se…"    11 seconds ago   Up 10 seconds            0.0.0.0:9054->9054/tcp, [::]:9054->9054/tcp, 7054/tcp, 0.0.0.0:19054->19054/tcp, [::]:19054->19054/tcp                                  ca_orderer
+50b6cb86f2bf   hyperledger/fabric-ca:latest        "sh -c 'fabric-ca-se…"    11 seconds ago   Up 9 seconds             0.0.0.0:8054->8054/tcp, [::]:8054->8054/tcp, 7054/tcp, 0.0.0.0:18054->18054/tcp, [::]:18054->18054/tcp                                  ca_oag
+293b4972c42d   cb0570eca64b                        "/bin/sh -c '#(nop) …"    4 hours ago      Created                                                                                                                                                          epic_shannon
+2bdb0ea6a05b   9e4026bf293c                        "/bin/sh -c '#(nop) …"    4 hours ago      Created                                                                                                                                                          eloquent_chaum
+bfaf6d7d5562   9d837990f072                        "/bin/sh -c '#(nop) …"    4 hours ago      Created                                                                                                                                                          silly_dewdney
+f4046d008a9a   17837a4eecde                        "/bin/sh -c '#(nop) …"    4 hours ago      Created                                                                                                                                                          elegant_pare
+839b175ee141   hyperledger/fabric-ccenv:2.5        "/bin/sh -c '\nset -e…"   4 hours ago      Exited (0) 4 hours ago                                                                                                                                           quizzical_johnson
+1f55fb54eb79   997941fb379c                        "/bin/sh -c '#(nop) …"    4 hours ago      Created                                                                                                                                                          hopeful_agnesi
+811fd1ea01ce   ab0624f08e8a                        "/bin/sh -c '#(nop) …"    4 hours ago      Created                                                                                                                                                          condescending_gauss
+0b41dd98cebc   postgres:16-alpine                  "docker-entrypoint.s…"    30 hours ago     Up 30 hours (healthy)    127.0.0.1:5432->5432/tcp                                                                                                                procurement-postgres-1
+fae6f5dc2d76   ipfs/kubo:v0.38.1                   "/sbin/tini -- /usr/…"    30 hours ago     Up 30 hours (healthy)    127.0.0.1:5001->5001/tcp, 4001/udp, 0.0.0.0:4001->4001/tcp, [::]:4001->4001/tcp, 127.0.0.1:8080->8080/tcp, 8081/tcp                     procurement-ipfs-1
+[0;34mUsing docker and docker-compose[0m
+[0;34mGenerating channel genesis block 'procurement.block'[0m
+[0;34mUsing organization 1[0m
+/Users/zhani/procurement/network/zambia/../bin/configtxgen
++ '[' 0 -eq 1 ']'
++ configtxgen -profile ChannelUsingRaft -outputBlock ./channel-artifacts/procurement.block -channelID procurement
+[34m2026-10-10 15:02:55.990 CAT 0001 INFO[0m [common.tools.configtxgen] [34;1mmain[0m -> Loading configuration
+[34m2026-10-10 15:02:55.996 CAT 0002 INFO[0m [common.tools.configtxgen.localconfig] [34;1mcompleteInitialization[0m -> orderer type: etcdraft
+[34m2026-10-10 15:02:55.996 CAT 0003 INFO[0m [common.tools.configtxgen.localconfig] [34;1mcompleteInitialization[0m -> Orderer.EtcdRaft.Options unset, setting to tick_interval:"500ms" election_tick:10 heartbeat_tick:1 max_inflight_blocks:5 snapshot_interval_size:16777216 
+[34m2026-10-10 15:02:55.996 CAT 0004 INFO[0m [common.tools.configtxgen.localconfig] [34;1mLoad[0m -> Loaded configuration: /Users/zhani/procurement/network/zambia/configtx/configtx.yaml
+[34m2026-10-10 15:02:55.999 CAT 0005 INFO[0m [common.tools.configtxgen] [34;1mdoOutputBlock[0m -> Generating genesis block
+[34m2026-10-10 15:02:55.999 CAT 0006 INFO[0m [common.tools.configtxgen] [34;1mdoOutputBlock[0m -> Creating application channel genesis block
+[34m2026-10-10 15:02:56.000 CAT 0007 INFO[0m [common.tools.configtxgen] [34;1mdoOutputBlock[0m -> Writing genesis block
++ res=0
+[0;34mCreating channel procurement[0m
+[0;34mAdding orderers[0m
++ . scripts/orderer.sh procurement
++ '[' 0 -eq 1 ']'
++ res=0
+Status: 201
+{
+	"name": "procurement",
+	"url": "/participation/v1/channels/procurement",
+	"consensusRelation": "consenter",
+	"status": "active",
+	"height": 1
+}
+
+[0;32mChannel 'procurement' created[0m
+[0;34mJoining zppa peer to the channel...[0m
+[0;34mUsing organization 1[0m
++ peer channel join -b ./channel-artifacts/procurement.block
++ res=0
+[34m2026-10-10 15:03:02.340 CAT 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+[34m2026-10-10 15:03:02.378 CAT 0002 INFO[0m [channelCmd] [34;1mexecuteJoin[0m -> Successfully submitted proposal to join channel
+[0;34mJoining oag peer to the channel...[0m
+[0;34mUsing organization 2[0m
++ peer channel join -b ./channel-artifacts/procurement.block
++ res=0
+[34m2026-10-10 15:03:05.476 CAT 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+[34m2026-10-10 15:03:05.522 CAT 0002 INFO[0m [channelCmd] [34;1mexecuteJoin[0m -> Successfully submitted proposal to join channel
+[0;34mSetting anchor peer for zppa...[0m
+[0;34mUsing organization 1[0m
+[0;34mFetching channel config for channel procurement[0m
+[0;34mUsing organization 1[0m
+[0;34mFetching the most recent configuration block for the channel[0m
+++ peer channel fetch config /Users/zhani/procurement/network/zambia/channel-artifacts/config_block.pb -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c procurement --tls --cafile /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
+[34m2026-10-10 15:03:05.607 CAT 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+[34m2026-10-10 15:03:05.613 CAT 0002 INFO[0m [cli.common] [34;1mreadBlock[0m -> Received block: 0
+[34m2026-10-10 15:03:05.613 CAT 0003 INFO[0m [channelCmd] [34;1mfetch[0m -> Retrieving last config block: 0
+[34m2026-10-10 15:03:05.614 CAT 0004 INFO[0m [cli.common] [34;1mreadBlock[0m -> Received block: 0
+[0;34mDecoding config block to JSON and isolating config to /Users/zhani/procurement/network/zambia/channel-artifacts/ZPPAMSPconfig.json[0m
+++ configtxlator proto_decode --input /Users/zhani/procurement/network/zambia/channel-artifacts/config_block.pb --type common.Block --output /Users/zhani/procurement/network/zambia/channel-artifacts/config_block.json
+++ jq '.data.data[0].payload.data.config' /Users/zhani/procurement/network/zambia/channel-artifacts/config_block.json
+++ res=0
+[0;34mGenerating anchor peer update transaction for ZPPAMSP on channel procurement[0m
+++ jq '.channel_group.groups.Application.groups.ZPPAMSP.values += {"AnchorPeers":{"mod_policy": "Admins","value":{"anchor_peers": [{"host": "peer0.zppa.example.com","port": 7051}]},"version": "0"}}' /Users/zhani/procurement/network/zambia/channel-artifacts/ZPPAMSPconfig.json
+++ res=0
+++ configtxlator proto_encode --input /Users/zhani/procurement/network/zambia/channel-artifacts/ZPPAMSPconfig.json --type common.Config --output /Users/zhani/procurement/network/zambia/channel-artifacts/original_config.pb
+++ configtxlator proto_encode --input /Users/zhani/procurement/network/zambia/channel-artifacts/ZPPAMSPmodified_config.json --type common.Config --output /Users/zhani/procurement/network/zambia/channel-artifacts/modified_config.pb
+++ configtxlator compute_update --channel_id procurement --original /Users/zhani/procurement/network/zambia/channel-artifacts/original_config.pb --updated /Users/zhani/procurement/network/zambia/channel-artifacts/modified_config.pb --output /Users/zhani/procurement/network/zambia/channel-artifacts/config_update.pb
+++ configtxlator proto_decode --input /Users/zhani/procurement/network/zambia/channel-artifacts/config_update.pb --type common.ConfigUpdate --output /Users/zhani/procurement/network/zambia/channel-artifacts/config_update.json
+++ jq .
++++ cat /Users/zhani/procurement/network/zambia/channel-artifacts/config_update.json
+++ echo '{"payload":{"header":{"channel_header":{"channel_id":"procurement", "type":2}},"data":{"config_update":{' '"channel_id":' '"procurement",' '"isolated_data":' '{},' '"read_set":' '{' '"groups":' '{' '"Application":' '{' '"groups":' '{' '"ZPPAMSP":' '{' '"groups":' '{},' '"mod_policy":' '"",' '"policies":' '{' '"Admins":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '},' '"Endorsement":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '},' '"Readers":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '},' '"Writers":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '}' '},' '"values":' '{' '"MSP":' '{' '"mod_policy":' '"",' '"value":' null, '"version":' '"0"' '}' '},' '"version":' '"0"' '}' '},' '"mod_policy":' '"",' '"policies":' '{},' '"values":' '{},' '"version":' '"0"' '}' '},' '"mod_policy":' '"",' '"policies":' '{},' '"values":' '{},' '"version":' '"0"' '},' '"write_set":' '{' '"groups":' '{' '"Application":' '{' '"groups":' '{' '"ZPPAMSP":' '{' '"groups":' '{},' '"mod_policy":' '"Admins",' '"policies":' '{' '"Admins":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '},' '"Endorsement":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '},' '"Readers":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '},' '"Writers":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '}' '},' '"values":' '{' '"AnchorPeers":' '{' '"mod_policy":' '"Admins",' '"value":' '{' '"anchor_peers":' '[' '{' '"host":' '"peer0.zppa.example.com",' '"port":' 7051 '}' ']' '},' '"version":' '"0"' '},' '"MSP":' '{' '"mod_policy":' '"",' '"value":' null, '"version":' '"0"' '}' '},' '"version":' '"1"' '}' '},' '"mod_policy":' '"",' '"policies":' '{},' '"values":' '{},' '"version":' '"0"' '}' '},' '"mod_policy":' '"",' '"policies":' '{},' '"values":' '{},' '"version":' '"0"' '}' '}}}}'
+++ configtxlator proto_encode --input /Users/zhani/procurement/network/zambia/channel-artifacts/config_update_in_envelope.json --type common.Envelope --output /Users/zhani/procurement/network/zambia/channel-artifacts/ZPPAMSPanchors.tx
+[34m2026-10-10 15:03:05.818 CAT 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+[34m2026-10-10 15:03:05.848 CAT 0002 INFO[0m [channelCmd] [34;1mupdate[0m -> Successfully submitted channel update
+[0;32mAnchor peer set for org 'ZPPAMSP' on channel 'procurement'[0m
+[0;34mSetting anchor peer for oag...[0m
+[0;34mUsing organization 2[0m
+[0;34mFetching channel config for channel procurement[0m
+[0;34mUsing organization 2[0m
+[0;34mFetching the most recent configuration block for the channel[0m
+++ peer channel fetch config /Users/zhani/procurement/network/zambia/channel-artifacts/config_block.pb -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c procurement --tls --cafile /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
+[34m2026-10-10 15:03:05.908 CAT 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+[34m2026-10-10 15:03:05.911 CAT 0002 INFO[0m [cli.common] [34;1mreadBlock[0m -> Received block: 1
+[34m2026-10-10 15:03:05.911 CAT 0003 INFO[0m [channelCmd] [34;1mfetch[0m -> Retrieving last config block: 1
+[34m2026-10-10 15:03:05.912 CAT 0004 INFO[0m [cli.common] [34;1mreadBlock[0m -> Received block: 1
+[0;34mDecoding config block to JSON and isolating config to /Users/zhani/procurement/network/zambia/channel-artifacts/OAGMSPconfig.json[0m
+++ configtxlator proto_decode --input /Users/zhani/procurement/network/zambia/channel-artifacts/config_block.pb --type common.Block --output /Users/zhani/procurement/network/zambia/channel-artifacts/config_block.json
+++ jq '.data.data[0].payload.data.config' /Users/zhani/procurement/network/zambia/channel-artifacts/config_block.json
+++ res=0
+[0;34mGenerating anchor peer update transaction for OAGMSP on channel procurement[0m
+++ jq '.channel_group.groups.Application.groups.OAGMSP.values += {"AnchorPeers":{"mod_policy": "Admins","value":{"anchor_peers": [{"host": "peer0.oag.example.com","port": 9051}]},"version": "0"}}' /Users/zhani/procurement/network/zambia/channel-artifacts/OAGMSPconfig.json
+++ res=0
+++ configtxlator proto_encode --input /Users/zhani/procurement/network/zambia/channel-artifacts/OAGMSPconfig.json --type common.Config --output /Users/zhani/procurement/network/zambia/channel-artifacts/original_config.pb
+++ configtxlator proto_encode --input /Users/zhani/procurement/network/zambia/channel-artifacts/OAGMSPmodified_config.json --type common.Config --output /Users/zhani/procurement/network/zambia/channel-artifacts/modified_config.pb
+++ configtxlator compute_update --channel_id procurement --original /Users/zhani/procurement/network/zambia/channel-artifacts/original_config.pb --updated /Users/zhani/procurement/network/zambia/channel-artifacts/modified_config.pb --output /Users/zhani/procurement/network/zambia/channel-artifacts/config_update.pb
+++ configtxlator proto_decode --input /Users/zhani/procurement/network/zambia/channel-artifacts/config_update.pb --type common.ConfigUpdate --output /Users/zhani/procurement/network/zambia/channel-artifacts/config_update.json
+++ jq .
++++ cat /Users/zhani/procurement/network/zambia/channel-artifacts/config_update.json
+++ echo '{"payload":{"header":{"channel_header":{"channel_id":"procurement", "type":2}},"data":{"config_update":{' '"channel_id":' '"procurement",' '"isolated_data":' '{},' '"read_set":' '{' '"groups":' '{' '"Application":' '{' '"groups":' '{' '"OAGMSP":' '{' '"groups":' '{},' '"mod_policy":' '"",' '"policies":' '{' '"Admins":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '},' '"Endorsement":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '},' '"Readers":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '},' '"Writers":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '}' '},' '"values":' '{' '"MSP":' '{' '"mod_policy":' '"",' '"value":' null, '"version":' '"0"' '}' '},' '"version":' '"0"' '}' '},' '"mod_policy":' '"",' '"policies":' '{},' '"values":' '{},' '"version":' '"0"' '}' '},' '"mod_policy":' '"",' '"policies":' '{},' '"values":' '{},' '"version":' '"0"' '},' '"write_set":' '{' '"groups":' '{' '"Application":' '{' '"groups":' '{' '"OAGMSP":' '{' '"groups":' '{},' '"mod_policy":' '"Admins",' '"policies":' '{' '"Admins":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '},' '"Endorsement":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '},' '"Readers":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '},' '"Writers":' '{' '"mod_policy":' '"",' '"policy":' null, '"version":' '"0"' '}' '},' '"values":' '{' '"AnchorPeers":' '{' '"mod_policy":' '"Admins",' '"value":' '{' '"anchor_peers":' '[' '{' '"host":' '"peer0.oag.example.com",' '"port":' 9051 '}' ']' '},' '"version":' '"0"' '},' '"MSP":' '{' '"mod_policy":' '"",' '"value":' null, '"version":' '"0"' '}' '},' '"version":' '"1"' '}' '},' '"mod_policy":' '"",' '"policies":' '{},' '"values":' '{},' '"version":' '"0"' '}' '},' '"mod_policy":' '"",' '"policies":' '{},' '"values":' '{},' '"version":' '"0"' '}' '}}}}'
+++ configtxlator proto_encode --input /Users/zhani/procurement/network/zambia/channel-artifacts/config_update_in_envelope.json --type common.Envelope --output /Users/zhani/procurement/network/zambia/channel-artifacts/OAGMSPanchors.tx
+[34m2026-10-10 15:03:06.077 CAT 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+[34m2026-10-10 15:03:06.118 CAT 0002 INFO[0m [channelCmd] [34;1mupdate[0m -> Successfully submitted channel update
+[0;32mAnchor peer set for org 'OAGMSP' on channel 'procurement'[0m
+[0;32mChannel 'procurement' joined[0m
