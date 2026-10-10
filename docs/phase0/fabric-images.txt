@@ -1,0 +1,15 @@
+Sat Oct 10 10:47:08 CAT 2026
+hyperledger/fabric-peer:latest 58979b65744b 215MB linux/arm64
+hyperledger/fabric-orderer:latest e322c57331d3 167MB linux/arm64
+hyperledger/fabric-ccenv:latest 19ea2b3c1440 972MB linux/arm64
+hyperledger/fabric-baseos:latest 0087a600908f 245MB linux/arm64
+hyperledger/fabric-ca:latest fac0c4a70afc 358MB linux/arm64
+peer:
+ Version: v2.5.16
+ Commit SHA: f871cf9
+ Go version: go1.26.4
+ OS/Arch: darwin/arm64
+ Chaincode:
+  Base Docker Label: org.hyperledger.fabric
+  Docker Namespace: hyperledger
+

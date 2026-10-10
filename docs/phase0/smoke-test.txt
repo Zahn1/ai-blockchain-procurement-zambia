@@ -1,0 +1,21 @@
+Sat Oct 10 11:00:16 CAT 2026
+== invoke InitLedger
+Chaincode invoke successful. result: status:200 
+== query GetAllAssets
+{"AppraisedValue":300,"Color":"blue","ID":"asset1","Owner":"Tomoko","Size":5}
+{"AppraisedValue":400,"Color":"red","ID":"asset2","Owner":"Brad","Size":5}
+{"AppraisedValue":500,"Color":"green","ID":"asset3","Owner":"Jin Soo","Size":10}
+{"AppraisedValue":600,"Color":"yellow","ID":"asset4","Owner":"Max","Size":10}
+{"AppraisedValue":700,"Color":"black","ID":"asset5","Owner":"Adriana","Size":15}
+{"AppraisedValue":800,"Color":"white","ID":"asset6","Owner":"Michel","Size":15}
+== containers
+dev-peer0.org1.example.com-basic_1.0-d0b27e1af09f3039dabac82678c64e8807311f9405008efb867ba8895dd643aa	Up 42 seconds
+dev-peer0.org2.example.com-basic_1.0-d0b27e1af09f3039dabac82678c64e8807311f9405008efb867ba8895dd643aa	Up 42 seconds
+orderer.example.com	Up About a minute
+peer0.org2.example.com	Up About a minute
+peer0.org1.example.com	Up About a minute
+ca_org2	Up About a minute
+ca_org1	Up About a minute
+ca_orderer	Up About a minute
+procurement-postgres-1	Up 26 hours (healthy)
+procurement-ipfs-1	Up 26 hours (healthy)

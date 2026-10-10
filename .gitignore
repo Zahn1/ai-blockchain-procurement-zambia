@@ -1,0 +1,24 @@
+# Secrets
+.env
+!.env.example
+
+# Node
+node_modules/
+dist/
+
+# Python
+__pycache__/
+.venv/
+*.pyc
+.ipynb_checkpoints/
+
+# Fabric (downloaded by install-fabric.sh)
+network/fabric-samples/
+network/bin/
+network/builders/
+network/config/
+network/*.tar.gz
+
+# OS / editor
+.DS_Store
+.vscode/

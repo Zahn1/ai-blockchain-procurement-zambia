@@ -1,0 +1,6 @@
+Fri Oct  9 09:00:15 CAT 2026
+NAME                     IMAGE                COMMAND                  SERVICE    CREATED          STATUS                    PORTS
+procurement-ipfs-1       ipfs/kubo:v0.38.1    "/sbin/tini -- /usr/…"   ipfs       27 seconds ago   Up 26 seconds (healthy)   127.0.0.1:5001->5001/tcp, 4001/udp, 0.0.0.0:4001->4001/tcp, [::]:4001->4001/tcp, 127.0.0.1:8080->8080/tcp, 8081/tcp
+procurement-postgres-1   postgres:16-alpine   "docker-entrypoint.s…"   postgres   27 seconds ago   Up 26 seconds (healthy)   127.0.0.1:5432->5432/tcp
+/var/run/postgresql:5432 - accepting connections
+{"Version":"0.38.1","Commit":"6bf52ae","Repo":"18","System":"arm64/linux","Golang":"go1.25.2"}
