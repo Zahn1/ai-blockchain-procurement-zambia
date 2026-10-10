@@ -9,7 +9,10 @@ import (
 )
 
 func main() {
-	cc, err := contractapi.NewChaincode(&contracts.TenderContract{}, &contracts.BidContract{})
+	cc, err := contractapi.NewChaincode(
+		&contracts.TenderContract{}, &contracts.BidContract{}, &contracts.AwardContract{},
+		&contracts.MilestoneContract{}, &contracts.AlertContract{},
+	)
 	if err != nil {
 		log.Panicf("creating procurement chaincode: %v", err)
 	}

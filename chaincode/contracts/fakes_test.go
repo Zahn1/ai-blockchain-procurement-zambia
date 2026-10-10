@@ -34,9 +34,9 @@ func newFakeStub(now time.Time) *fakeStub {
 }
 
 func (s *fakeStub) GetState(k string) ([]byte, error) { return s.state[k], nil }
-func (s *fakeStub) PutState(k string, v []byte) error  { s.state[k] = v; return nil }
-func (s *fakeStub) DelState(k string) error            { delete(s.state, k); return nil }
-func (s *fakeStub) GetTxID() string                    { return fmt.Sprintf("tx%04d", s.txSeq) }
+func (s *fakeStub) PutState(k string, v []byte) error { s.state[k] = v; return nil }
+func (s *fakeStub) DelState(k string) error           { delete(s.state, k); return nil }
+func (s *fakeStub) GetTxID() string                   { return fmt.Sprintf("tx%04d", s.txSeq) }
 func (s *fakeStub) GetTxTimestamp() (*timestamppb.Timestamp, error) {
 	return timestamppb.New(s.now), nil
 }
@@ -112,6 +112,8 @@ var (
 	committee1 = fakeIdentity{"x509::CN=member1::CN=ca.zppa", MSPZPPA, RoleCommittee}
 	committee2 = fakeIdentity{"x509::CN=member2::CN=ca.zppa", MSPZPPA, RoleCommittee}
 	auditor    = fakeIdentity{"x509::CN=auditor1::CN=ca.oag", MSPOAG, RoleAuditor}
+	regulator  = fakeIdentity{"x509::CN=regulator1::CN=ca.zppa", MSPZPPA, RoleRegulator}
+	aiService  = fakeIdentity{"x509::CN=risk-service::CN=ca.zppa", MSPZPPA, RoleAI}
 )
 
 // ledger bundles a fake stub with a helper to act as a given caller at a given time.
