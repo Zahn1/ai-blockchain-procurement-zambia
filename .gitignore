@@ -29,3 +29,6 @@ ai/data/processed/tenders.csv
 
 # Go dependencies (recreate with: go mod vendor)
 chaincode/vendor/
+
+# Local assistant notes (not published)
+CLAUDE.md
