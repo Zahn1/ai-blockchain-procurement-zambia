@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transparent Procurement Prototype</title>
+<style>
+  :root {
+    --bg: #f5f6f4; --surface: #ffffff; --ink: #1c2321; --muted: #5d6a66; --line: #dfe3e0;
+    --brand: #0d6b4f; --brand-ink: #ffffff; --brand-soft: #e3f1ec;
+    --ok: #17703f; --ok-soft: #e4f4ea; --bad: #a3262a; --bad-soft: #fbe9e9; --warn: #8a5a00; --warn-soft: #fdf3dc;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121614; --surface: #1b211e; --ink: #e7ece9; --muted: #9aa8a3; --line: #2d3531;
+      --brand: #3fb28b; --brand-ink: #0b1310; --brand-soft: #1d3029;
+      --ok: #5fcf8f; --ok-soft: #173324; --bad: #ef7f82; --bad-soft: #3a1c1d; --warn: #f0c062; --warn-soft: #362a12;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { background: var(--brand); color: var(--brand-ink); padding: 18px 16px; }
+  header .wrap { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; justify-content: space-between; }
+  header h1 { margin: 0; font-size: 19px; font-weight: 650; }
+  header p { margin: 0; opacity: .85; font-size: 13px; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  main { padding: 20px 16px 48px; }
+  nav { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+  nav button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 9px 14px; border-radius: 8px; font: inherit; cursor: pointer; }
+  nav button[aria-selected="true"] { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+  nav .req { font-size: 12px; opacity: .75; margin-left: 4px; }
+  section[role="tabpanel"] { display: none; }
+  section[role="tabpanel"].active { display: block; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .card h2 { margin: 0 0 4px; font-size: 16px; }
+  .card .lead { margin: 0 0 14px; color: var(--muted); font-size: 13.5px; }
+  label { display: block; font-weight: 600; font-size: 13px; margin: 12px 0 4px; }
+  input, select { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: inherit; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn { margin-top: 16px; background: var(--brand); color: var(--brand-ink); border: 0; padding: 10px 16px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; }
+  .btn:disabled { opacity: .6; cursor: progress; }
+  .btn.secondary { background: transparent; color: var(--brand); border: 1px solid var(--brand); }
+  .result { margin-top: 14px; border-radius: 10px; padding: 12px 14px; font-size: 13.5px; display: none; }
+  .result.show { display: block; }
+  .result.ok { background: var(--ok-soft); border: 1px solid var(--ok); }
+  .result.bad { background: var(--bad-soft); border: 1px solid var(--bad); }
+  .result h3 { margin: 0 0 6px; font-size: 14px; }
+  .result.ok h3 { color: var(--ok); } .result.bad h3 { color: var(--bad); }
+  dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin: 8px 0 0; }
+  dt { color: var(--muted); }
+  dd { margin: 0; font-family: var(--mono); font-size: 12.5px; overflow-wrap: anywhere; }
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+  .badge.open { background: var(--ok-soft); color: var(--ok); } .badge.closed { background: var(--warn-soft); color: var(--warn); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  td.mono { font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
+  .table-scroll { overflow-x: auto; }
+  pre.hex { font-family: var(--mono); font-size: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; overflow-x: auto; margin: 8px 0 0; }
+  .note { font-size: 12.5px; color: var(--muted); margin-top: 18px; }
+  .empty { color: var(--muted); font-size: 13.5px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>AI and Blockchain-Based Transparent Government Procurement System</h1>
+    <p>Prototype · Hyperledger Fabric (ZPPA + OAG) · IPFS · AES-256-GCM</p>
+  </div>
+</header>
+<main class="wrap">
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-tab="publish">Publish tender <span class="req">3.5.3</span></button>
+    <button role="tab" aria-selected="false" data-tab="bid">Submit sealed bid <span class="req">3.5.4</span></button>
+    <button role="tab" aria-selected="false" data-tab="verify">Verify and ledger</button>
+  </nav>
+
+  <!-- 3.5.3 Tender Publication -->
+  <section role="tabpanel" id="publish" class="active">
+    <div class="grid">
+      <form class="card" id="publish-form">
+        <h2>Publish a tender</h2>
+        <p class="lead">Acting as <strong>officer1</strong> (procurement officer, ZPPA). The document is stored on IPFS and its SHA-256 hash is written to the ledger with a timestamp.</p>
+        <label for="reference">Tender reference</label>
+        <input id="reference" name="reference" required pattern="[A-Za-z0-9._/\-]{3,64}">
+        <label for="title">Title (kept off-chain)</label>
+        <input id="title" name="title" value="Supply and delivery of 40 laptops">
+        <div class="row">
+          <div><label for="value">Estimated value (K)</label><input id="value" name="estValueKwacha" type="number" min="1" step="0.01" value="150000" required></div>
+          <div><label for="closes">Closes in (minutes)</label><input id="closes" name="closesInMinutes" type="number" min="1" value="3" required></div>
+        </div>
+        <label for="document">Tender document</label>
+        <input id="document" name="document" type="file" required>
+        <button class="btn" type="submit">Publish to ledger</button>
+        <div class="result" id="publish-result" role="status"></div>
+      </form>
+      <div class="card">
+        <h2>Published tenders</h2>
+        <p class="lead">From the back end's off-chain records. Status is worked out from the ledger closing time.</p>
+        <div id="tender-list" class="table-scroll"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3.5.4 Encrypted Bid Submission -->
+  <section role="tabpanel" id="bid">
+    <div class="grid">
+      <form class="card" id="bid-form">
+        <h2>Submit a sealed bid</h2>
+        <p class="lead">Submitted through the <strong>gateway</strong> identity on the supplier's behalf. The file is encrypted with a new AES-256-GCM key, the ciphertext goes to IPFS, and only its hash is recorded on the ledger. Bids after the closing time are rejected by the chaincode.</p>
+        <label for="bid-tender">Tender</label>
+        <select id="bid-tender" name="tenderId" required></select>
+        <p class="note" id="bid-countdown" aria-live="polite"></p>
+        <label for="supplier">Supplier reference (pseudonym on the ledger)</label>
+        <select id="supplier" name="supplierRef">
+          <option>SUP-alpha</option><option>SUP-bravo</option><option>SUP-charlie</option><option>SUP-delta</option>
+        </select>
+        <label for="bid-file">Bid document</label>
+        <input id="bid-file" name="bid" type="file" required>
+        <button class="btn" type="submit">Encrypt and submit</button>
+        <div class="result" id="bid-result" role="status"></div>
+      </form>
+      <div class="card">
+        <h2>Signed receipt</h2>
+        <p class="lead">The supplier's proof of on-time submission, signed with the gateway's private key.</p>
+        <div id="receipt-view" class="empty">Submit a bid to see its receipt.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Verification -->
+  <section role="tabpanel" id="verify">
+    <div class="grid">
+      <form class="card" id="verify-form">
+        <h2>Check a document against the ledger</h2>
+        <p class="lead">Upload a copy of a tender document. If even one character has changed, its hash will not match the one on the ledger.</p>
+        <label for="verify-tender">Tender</label>
+        <select id="verify-tender" name="reference" required></select>
+        <label for="verify-file">Document</label>
+        <input id="verify-file" name="document" type="file" required>
+        <button class="btn" type="submit">Check hash</button>
+        <div class="result" id="verify-result" role="status"></div>
+      </form>
+      <form class="card" id="receipt-form">
+        <h2>Check a bid receipt</h2>
+        <p class="lead">Paste a receipt (JSON). Any change to it breaks the signature.</p>
+        <label for="receipt-json">Receipt</label>
+        <textarea id="receipt-json" rows="6" style="width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:12px var(--mono)"></textarea>
+        <button class="btn" type="submit">Check signature</button>
+        <div class="result" id="receipt-result" role="status"></div>
+      </form>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2>Ledger record</h2>
+      <p class="lead">Read live from the blockchain: the tender, every version of it, and the sealed bids (hashes only).</p>
+      <label for="ledger-tender">Tender</label>
+      <div class="row" style="grid-template-columns: 1fr auto">
+        <select id="ledger-tender"></select>
+        <button class="btn secondary" id="ledger-load" type="button" style="margin-top:0">Load from ledger</button>
+      </div>
+      <div id="ledger-view" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <p class="note">Prototype for Chapter 3 requirements 3.5.3 and 3.5.4. Sign-in with a one-time code (3.5.1) is not part of this prototype; each page acts as a fixed enrolled user.</p>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const kwacha = (ngwee) => 'K' + (ngwee / 100).toLocaleString('en-GB', { minimumFractionDigits: 2 });
+const when = (iso) => new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'medium' });
+let tenders = [];
+
+// Tabs
+document.querySelectorAll('[role="tab"]').forEach((tab) => tab.addEventListener('click', () => {
+  document.querySelectorAll('[role="tab"]').forEach((t) => t.setAttribute('aria-selected', t === tab));
+  document.querySelectorAll('[role="tabpanel"]').forEach((p) => p.classList.toggle('active', p.id === tab.dataset.tab));
+}));
+
+function show(el, ok, title, body) {
+  el.className = 'result show ' + (ok ? 'ok' : 'bad');
+  el.innerHTML = `<h3>${esc(title)}</h3>${body ?? ''}`;
+}
+const fields = (pairs) => `<dl>${pairs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
+
+async function send(url, form) {
+  const res = await fetch(url, { method: 'POST', body: form });
+  const data = await res.json().catch(() => ({ error: 'The server sent an unexpected reply.' }));
+  return { ok: res.ok, data };
+}
+
+async function withButton(form, fn) {
+  const btn = form.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  try { await fn(); } finally { btn.disabled = false; }
+}
+
+// Tender list and pickers
+async function loadTenders() {
+  tenders = await (await fetch('/api/tenders')).json();
+  const now = Date.now();
+  $('#tender-list').innerHTML = tenders.length ? `<table>
+    <tr><th>Reference</th><th>Title</th><th>Closes</th><th>Status</th></tr>
+    ${tenders.map((t) => `<tr><td class="mono">${esc(t.reference)}</td><td>${esc(t.title)}</td><td>${when(t.closingTime)}</td>
+      <td><span class="badge ${new Date(t.closingTime) > now ? 'open' : 'closed'}">${new Date(t.closingTime) > now ? 'Open' : 'Closed'}</span></td></tr>`).join('')}
+  </table>` : '<p class="empty">No tenders published yet.</p>';
+  for (const sel of ['#bid-tender', '#verify-tender', '#ledger-tender']) {
+    const keep = $(sel).value;
+    $(sel).innerHTML = tenders.map((t) => `<option value="${esc(t.reference)}">${esc(t.reference)} · ${esc(t.title)}</option>`).join('');
+    if (keep) $(sel).value = keep;
+  }
+  tick();
+}
+
+function tick() {
+  const t = tenders.find((x) => x.reference === $('#bid-tender').value);
+  if (!t) { $('#bid-countdown').textContent = ''; return; }
+  const left = Math.round((new Date(t.closingTime) - Date.now()) / 1000);
+  $('#bid-countdown').textContent = left > 0
+    ? `Closes ${when(t.closingTime)} · ${Math.floor(left / 60)} min ${left % 60} s left`
+    : `Closed at ${when(t.closingTime)}. The ledger will reject new bids.`;
+}
+setInterval(tick, 1000);
+$('#bid-tender').addEventListener('change', tick);
+
+// 3.5.3 Publish
+$('#reference').value = `ZPPA/MOH/2026/${String(Date.now()).slice(-4)}`;
+$('#publish-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const form = e.target;
+  withButton(form, async () => {
+    const { ok, data } = await send('/api/tenders', new FormData(form));
+    if (!ok) return show($('#publish-result'), false, data.source === 'ledger' ? 'Rejected by the ledger' : 'Not published', `<p>${esc(data.error)}</p>`);
+    show($('#publish-result'), true, 'Published and committed to the ledger', fields([
+      ['Reference', data.reference], ['Document hash (SHA-256)', data.docHash], ['IPFS CID', data.cid],
+      ['Closes', when(data.closingTime)], ['Transaction ID', data.txId], ['Block', data.block],
+    ]));
+    $('#reference').value = `ZPPA/MOH/2026/${String(Date.now()).slice(-4)}`;
+    await loadTenders();
+  });
+});
+
+// 3.5.4 Bid
+$('#bid-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const form = e.target;
+  withButton(form, async () => {
+    const { ok, data } = await send('/api/bids', new FormData(form));
+    if (!ok) {
+      $('#receipt-view').innerHTML = '<p class="empty">No receipt: the bid was not accepted.</p>';
+      return show($('#bid-result'), false, data.source === 'ledger' ? 'Rejected by the ledger' : 'Not submitted', `<p>${esc(data.error)}</p>`);
+    }
+    show($('#bid-result'), true, 'Sealed bid recorded on the ledger', `<p>Only the hash of the encrypted file is on-chain.</p>`);
+    $('#receipt-view').innerHTML = fields([
+      ['Bid ID', data.bidId], ['Tender', data.tenderId], ['Supplier', data.supplierRef],
+      ['Ciphertext hash', data.cipherHash], ['IPFS CID', data.cid], ['Submitted (ledger time)', when(data.submittedAt)],
+      ['Transaction ID', data.txId], ['Block', data.block], ['Signed by', data.signer], ['Signature', data.signature],
+    ]) + `<button class="btn secondary" type="button" id="show-cipher">View stored file on IPFS</button>
+          <button class="btn secondary" type="button" id="copy-receipt">Copy receipt to checker</button><div id="cipher"></div>`;
+    $('#show-cipher').onclick = () => showCipher(data.cid, '#cipher');
+    $('#copy-receipt').onclick = () => {
+      $('#receipt-json').value = JSON.stringify(data, null, 2);
+      document.querySelector('[data-tab="verify"]').click();
+    };
+  });
+});
+
+async function showCipher(cid, target) {
+  const bytes = new Uint8Array(await (await fetch(`/api/ipfs/${cid}`)).arrayBuffer());
+  const rows = [];
+  for (let i = 0; i < Math.min(bytes.length, 96); i += 16) {
+    const chunk = [...bytes.slice(i, i + 16)];
+    rows.push(chunk.map((b) => b.toString(16).padStart(2, '0')).join(' ').padEnd(48) + '  ' +
+      chunk.map((b) => (b >= 32 && b < 127 ? String.fromCharCode(b) : '.')).join(''));
+  }
+  $(target).innerHTML = `<p class="note">First bytes of the file as stored on IPFS (${bytes.length} bytes). Without the key it cannot be read.</p><pre class="hex">${esc(rows.join('\n'))}</pre>`;
+}
+
+// Verification
+$('#verify-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  withButton(e.target, async () => {
+    const { ok, data } = await send('/api/verify', new FormData(e.target));
+    if (!ok) return show($('#verify-result'), false, 'Could not check', `<p>${esc(data.error)}</p>`);
+    show($('#verify-result'), data.matches,
+      data.matches ? 'Match: this is the published document' : 'No match: this document differs from the published version',
+      fields([['Hash of your file', data.hash], ['Hash on the ledger', data.onLedger.join(', ')]]));
+  });
+});
+
+$('#receipt-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  withButton(e.target, async () => {
+    let receipt;
+    try { receipt = JSON.parse($('#receipt-json').value); } catch { return show($('#receipt-result'), false, 'That is not valid JSON'); }
+    const res = await fetch('/api/receipts/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(receipt) });
+    const { valid } = await res.json();
+    show($('#receipt-result'), valid, valid ? 'Valid: signed by the gateway and unchanged' : 'Invalid: the receipt has been altered or was not signed by the gateway');
+  });
+});
+
+$('#ledger-load').addEventListener('click', async () => {
+  const id = $('#ledger-tender').value;
+  if (!id) return;
+  const res = await fetch(`/api/tender?id=${encodeURIComponent(id)}`);
+  const d = await res.json();
+  if (!res.ok) { $('#ledger-view').innerHTML = `<p class="empty">${esc(d.error)}</p>`; return; }
+  const t = d.tender;
+  $('#ledger-view').innerHTML = fields([
+    ['Reference', t.id], ['Status', t.status], ['Estimated value', kwacha(t.estValue)], ['Closing time', when(t.closingTime)],
+    ['Document hashes', t.docHashes.join(', ')], ['Version', t.version], ['Published by', t.publishedBy],
+  ]) + `<h3 style="font-size:14px;margin:16px 0 4px">History (every change is a separate transaction)</h3>
+    <div class="table-scroll"><table><tr><th>Time</th><th>Version</th><th>Status</th><th>Transaction</th></tr>
+    ${d.history.map((h) => `<tr><td>${when(h.timestamp)}</td><td>${h.tender?.version ?? '–'}</td><td>${esc(h.tender?.status ?? 'deleted')}</td><td class="mono">${esc(h.txId)}</td></tr>`).join('')}
+    </table></div>
+    <h3 style="font-size:14px;margin:16px 0 4px">Sealed bids on the ledger (${d.bids.length})</h3>
+    ${d.bids.length ? `<div class="table-scroll"><table><tr><th>Bid</th><th>Supplier</th><th>Submitted</th><th>Ciphertext hash</th><th>Opened</th></tr>
+    ${d.bids.map((b) => `<tr><td class="mono">${esc(b.id)}</td><td>${esc(b.supplierRef)}</td><td>${when(b.submittedAt)}</td><td class="mono">${esc(b.cipherHash)}</td><td>${b.opened ? 'Yes' : 'No'}</td></tr>`).join('')}
+    </table></div>` : '<p class="empty">No bids yet.</p>'}`;
+});
+
+loadTenders();
+</script>
+</body>
+</html>

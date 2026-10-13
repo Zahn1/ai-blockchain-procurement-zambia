@@ -32,3 +32,7 @@ chaincode/vendor/
 
 # Local assistant notes (not published)
 CLAUDE.md
+
+# Back end
+backend/node_modules/
+backend/data/
