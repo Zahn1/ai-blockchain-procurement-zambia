@@ -1,0 +1,48 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  chaincode:
+    name: Chaincode (Go)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chaincode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: chaincode/go.mod
+          cache-dependency-path: chaincode/go.sum
+      - run: go vet ./...
+      - run: go test -race -cover -v ./...
+
+  backend:
+    name: Back end (Node.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm test -- --verbose
+
+  ai:
+    name: AI scripts (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m py_compile ai/scripts/*.py
