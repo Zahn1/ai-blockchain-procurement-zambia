@@ -5,23 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Transparent Procurement Prototype</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 20px; max-width: 900px; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.45; color: #222; background: #f4f4f4; margin: 0; }
+  h1 { background: #1f3a4d; color: #fff; font-size: 20px; margin: 0; padding: 14px 20px 4px; }
+  h1 + p { background: #1f3a4d; color: #c9d6df; margin: 0 0 20px; padding: 0 20px 12px; font-size: 13px; }
+  main { max-width: 960px; margin: 0 auto; padding: 0 16px 40px; }
+  h2 { font-size: 17px; margin: 0 0 6px; }
+  h3 { font-size: 15px; margin: 16px 0 6px; }
+
+  nav { border-bottom: 2px solid #ccc; margin-bottom: 18px; }
+  nav button { background: none; border: none; border-bottom: 3px solid transparent; margin: 0 4px -2px 0; padding: 8px 12px; font: inherit; color: #555; cursor: pointer; }
+  nav button:hover { color: #1f3a4d; }
+  nav button[aria-selected="true"] { color: #1f3a4d; font-weight: bold; border-bottom-color: #1f3a4d; }
+  nav .req { font-size: 12px; color: #888; }
+
   section[role="tabpanel"] { display: none; }
   section[role="tabpanel"].active { display: block; }
-  form, .card { border: 1px solid #999; padding: 12px; margin-bottom: 16px; }
-  label { display: block; margin-top: 10px; }
-  input, select, textarea { width: 100%; box-sizing: border-box; }
-  button { margin-top: 10px; }
-  nav button[aria-selected="true"] { font-weight: bold; }
-  .result { margin-top: 10px; display: none; }
+  form, .card { background: #fff; border: 1px solid #d5d5d5; border-radius: 4px; padding: 16px 18px; margin-bottom: 16px; }
+  .lead { color: #555; font-size: 14px; margin: 0 0 8px; }
+
+  label { display: block; font-weight: bold; font-size: 13px; margin: 12px 0 4px; }
+  input, select, textarea { width: 100%; box-sizing: border-box; padding: 7px 8px; border: 1px solid #bbb; border-radius: 3px; font: inherit; background: #fff; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid #4a7a99; border-color: #4a7a99; }
+  textarea { font-family: monospace; font-size: 12px; }
+  button { margin-top: 12px; padding: 8px 16px; border: 1px solid #1f3a4d; border-radius: 3px; background: #1f3a4d; color: #fff; font: inherit; cursor: pointer; }
+  button:hover { background: #2d5470; }
+  button:disabled { opacity: .6; cursor: wait; }
+  #show-cipher, #copy-receipt, #ledger-load { background: #fff; color: #1f3a4d; margin-right: 6px; }
+  #show-cipher:hover, #copy-receipt:hover, #ledger-load:hover { background: #eef3f6; }
+
+  .result { margin-top: 12px; padding: 10px 12px; border-radius: 3px; display: none; }
   .result.show { display: block; }
-  .result.ok h3 { color: green; }
-  .result.bad h3 { color: red; }
-  dt { font-weight: bold; margin-top: 4px; }
-  dd { margin: 0; font-family: monospace; word-break: break-all; }
-  table { border-collapse: collapse; width: 100%; }
-  th, td { border: 1px solid #999; padding: 4px; text-align: left; word-break: break-all; }
-  pre { overflow-x: auto; }
+  .result.ok { background: #e9f5ec; border: 1px solid #8cc49c; }
+  .result.bad { background: #fbeaea; border: 1px solid #e0a0a0; }
+  .result h3 { margin: 0 0 4px; }
+  .result.ok h3 { color: #1e6b34; }
+  .result.bad h3 { color: #a12a2a; }
+
+  dl { margin: 8px 0 0; }
+  dt { font-weight: bold; font-size: 13px; margin-top: 6px; }
+  dd { margin: 0; font-family: monospace; font-size: 12.5px; word-break: break-all; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; background: #fff; }
+  th { background: #eceff1; text-align: left; }
+  th, td { border: 1px solid #d5d5d5; padding: 6px 8px; vertical-align: top; word-break: break-all; }
+  pre { background: #f7f7f7; border: 1px solid #ddd; padding: 8px; overflow-x: auto; font-size: 12px; }
+  .note { color: #666; font-size: 13px; }
+  .empty { color: #777; }
 </style>
 </head>
 <body>
