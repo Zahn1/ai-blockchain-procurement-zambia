@@ -5,72 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Transparent Procurement Prototype</title>
 <style>
-  :root {
-    --bg: #f5f6f4; --surface: #ffffff; --ink: #1c2321; --muted: #5d6a66; --line: #dfe3e0;
-    --brand: #0d6b4f; --brand-ink: #ffffff; --brand-soft: #e3f1ec;
-    --ok: #17703f; --ok-soft: #e4f4ea; --bad: #a3262a; --bad-soft: #fbe9e9; --warn: #8a5a00; --warn-soft: #fdf3dc;
-    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #121614; --surface: #1b211e; --ink: #e7ece9; --muted: #9aa8a3; --line: #2d3531;
-      --brand: #3fb28b; --brand-ink: #0b1310; --brand-soft: #1d3029;
-      --ok: #5fcf8f; --ok-soft: #173324; --bad: #ef7f82; --bad-soft: #3a1c1d; --warn: #f0c062; --warn-soft: #362a12;
-    }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  header { background: var(--brand); color: var(--brand-ink); padding: 18px 16px; }
-  header .wrap { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; justify-content: space-between; }
-  header h1 { margin: 0; font-size: 19px; font-weight: 650; }
-  header p { margin: 0; opacity: .85; font-size: 13px; }
-  .wrap { max-width: 980px; margin: 0 auto; }
-  main { padding: 20px 16px 48px; }
-  nav { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
-  nav button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 9px 14px; border-radius: 8px; font: inherit; cursor: pointer; }
-  nav button[aria-selected="true"] { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
-  nav .req { font-size: 12px; opacity: .75; margin-left: 4px; }
+  body { font-family: Arial, sans-serif; margin: 20px; max-width: 900px; }
   section[role="tabpanel"] { display: none; }
   section[role="tabpanel"].active { display: block; }
-  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
-  @media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
-  .card h2 { margin: 0 0 4px; font-size: 16px; }
-  .card .lead { margin: 0 0 14px; color: var(--muted); font-size: 13.5px; }
-  label { display: block; font-weight: 600; font-size: 13px; margin: 12px 0 4px; }
-  input, select { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: inherit; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .btn { margin-top: 16px; background: var(--brand); color: var(--brand-ink); border: 0; padding: 10px 16px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; }
-  .btn:disabled { opacity: .6; cursor: progress; }
-  .btn.secondary { background: transparent; color: var(--brand); border: 1px solid var(--brand); }
-  .result { margin-top: 14px; border-radius: 10px; padding: 12px 14px; font-size: 13.5px; display: none; }
+  form, .card { border: 1px solid #999; padding: 12px; margin-bottom: 16px; }
+  label { display: block; margin-top: 10px; }
+  input, select, textarea { width: 100%; box-sizing: border-box; }
+  button { margin-top: 10px; }
+  nav button[aria-selected="true"] { font-weight: bold; }
+  .result { margin-top: 10px; display: none; }
   .result.show { display: block; }
-  .result.ok { background: var(--ok-soft); border: 1px solid var(--ok); }
-  .result.bad { background: var(--bad-soft); border: 1px solid var(--bad); }
-  .result h3 { margin: 0 0 6px; font-size: 14px; }
-  .result.ok h3 { color: var(--ok); } .result.bad h3 { color: var(--bad); }
-  dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin: 8px 0 0; }
-  dt { color: var(--muted); }
-  dd { margin: 0; font-family: var(--mono); font-size: 12.5px; overflow-wrap: anywhere; }
-  .badge { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 12px; font-weight: 600; }
-  .badge.open { background: var(--ok-soft); color: var(--ok); } .badge.closed { background: var(--warn-soft); color: var(--warn); }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--muted); font-weight: 600; }
-  td.mono { font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
-  .table-scroll { overflow-x: auto; }
-  pre.hex { font-family: var(--mono); font-size: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; overflow-x: auto; margin: 8px 0 0; }
-  .note { font-size: 12.5px; color: var(--muted); margin-top: 18px; }
-  .empty { color: var(--muted); font-size: 13.5px; }
+  .result.ok h3 { color: green; }
+  .result.bad h3 { color: red; }
+  dt { font-weight: bold; margin-top: 4px; }
+  dd { margin: 0; font-family: monospace; word-break: break-all; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: 4px; text-align: left; word-break: break-all; }
+  pre { overflow-x: auto; }
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <h1>AI and Blockchain-Based Transparent Government Procurement System</h1>
-    <p>Prototype · Hyperledger Fabric (ZPPA + OAG) · IPFS · AES-256-GCM</p>
-  </div>
-</header>
+<h1>Transparent Procurement Prototype</h1>
+<p>Hyperledger Fabric (ZPPA + OAG), IPFS, AES-256-GCM</p>
 <main class="wrap">
   <nav role="tablist">
     <button role="tab" aria-selected="true" data-tab="publish">Publish tender <span class="req">3.5.3</span></button>
@@ -148,20 +104,20 @@
         <h2>Check a bid receipt</h2>
         <p class="lead">Paste a receipt (JSON). Any change to it breaks the signature.</p>
         <label for="receipt-json">Receipt</label>
-        <textarea id="receipt-json" rows="6" style="width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:12px var(--mono)"></textarea>
+        <textarea id="receipt-json" rows="6"></textarea>
         <button class="btn" type="submit">Check signature</button>
         <div class="result" id="receipt-result" role="status"></div>
       </form>
     </div>
-    <div class="card" style="margin-top:16px">
+    <div class="card">
       <h2>Ledger record</h2>
       <p class="lead">Read live from the blockchain: the tender, every version of it, and the sealed bids (hashes only).</p>
       <label for="ledger-tender">Tender</label>
-      <div class="row" style="grid-template-columns: 1fr auto">
+      <div>
         <select id="ledger-tender"></select>
-        <button class="btn secondary" id="ledger-load" type="button" style="margin-top:0">Load from ledger</button>
+        <button id="ledger-load" type="button">Load from ledger</button>
       </div>
-      <div id="ledger-view" style="margin-top:12px"></div>
+      <div id="ledger-view"></div>
     </div>
   </section>
 
@@ -206,7 +162,7 @@ async function loadTenders() {
   $('#tender-list').innerHTML = tenders.length ? `<table>
     <tr><th>Reference</th><th>Title</th><th>Closes</th><th>Status</th></tr>
     ${tenders.map((t) => `<tr><td class="mono">${esc(t.reference)}</td><td>${esc(t.title)}</td><td>${when(t.closingTime)}</td>
-      <td><span class="badge ${new Date(t.closingTime) > now ? 'open' : 'closed'}">${new Date(t.closingTime) > now ? 'Open' : 'Closed'}</span></td></tr>`).join('')}
+      <td>${new Date(t.closingTime) > now ? 'Open' : 'Closed'}</td></tr>`).join('')}
   </table>` : '<p class="empty">No tenders published yet.</p>';
   for (const sel of ['#bid-tender', '#verify-tender', '#ledger-tender']) {
     const keep = $(sel).value;
@@ -277,7 +233,7 @@ async function showCipher(cid, target) {
     rows.push(chunk.map((b) => b.toString(16).padStart(2, '0')).join(' ').padEnd(48) + '  ' +
       chunk.map((b) => (b >= 32 && b < 127 ? String.fromCharCode(b) : '.')).join(''));
   }
-  $(target).innerHTML = `<p class="note">First bytes of the file as stored on IPFS (${bytes.length} bytes). Without the key it cannot be read.</p><pre class="hex">${esc(rows.join('\n'))}</pre>`;
+  $(target).innerHTML = `<p class="note">First bytes of the file as stored on IPFS (${bytes.length} bytes). Without the key it cannot be read.</p><pre>${esc(rows.join('\n'))}</pre>`;
 }
 
 // Verification
@@ -313,11 +269,11 @@ $('#ledger-load').addEventListener('click', async () => {
   $('#ledger-view').innerHTML = fields([
     ['Reference', t.id], ['Status', t.status], ['Estimated value', kwacha(t.estValue)], ['Closing time', when(t.closingTime)],
     ['Document hashes', t.docHashes.join(', ')], ['Version', t.version], ['Published by', t.publishedBy],
-  ]) + `<h3 style="font-size:14px;margin:16px 0 4px">History (every change is a separate transaction)</h3>
+  ]) + `<h3>History (every change is a separate transaction)</h3>
     <div class="table-scroll"><table><tr><th>Time</th><th>Version</th><th>Status</th><th>Transaction</th></tr>
     ${d.history.map((h) => `<tr><td>${when(h.timestamp)}</td><td>${h.tender?.version ?? '–'}</td><td>${esc(h.tender?.status ?? 'deleted')}</td><td class="mono">${esc(h.txId)}</td></tr>`).join('')}
     </table></div>
-    <h3 style="font-size:14px;margin:16px 0 4px">Sealed bids on the ledger (${d.bids.length})</h3>
+    <h3>Sealed bids on the ledger (${d.bids.length})</h3>
     ${d.bids.length ? `<div class="table-scroll"><table><tr><th>Bid</th><th>Supplier</th><th>Submitted</th><th>Ciphertext hash</th><th>Opened</th></tr>
     ${d.bids.map((b) => `<tr><td class="mono">${esc(b.id)}</td><td>${esc(b.supplierRef)}</td><td>${when(b.submittedAt)}</td><td class="mono">${esc(b.cipherHash)}</td><td>${b.opened ? 'Yes' : 'No'}</td></tr>`).join('')}
     </table></div>` : '<p class="empty">No bids yet.</p>'}`;
