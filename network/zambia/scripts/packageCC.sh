@@ -39,9 +39,14 @@ CC_SRC_LANGUAGE=$(echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:])
 if [ "$CC_SRC_LANGUAGE" = "go" ]; then
   CC_RUNTIME_LANGUAGE=golang
 
-  infoln "Vendoring Go dependencies at $CC_SRC_PATH"
   pushd $CC_SRC_PATH
-  GO111MODULE=on go mod vendor
+  # Reuse an existing vendor folder if it builds, to avoid re-downloading modules on a slow connection
+  if [ -f vendor/modules.txt ] && go build -mod=vendor ./... ; then
+    infoln "Using existing vendored Go dependencies at $CC_SRC_PATH"
+  else
+    infoln "Vendoring Go dependencies at $CC_SRC_PATH"
+    GO111MODULE=on go mod vendor
+  fi
   popd
   successln "Finished vendoring Go dependencies"
 

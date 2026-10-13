@@ -1,0 +1,37 @@
+Scenario 1791870367: tender ZPPA/DEMO/1791870367
+PASS Regulator sets standstill to 0 h for the demo                  committed (VALID)
+PASS Officer publishes tender (K150,000, closes in 75 s)            committed (VALID)
+PASS Gateway cannot publish a tender                                rejected: role \"gateway\"
+PASS Supplier alpha submits sealed bid                              committed (VALID)
+PASS Supplier bravo submits sealed bid                              committed (VALID)
+PASS Same supplier cannot bid twice                                 rejected: already bid
+PASS Committee cannot approve opening before closing                rejected: before closing
+     waiting 68 s for the tender to close...
+PASS Late bid after closing is rejected                             rejected: closed at
+PASS Bid cannot be opened without committee quorum                  rejected: needs 2 committee approvals
+PASS Committee member 1 approves opening                            committed (VALID)
+PASS Same member cannot approve twice                               rejected: already approved
+PASS Committee member 2 approves opening (quorum reached)           committed (VALID)
+PASS Officer opens bid A                                            committed (VALID)
+PASS Officer opens bid B                                            committed (VALID)
+PASS Officer awards tender to bid A (K140,000)                      committed (VALID)
+PASS Officer records signed contract                                committed (VALID)
+PASS Officer adds milestone 1 (K60,000)                             committed (VALID)
+PASS Officer adds milestone 2 (K80,000)                             committed (VALID)
+PASS Payment before completion is refused                           rejected: only after completion
+PASS Officer completes milestone 1 with evidence                    committed (VALID)
+PASS Officer records payment for milestone 1                        committed (VALID)
+PASS Duplicate payment is refused                                   rejected: already been recorded
+PASS AI service raises risk alert (score 82)                        committed (VALID)
+PASS Auditor cannot publish a tender                                rejected: organisation OAGMSP
+PASS Auditor (OAG) escalates the alert                              committed (VALID)
+
+Ledger state read back by the auditor from the OAG peer:
+{"id":"ZPPA/DEMO/1791870367","status":"AWARDED","estValue":15000000,"version":2,"approvals":2,"openingApproved":true}
+{"id":"AWD-1791870367","status":"SIGNED","supplierRef":"SUP-alpha","amount":14000000,"contractValue":14000000,"paidTotal":6000000}
+  2026-10-13T05:46:10Z  v1  PUBLISHED  tx 97c5562d9a38…
+  2026-10-13T05:47:25Z  v1  PUBLISHED  tx 56a1cd973d50…
+  2026-10-13T05:47:28Z  v1  PUBLISHED  tx fa84ad4de04f…
+  2026-10-13T05:47:34Z  v2  AWARDED  tx 2660be6a8ff1…
+
+Result: 25 passed, 0 failed · report: docs/phase2/e2e-results.md

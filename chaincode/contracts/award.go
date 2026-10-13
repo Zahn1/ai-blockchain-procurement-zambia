@@ -7,9 +7,38 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
-// StandstillPeriod is the time between award and contract signature in which losing bidders may challenge.
+// StandstillPeriod is the default time between award and contract signature in which losing bidders may challenge.
 // Assumption for the prototype; set it to the period in the Public Procurement Act.
+// A ZPPA regulator can change it on-chain with SetStandstillHours; every change is a recorded transaction.
 const StandstillPeriod = 10 * 24 * time.Hour
+
+const maxStandstillHours = 720 // 30 days
+
+// StandstillSetting is the on-chain standstill period, if a regulator has set one.
+type StandstillSetting struct {
+	Hours  int    `json:"hours"`
+	SetBy  string `json:"setBy"` // callerRef of the regulator
+	SetAt  string `json:"setAt"`
+	Reason string `json:"reasonHash"`
+}
+
+func standstillKey(ctx contractapi.TransactionContextInterface) (string, error) {
+	return key(ctx, "config", "standstill")
+}
+
+// standstillPeriod returns the period in force: the on-chain setting, or the default.
+func standstillPeriod(ctx contractapi.TransactionContextInterface) (time.Duration, error) {
+	k, err := standstillKey(ctx)
+	if err != nil {
+		return 0, err
+	}
+	s := &StandstillSetting{}
+	exists, err := getJSON(ctx, k, s)
+	if err != nil || !exists {
+		return StandstillPeriod, err
+	}
+	return time.Duration(s.Hours) * time.Hour, nil
+}
 
 // Award statuses.
 const (
@@ -100,11 +129,15 @@ func (c *AwardContract) MakeAward(ctx contractapi.TransactionContextInterface,
 	if err != nil {
 		return err
 	}
+	standstill, err := standstillPeriod(ctx)
+	if err != nil {
+		return err
+	}
 
 	a := &Award{
 		DocType: typeAward, ID: awardID, TenderID: tenderID, BidID: bidID, SupplierRef: b.SupplierRef,
 		Amount: amount, ContractValue: amount, EvalHash: evalHash, Status: AwardMade,
-		AwardedAt: formatTime(now), StandstillEnds: formatTime(now.Add(StandstillPeriod)), UpdatedAt: formatTime(now),
+		AwardedAt: formatTime(now), StandstillEnds: formatTime(now.Add(standstill)), UpdatedAt: formatTime(now),
 	}
 	t.Status, t.UpdatedAt = TenderAwarded, formatTime(now)
 	t.Version++
@@ -176,6 +209,43 @@ func (c *AwardContract) RecordVariation(ctx contractapi.TransactionContextInterf
 		return err
 	}
 	return emit(ctx, "ContractVaried", awardEvent(a, variationHash))
+}
+
+// SetStandstillHours sets the standstill period for future awards (0–720 hours). Only a ZPPA regulator may do this,
+// and reasonHash must point to the decision document. Awards already made keep their original end time.
+func (c *AwardContract) SetStandstillHours(ctx contractapi.TransactionContextInterface, hours int, reasonHash string) error {
+	if err := requireAccess(ctx, []string{MSPZPPA}, RoleRegulator); err != nil {
+		return err
+	}
+	if hours < 0 || hours > maxStandstillHours {
+		return fmt.Errorf("standstill must be between 0 and %d hours", maxStandstillHours)
+	}
+	if err := checkHash("reason hash", reasonHash); err != nil {
+		return err
+	}
+	now, err := txTime(ctx)
+	if err != nil {
+		return err
+	}
+	ref, err := callerRef(ctx)
+	if err != nil {
+		return err
+	}
+	k, err := standstillKey(ctx)
+	if err != nil {
+		return err
+	}
+	s := &StandstillSetting{Hours: hours, SetBy: ref, SetAt: formatTime(now), Reason: reasonHash}
+	if err := putJSON(ctx, k, s); err != nil {
+		return err
+	}
+	return emit(ctx, "StandstillChanged", s)
+}
+
+// GetStandstillHours returns the standstill period in force, in hours.
+func (c *AwardContract) GetStandstillHours(ctx contractapi.TransactionContextInterface) (int, error) {
+	d, err := standstillPeriod(ctx)
+	return int(d / time.Hour), err
 }
 
 // ReadAward returns an award.

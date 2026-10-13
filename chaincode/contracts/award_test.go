@@ -82,6 +82,39 @@ func TestSignContract_OnlyAfterStandstill(t *testing.T) {
 	require.ErrorContains(t, (&AwardContract{}).SignContract(l.as(officer), awardID, hash(10)), "already SIGNED")
 }
 
+func TestStandstill_RegulatorSetsPeriodForFutureAwards(t *testing.T) {
+	l := newLedger(t)
+	c := &AwardContract{}
+	h, err := c.GetStandstillHours(l.as(auditor))
+	require.NoError(t, err)
+	require.Equal(t, 240, h, "default is 10 days")
+
+	require.ErrorContains(t, c.SetStandstillHours(l.as(officer), 0, hash(12)), `role "officer"`)
+	require.ErrorContains(t, c.SetStandstillHours(l.as(auditor), 0, hash(12)), "organisation OAGMSP")
+	require.ErrorContains(t, c.SetStandstillHours(l.as(regulator), 721, hash(12)), "between 0 and 720")
+	require.ErrorContains(t, c.SetStandstillHours(l.as(regulator), 0, "x"), "reason hash")
+
+	require.NoError(t, c.SetStandstillHours(l.as(regulator), 0, hash(12)))
+	require.Equal(t, "StandstillChanged", l.lastEvent().Name)
+	h, _ = c.GetStandstillHours(l.as(auditor))
+	require.Equal(t, 0, h)
+}
+
+func TestStandstill_ZeroAllowsImmediateSignature(t *testing.T) {
+	l := openTender(t)
+	require.NoError(t, (&AwardContract{}).SetStandstillHours(l.as(regulator), 0, hash(12)))
+	require.NoError(t, (&BidContract{}).OpenBid(l.as(officer), tenderID, "BID-001", hash(7)))
+	require.NoError(t, (&AwardContract{}).MakeAward(l.as(officer), awardID, tenderID, "BID-001", 100, hash(8)))
+	require.NoError(t, (&AwardContract{}).SignContract(l.as(officer), awardID, hash(10)))
+}
+
+func TestStandstill_ExistingAwardsKeepTheirEndTime(t *testing.T) {
+	l := awarded(t) // made under the 10-day default
+	require.NoError(t, (&AwardContract{}).SetStandstillHours(l.as(regulator), 0, hash(12)))
+	err := (&AwardContract{}).SignContract(l.as(officer), awardID, hash(10))
+	require.ErrorContains(t, err, "standstill period", "a later change must not shorten an existing challenge window")
+}
+
 func TestRecordVariation(t *testing.T) {
 	l := awarded(t)
 	err := (&AwardContract{}).RecordVariation(l.as(officer), awardID, 150_000_00, hash(11))
