@@ -1,0 +1,70 @@
+// Off-chain data for the procurement back end (PostgreSQL). Personal data lives here, never on the ledger.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Chapter 3: administrator, procurement officer, bidder and regulator (3.5.1), evaluation committee (3.5.5), inspector (3.5.6).
+enum Role {
+  ADMIN
+  OFFICER
+  COMMITTEE
+  INSPECTOR
+  SUPPLIER
+  REGULATOR
+}
+
+enum Status {
+  ACTIVE
+  SUSPENDED
+}
+
+model ProcuringEntity {
+  id        String   @id @default(uuid())
+  code      String   @unique // e.g. MOH
+  name      String
+  status    Status   @default(ACTIVE)
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id           String           @id @default(uuid())
+  email        String           @unique
+  name         String
+  passwordHash String
+  role         Role
+  status       Status           @default(ACTIVE)
+  entityId     String?
+  entity       ProcuringEntity? @relation(fields: [entityId], references: [id])
+  supplierRef  String?          @unique // ledger pseudonym for bidders, e.g. SUP-7K2Q9F
+
+  totpSecret   String? // AES-256-GCM encrypted with APP_KEY
+  totpEnabled  Boolean   @default(false)
+  totpLastStep Int? // last accepted time step, so a code cannot be reused
+  failedLogins Int       @default(0)
+  lockedUntil  DateTime?
+
+  auditLogs AuditLog[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+/// Who did what and when (FR-AUD-02).
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  detail    Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

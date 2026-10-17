@@ -5,17 +5,22 @@ import * as ledger from './fabric.js';
 import * as ipfs from './ipfs.js';
 import * as keys from './sealed.js';
 import { fileStore } from './store.js';
+import { PrismaClient } from '@prisma/client';
+import { createAuth } from './auth.js';
 
 const receiptSigner = async () => {
   const { privateKey, cert } = await ledger.loadIdentity(actors.gateway);
   return [privateKey, cert];
 };
 
-const app = createApp({ ledger, ipfs, store: fileStore, keys, receiptSigner });
+const db = new PrismaClient();
+const auth = createAuth({ db, jwtSecret: process.env.JWT_SECRET, appKey: process.env.APP_KEY });
+
+const app = createApp({ ledger, ipfs, store: fileStore, keys, receiptSigner, db, auth });
 const server = app.listen(config.port, () => {
   console.log(`Procurement prototype on http://localhost:${config.port}`);
 });
 
-const stop = () => { server.close(); ledger.close(); };
+const stop = () => { server.close(); ledger.close(); db.$disconnect(); };
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);

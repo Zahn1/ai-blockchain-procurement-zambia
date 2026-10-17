@@ -50,20 +50,63 @@
   pre { background: #f7f7f7; border: 1px solid #ddd; padding: 8px; overflow-x: auto; font-size: 12px; }
   .note { color: #666; font-size: 13px; }
   .empty { color: #777; }
+  #userbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 14px; }
+  #userbar button { margin: 0; padding: 5px 12px; }
+  #signin { max-width: 420px; }
+  #signin form { margin-bottom: 0; }
+  #setup-qr { display: block; width: 200px; height: 200px; margin: 8px 0; }
+  .code-input { font-size: 22px; letter-spacing: 6px; width: 10em; }
+  .inline { display: flex; gap: 6px; align-items: center; }
+  .inline select, .inline button { width: auto; margin: 0; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 <h1>Transparent Procurement Prototype</h1>
 <p>Hyperledger Fabric (ZPPA + OAG), IPFS, AES-256-GCM</p>
 <main class="wrap">
-  <nav role="tablist">
-    <button role="tab" aria-selected="true" data-tab="publish">Publish tender</button>
-    <button role="tab" aria-selected="false" data-tab="bid">Submit sealed bid</button>
+  <div id="userbar" hidden><span id="whoami"></span><button type="button" id="signout">Sign out</button></div>
+
+  <section id="signin">
+    <form id="login-form">
+      <h2>Sign in</h2>
+      <p class="lead">Use your email and password, then the 6-digit code from your authenticator app.</p>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="username" required>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <button type="submit">Continue</button>
+      <div class="result" id="login-result" role="status"></div>
+    </form>
+    <form id="code-form" hidden>
+      <h2>Enter your code</h2>
+      <p class="lead">Open your authenticator app and enter the 6-digit code for this system.</p>
+      <label for="code">Code</label>
+      <input id="code" class="code-input" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+      <button type="submit">Sign in</button>
+      <div class="result" id="code-result" role="status"></div>
+    </form>
+    <form id="setup-form" hidden>
+      <h2>Set up your authenticator</h2>
+      <p class="lead">This is your first sign-in. Scan the code with Google Authenticator or Microsoft Authenticator, then enter the 6-digit code it shows.</p>
+      <img id="setup-qr" alt="QR code to add this account to an authenticator app">
+      <p class="note">Cannot scan? Enter this key in the app: <code id="setup-secret"></code></p>
+      <label for="setup-code">Code from the app</label>
+      <input id="setup-code" class="code-input" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+      <button type="submit">Confirm and sign in</button>
+      <div class="result" id="setup-result" role="status"></div>
+    </form>
+  </section>
+
+  <nav role="tablist" hidden>
+    <button role="tab" aria-selected="false" data-tab="publish" data-roles="OFFICER">Publish tender</button>
+    <button role="tab" aria-selected="false" data-tab="bid" data-roles="SUPPLIER">Submit sealed bid</button>
     <button role="tab" aria-selected="false" data-tab="verify">Verify and ledger</button>
+    <button role="tab" aria-selected="false" data-tab="admin" data-roles="ADMIN">Administration</button>
   </nav>
 
   <!-- 3.5.3 Tender Publication -->
-  <section role="tabpanel" id="publish" class="active">
+  <section role="tabpanel" id="publish">
     <div class="grid">
       <form class="card" id="publish-form">
         <h2>Publish a tender</h2>
@@ -94,14 +137,11 @@
     <div class="grid">
       <form class="card" id="bid-form">
         <h2>Submit a sealed bid</h2>
-        <p class="lead">Submitted through the <strong>gateway</strong> identity on the supplier's behalf. The file is encrypted with a new AES-256-GCM key, the ciphertext goes to IPFS, and only its hash is recorded on the ledger. Bids after the closing time are rejected by the chaincode.</p>
+        <p class="lead">Submitted on your behalf through the <strong>gateway</strong> ledger identity. The file is encrypted with a new AES-256-GCM key, the ciphertext goes to IPFS, and only its hash is recorded on the ledger. Bids after the closing time are rejected by the chaincode.</p>
         <label for="bid-tender">Tender</label>
         <select id="bid-tender" name="tenderId" required></select>
         <p class="note" id="bid-countdown" aria-live="polite"></p>
-        <label for="supplier">Supplier reference (pseudonym on the ledger)</label>
-        <select id="supplier" name="supplierRef">
-          <option>SUP-alpha</option><option>SUP-bravo</option><option>SUP-charlie</option><option>SUP-delta</option>
-        </select>
+        <p class="note">You bid as <strong id="my-ref"></strong>, your code name on the ledger.</p>
         <label for="bid-file">Bid document</label>
         <input id="bid-file" name="bid" type="file" required>
         <button class="btn" type="submit">Encrypt and submit</button>
@@ -148,6 +188,45 @@
       <div id="ledger-view"></div>
     </div>
   </section>
+
+  <!-- 3.5.1 Administration -->
+  <section role="tabpanel" id="admin">
+    <div class="card">
+      <h2>Users</h2>
+      <div class="table-scroll" id="user-list"></div>
+    </div>
+    <form id="user-form">
+      <h2>Add a user</h2>
+      <p class="lead">Give the person their email and starting password. They set up their authenticator at first sign-in.</p>
+      <label for="u-name">Name</label><input id="u-name" name="name" required>
+      <label for="u-email">Email</label><input id="u-email" name="email" type="email" required>
+      <label for="u-role">Role</label>
+      <select id="u-role" name="role">
+        <option value="OFFICER">Procurement officer</option><option value="SUPPLIER">Bidder</option>
+        <option value="REGULATOR">Regulator</option><option value="COMMITTEE">Evaluation committee</option>
+        <option value="INSPECTOR">Inspector</option><option value="ADMIN">Administrator</option>
+      </select>
+      <label for="u-entity">Procuring entity (officers)</label><select id="u-entity" name="entityId"></select>
+      <label for="u-password">Starting password (at least 10 characters)</label><input id="u-password" name="password" minlength="10" required>
+      <button type="submit">Add user</button>
+      <div class="result" id="user-result" role="status"></div>
+    </form>
+    <div class="card">
+      <h2>Procuring entities</h2>
+      <div class="table-scroll" id="entity-list"></div>
+      <form id="entity-form" style="border:0;padding:0;margin:12px 0 0">
+        <div class="inline"><input name="code" placeholder="Code, e.g. MOE" required style="width:9em">
+        <input name="name" placeholder="Name, e.g. Ministry of Education" required>
+        <button type="submit">Add entity</button></div>
+        <div class="result" id="entity-result" role="status"></div>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Audit log</h2>
+      <p class="lead">The last 100 sign-ins, failures and changes.</p>
+      <div class="table-scroll" id="audit-list"></div>
+    </div>
+  </section>
 </main>
 
 <script>
@@ -169,8 +248,20 @@ function show(el, ok, title, body) {
 }
 const fields = (pairs) => `<dl>${pairs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
 
+// Session token for this browser tab only
+let token = sessionStorage.getItem('token');
+let me = null;
+const authHeaders = () => (token ? { authorization: `Bearer ${token}` } : {});
+
+async function api(url, options = {}) {
+  const res = await fetch(url, { ...options, headers: { ...authHeaders(), ...(options.headers ?? {}) } });
+  if (res.status === 401 && token && url !== '/api/auth/me') { signOut('Your session has ended. Please sign in again.'); }
+  return res;
+}
+const json = (body) => ({ method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+
 async function send(url, form) {
-  const res = await fetch(url, { method: 'POST', body: form });
+  const res = await api(url, { method: 'POST', body: form });
   const data = await res.json().catch(() => ({ error: 'The server sent an unexpected reply.' }));
   return { ok: res.ok, data };
 }
@@ -305,7 +396,163 @@ $('#ledger-load').addEventListener('click', async () => {
     </table></div>` : '<p class="empty">No bids yet.</p>'}`;
 });
 
-loadTenders();
+// ---------- Sign-in (3.5.1) ----------
+let stepToken = null;
+const ROLE_NAMES = { ADMIN: 'Administrator', OFFICER: 'Procurement officer', SUPPLIER: 'Bidder', REGULATOR: 'Regulator',
+  COMMITTEE: 'Evaluation committee', INSPECTOR: 'Inspector' };
+
+function showStep(id) {
+  for (const f of ['#login-form', '#code-form', '#setup-form']) $(f).hidden = f !== id;
+  const focus = { '#login-form': '#email', '#code-form': '#code', '#setup-form': '#setup-code' }[id];
+  setTimeout(() => $(focus).focus(), 0);
+}
+
+$('#login-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  withButton(e.target, async () => {
+    const res = await fetch('/api/auth/login', json({ email: $('#email').value, password: $('#password').value }));
+    const data = await res.json();
+    if (!res.ok) return show($('#login-result'), false, data.error);
+    $('#login-result').className = 'result';
+    $('#password').value = '';
+    stepToken = data.stepToken;
+    if (data.next === 'setup') {
+      $('#setup-qr').src = data.qr;
+      $('#setup-secret').textContent = data.secret;
+      showStep('#setup-form');
+    } else {
+      showStep('#code-form');
+    }
+  });
+});
+
+async function finishCode(url, input, result) {
+  const res = await fetch(url, json({ stepToken, code: input.value.trim() }));
+  const data = await res.json();
+  input.value = '';
+  if (!res.ok) {
+    if (/expired|sign in again/i.test(data.error)) { showStep('#login-form'); return show($('#login-result'), false, data.error); }
+    return show(result, false, data.error);
+  }
+  token = data.token;
+  sessionStorage.setItem('token', token);
+  enter(data.user);
+}
+$('#code-form').addEventListener('submit', (e) => { e.preventDefault(); withButton(e.target, () => finishCode('/api/auth/code', $('#code'), $('#code-result'))); });
+$('#setup-form').addEventListener('submit', (e) => { e.preventDefault(); withButton(e.target, () => finishCode('/api/auth/setup', $('#setup-code'), $('#setup-result'))); });
+
+function enter(user) {
+  me = user;
+  $('#signin').hidden = true;
+  $('#userbar').hidden = false;
+  $('[role="tablist"]').hidden = false;
+  $('#whoami').innerHTML = `Signed in as <strong>${esc(user.name)}</strong> (${esc(ROLE_NAMES[user.role] ?? user.role)})`;
+  $('#my-ref').textContent = user.supplierRef ?? '';
+  // Only the tabs this role may use
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  tabs.forEach((t) => { t.hidden = !!t.dataset.roles && !t.dataset.roles.split(',').includes(user.role); });
+  (tabs.find((t) => !t.hidden && t.dataset.tab !== 'verify') ?? $('[data-tab="verify"]')).click();
+  loadTenders();
+  if (user.role === 'ADMIN') loadAdmin();
+}
+
+function signOut(message) {
+  token = null; me = null; stepToken = null;
+  sessionStorage.removeItem('token');
+  $('#userbar').hidden = true;
+  $('[role="tablist"]').hidden = true;
+  document.querySelectorAll('[role="tabpanel"]').forEach((p) => p.classList.remove('active'));
+  $('#signin').hidden = false;
+  showStep('#login-form');
+  if (message) show($('#login-result'), false, message);
+  showPublic();
+}
+
+// 3.5.9: anyone can check documents and receipts without signing in
+function showPublic() {
+  $('#verify').classList.add('active');
+  loadTenders();
+}
+$('#signout').addEventListener('click', () => signOut());
+
+// ---------- Administration (3.5.1) ----------
+async function loadAdmin() {
+  const [users, entities, audit] = await Promise.all(['/api/admin/users', '/api/admin/entities', '/api/admin/audit']
+    .map(async (u) => (await api(u)).json()));
+  $('#u-entity').innerHTML = '<option value="">None</option>' +
+    entities.filter((e) => e.status === 'ACTIVE').map((e) => `<option value="${esc(e.id)}">${esc(e.code)} · ${esc(e.name)}</option>`).join('');
+
+  const roleOptions = (current) => Object.entries(ROLE_NAMES)
+    .map(([v, n]) => `<option value="${v}"${v === current ? ' selected' : ''}>${esc(n)}</option>`).join('');
+  $('#user-list').innerHTML = `<table><tr><th>Name</th><th>Email</th><th>Role</th><th>Entity</th><th>Code name</th><th>Authenticator</th><th>Status</th><th></th></tr>
+    ${users.map((u) => `<tr data-id="${esc(u.id)}"><td>${esc(u.name)}</td><td>${esc(u.email)}</td>
+      <td><select class="u-role" aria-label="Role for ${esc(u.email)}">${roleOptions(u.role)}</select></td>
+      <td>${esc(u.entity ?? '')}</td><td>${esc(u.supplierRef ?? '')}</td>
+      <td>${u.totpEnabled ? 'Set up' : 'Not yet'}</td><td>${u.status === 'ACTIVE' ? 'Active' : '<strong>Suspended</strong>'}</td>
+      <td class="inline"><button type="button" class="u-status">${u.status === 'ACTIVE' ? 'Suspend' : 'Reactivate'}</button>
+        ${u.totpEnabled ? '<button type="button" class="u-reset">Reset code</button>' : ''}</td></tr>`).join('')}</table>`;
+
+  $('#entity-list').innerHTML = `<table><tr><th>Code</th><th>Name</th><th>Status</th><th></th></tr>
+    ${entities.map((e) => `<tr data-id="${esc(e.id)}"><td>${esc(e.code)}</td><td>${esc(e.name)}</td>
+      <td>${e.status === 'ACTIVE' ? 'Active' : '<strong>Suspended</strong>'}</td>
+      <td><button type="button" class="e-status">${e.status === 'ACTIVE' ? 'Suspend' : 'Reactivate'}</button></td></tr>`).join('')}</table>`;
+
+  $('#audit-list').innerHTML = `<table><tr><th>Time</th><th>Action</th><th>User</th><th>Detail</th></tr>
+    ${audit.map((a) => `<tr><td>${when(a.at)}</td><td>${esc(a.action)}</td><td>${esc(a.user ?? '')}</td><td class="mono">${esc(a.detail ? JSON.stringify(a.detail) : '')}</td></tr>`).join('')}</table>`;
+}
+
+async function patch(url, body) {
+  const res = await api(url, { ...json(body), method: 'PATCH' });
+  if (!res.ok) alert((await res.json()).error);
+  await loadAdmin();
+}
+$('#user-list').addEventListener('change', (e) => {
+  if (!e.target.matches('.u-role')) return;
+  patch(`/api/admin/users/${e.target.closest('tr').dataset.id}`, { role: e.target.value });
+});
+$('#user-list').addEventListener('click', async (e) => {
+  const id = e.target.closest('tr')?.dataset.id;
+  if (e.target.matches('.u-status')) {
+    await patch(`/api/admin/users/${id}`, { status: e.target.textContent === 'Suspend' ? 'SUSPENDED' : 'ACTIVE' });
+  } else if (e.target.matches('.u-reset') && confirm('Reset this user\'s authenticator? They will set it up again at their next sign-in.')) {
+    await api(`/api/admin/users/${id}/reset-code`, { method: 'POST' });
+    await loadAdmin();
+  }
+});
+$('#entity-list').addEventListener('click', (e) => {
+  if (!e.target.matches('.e-status')) return;
+  patch(`/api/admin/entities/${e.target.closest('tr').dataset.id}`, { status: e.target.textContent === 'Suspend' ? 'SUSPENDED' : 'ACTIVE' });
+});
+
+async function adminCreate(e, url, result, label) {
+  e.preventDefault();
+  const form = e.target;
+  await withButton(form, async () => {
+    const body = Object.fromEntries(new FormData(form));
+    const res = await api(url, json(body));
+    const data = await res.json();
+    if (!res.ok) return show($(result), false, data.error);
+    show($(result), true, label(data));
+    form.reset();
+    await loadAdmin();
+  });
+}
+$('#user-form').addEventListener('submit', (e) => adminCreate(e, '/api/admin/users', '#user-result',
+  (u) => `Added ${u.email}${u.supplierRef ? ` (code name ${u.supplierRef})` : ''}`));
+$('#entity-form').addEventListener('submit', (e) => adminCreate(e, '/api/admin/entities', '#entity-result',
+  (en) => `Added ${en.code}`));
+
+// ---------- Start ----------
+(async () => {
+  if (token) {
+    const res = await api('/api/auth/me');
+    if (res.ok) return enter(await res.json());
+    signOut();
+    return;
+  }
+  showStep('#login-form');
+  showPublic();
+})();
 </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-// HTTP API for Chapter 3 requirements 3.5.3 (tender publication) and 3.5.4 (encrypted bid submission).
+// HTTP API: sign-in and administration (3.5.1), tender publication (3.5.3) and encrypted bid submission (3.5.4).
 // Dependencies are passed in so tests can replace the ledger, IPFS and storage with fakes.
 import express from 'express';
 import multer from 'multer';
@@ -7,21 +7,26 @@ import crypto from 'node:crypto';
 import { root, actors } from './config.js';
 import { sha256, encrypt, newKey } from './sealed.js';
 import { sign, verify } from './receipt.js';
+import { authRoutes } from './auth-routes.js';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
 const ID = /^[A-Za-z0-9._/-]{3,64}$/;
 
-export function createApp({ ledger, ipfs, store, keys, receiptSigner }) {
+export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth }) {
   const app = express();
   app.use(express.json());
   app.use(express.static(path.join(root, 'public')));
 
   const wrap = (fn) => (req, res, next) => fn(req, res).catch(next);
   const bad = (res, message) => res.status(400).json({ error: message });
+  const officer = [auth.requireAuth, auth.requireRole('OFFICER')];
+  const bidder = [auth.requireAuth, auth.requireRole('SUPPLIER')];
+
+  app.use('/api', authRoutes({ db, auth }));
 
   // 3.5.3: publish a tender. The document goes to IPFS; its SHA-256 hash and the closing time go on the ledger.
-  app.post('/api/tenders', upload.single('document'), wrap(async (req, res) => {
+  app.post('/api/tenders', officer, upload.single('document'), wrap(async (req, res) => {
     const { reference, title } = req.body;
     const estValue = Math.round(Number(req.body.estValueKwacha) * 100); // ngwee
     const minutes = Number(req.body.closesInMinutes);
@@ -40,6 +45,7 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner }) {
     const record = { reference, title: title ?? '', fileName: req.file.originalname, docHash, cid,
       closingTime, txId: tx.txId, block: tx.block, publishedAt: new Date().toISOString() };
     await store.addTender(record);
+    await auth.audit(req.user.id, 'tender.published', { reference, txId: tx.txId }, req.ip);
     res.status(201).json(record);
   }));
 
@@ -71,11 +77,13 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner }) {
 
   // 3.5.4: submit a sealed bid. Encrypted with a fresh AES-256-GCM key, stored on IPFS, hash recorded on the
   // ledger. The chaincode rejects it if the tender has closed. The supplier gets a signed receipt.
-  app.post('/api/bids', upload.single('bid'), wrap(async (req, res) => {
-    const { tenderId, supplierRef } = req.body;
+  // The supplier reference is the signed-in bidder's own pseudonym, never taken from the form.
+  app.post('/api/bids', bidder, upload.single('bid'), wrap(async (req, res) => {
+    const { tenderId } = req.body;
+    const { supplierRef } = req.user;
     if (!req.file) return bad(res, 'Attach the bid document.');
     if (!ID.test(tenderId ?? '')) return bad(res, 'Choose a tender.');
-    if (!ID.test(supplierRef ?? '')) return bad(res, 'Supplier reference must be 3–64 characters: letters, digits, . _ / -');
+    if (!supplierRef) return bad(res, 'Your account has no supplier reference. Contact the system administrator.');
 
     const key = newKey();
     const sealed = encrypt(req.file.buffer, key);
@@ -88,6 +96,7 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner }) {
     const receipt = sign({ bidId, tenderId, supplierRef, cipherHash, cid,
       submittedAt: tx.result.submittedAt, txId: tx.txId, block: tx.block }, ...(await receiptSigner()));
     await store.addBid({ bidId, tenderId, supplierRef, cid, cipherHash, fileName: req.file.originalname });
+    await auth.audit(req.user.id, 'bid.submitted', { bidId, tenderId, txId: tx.txId }, req.ip);
     res.status(201).json(receipt);
   }));
 
@@ -102,8 +111,11 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner }) {
     res.type('application/octet-stream').send(await ipfs.cat(req.params.cid));
   }));
 
-  // Ledger rejections become 409 with the chaincode's reason; anything else is a 500.
+  // Ledger rejections become 409 with the chaincode's reason; sign-in and role errors keep their status.
   app.use((err, _req, res, _next) => {
+    if (err.name === 'AuthError' || err.constructor?.name === 'AuthError') {
+      return res.status(err.status).json({ error: err.message, source: 'auth' });
+    }
     if (err.name === 'LedgerError' || err.constructor?.name === 'LedgerError') {
       return res.status(409).json({ error: err.message, source: 'ledger' });
     }

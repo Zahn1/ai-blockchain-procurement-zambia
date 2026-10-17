@@ -36,3 +36,4 @@ CLAUDE.md
 # Back end
 backend/node_modules/
 backend/data/
+backend/.env

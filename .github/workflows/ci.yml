@@ -24,6 +24,19 @@ jobs:
   backend:
     name: Back end (Node.js)
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: procurement
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: procurement
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U procurement" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://procurement:ci-only@localhost:5432/procurement?schema=public
+      TEST_DATABASE_URL: postgresql://procurement:ci-only@localhost:5432/procurement?schema=test
     defaults:
       run:
         working-directory: backend
@@ -35,7 +48,8 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
-      - run: npm test -- --verbose
+      - run: npx prisma generate
+      - run: npm test -- --verbose --runInBand
 
   ai:
     name: AI scripts (Python)

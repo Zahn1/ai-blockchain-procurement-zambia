@@ -7,7 +7,9 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "seed": "node prisma/seed.js",
+    "db:migrate": "prisma migrate deploy"
   },
   "engines": {
     "node": ">=20"
@@ -15,11 +17,24 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.14.6",
     "@hyperledger/fabric-gateway": "^1.11.0",
+    "@prisma/client": "^6.19.3",
+    "bcryptjs": "^3.0.3",
     "express": "^4.22.3",
-    "multer": "^1.4.5-lts.1"
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^1.4.5-lts.1",
+    "otplib": "^13.5.0",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "jest": "^30.5.2",
+    "prisma": "^6.19.3",
     "supertest": "^7.3.1"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "globalSetup": "./test/global-setup.js"
   }
 }

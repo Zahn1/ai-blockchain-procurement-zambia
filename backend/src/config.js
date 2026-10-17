@@ -5,6 +5,13 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const root = path.resolve(here, '..');
 
+// Local secrets and the database address come from backend/.env (not committed; see .env.example)
+try {
+  process.loadEnvFile(path.join(root, '.env'));
+} catch {
+  // no .env: rely on the real environment (as in CI)
+}
+
 // Fabric scripts break on paths with spaces, so the network is reached through the ~/procurement symlink.
 const networkDir = process.env.FABRIC_NETWORK_DIR
   ?? path.join(process.env.HOME, 'procurement', 'network', 'zambia');

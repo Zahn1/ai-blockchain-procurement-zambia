@@ -9,6 +9,15 @@ import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { decrypt, sha256 } from '../src/sealed.js';
 import { sign, verify } from '../src/receipt.js';
+import { db, resetDb, makeAuth, signedIn } from './helpers.js';
+
+let officer, supplier;
+beforeEach(async () => {
+  await resetDb();
+  officer = await signedIn('OFFICER');
+  supplier = await signedIn('SUPPLIER');
+});
+afterAll(() => db.$disconnect());
 
 class LedgerError extends Error {}
 
@@ -63,7 +72,7 @@ function fakes() {
   const cert = selfSigned(privateKey, publicKey);
   const receiptSigner = async () => [privateKey, cert];
 
-  return { app: createApp({ ledger, ipfs, store, keys, receiptSigner }), calls, ipfsFiles, bidKeys, tenders, LedgerError };
+  return { app: createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth: makeAuth() }), calls, ipfsFiles, bidKeys, tenders, LedgerError };
 }
 
 // The route tests only check that a signature is attached; real certificate checks are in 'Receipt verification'.
@@ -75,7 +84,7 @@ const doc = Buffer.from('Tender document: supply of 40 laptops');
 
 async function publish(app, overrides = {}) {
   const fields = { reference: 'ZPPA/TEST/0001', title: 'Laptops', estValueKwacha: '150000', closesInMinutes: '5', ...overrides };
-  let req = request(app).post('/api/tenders');
+  let req = request(app).post('/api/tenders').set('authorization', officer.header);
   for (const [k, v] of Object.entries(fields)) req = req.field(k, v);
   return req.attach('document', doc, 'tender.txt');
 }
@@ -117,7 +126,7 @@ describe('3.5.3 Tender publication', () => {
 
   test('requires a document', async () => {
     const { app } = fakes();
-    const res = await request(app).post('/api/tenders').field('reference', 'ZPPA/TEST/0001')
+    const res = await request(app).post('/api/tenders').set('authorization', officer.header).field('reference', 'ZPPA/TEST/0001')
       .field('estValueKwacha', '1').field('closesInMinutes', '5');
     expect(res.status).toBe(400);
   });
@@ -137,7 +146,7 @@ describe('3.5.4 Encrypted bid submission', () => {
   const bidFile = Buffer.from('Our price: K138,500');
 
   async function submitBid(app, tenderId = 'ZPPA/TEST/0001') {
-    return request(app).post('/api/bids').field('tenderId', tenderId).field('supplierRef', 'SUP-alpha')
+    return request(app).post('/api/bids').set('authorization', supplier.header).field('tenderId', tenderId)
       .attach('bid', bidFile, 'bid.txt');
   }
 
@@ -154,14 +163,14 @@ describe('3.5.4 Encrypted bid submission', () => {
 
     const bidCall = calls.find((c) => c.fn === 'BidContract:SubmitBid');
     expect(bidCall.user).toBe('gateway');
-    expect(bidCall.args).toEqual(['ZPPA/TEST/0001', res.body.bidId, 'SUP-alpha', res.body.cipherHash]);
+    expect(bidCall.args).toEqual(['ZPPA/TEST/0001', res.body.bidId, supplier.user.supplierRef, res.body.cipherHash]);
   });
 
   test('returns a receipt with the ledger transaction and a signature', async () => {
     const { app } = fakes();
     await publish(app);
     const res = await submitBid(app);
-    expect(res.body).toMatchObject({ tenderId: 'ZPPA/TEST/0001', supplierRef: 'SUP-alpha', txId: expect.any(String) });
+    expect(res.body).toMatchObject({ tenderId: 'ZPPA/TEST/0001', supplierRef: supplier.user.supplierRef, txId: expect.any(String) });
     expect(res.body.signature).toMatch(/^[A-Za-z0-9+/=]+$/);
   });
 
@@ -177,10 +186,54 @@ describe('3.5.4 Encrypted bid submission', () => {
 
   test('requires a file and a valid tender', async () => {
     const { app } = fakes();
-    const noFile = await request(app).post('/api/bids').field('tenderId', 'ZPPA/TEST/0001').field('supplierRef', 'SUP-alpha');
+    const noFile = await request(app).post('/api/bids').set('authorization', supplier.header).field('tenderId', 'ZPPA/TEST/0001');
     expect(noFile.status).toBe(400);
     const unknown = await submitBid(app, 'ZPPA/NOPE/1');
     expect(unknown.status).toBe(409);
+  });
+});
+
+describe('3.5.1 Roles on tenders and bids', () => {
+  test('publishing needs a signed-in officer', async () => {
+    const { app } = fakes();
+    const anonymous = await request(app).post('/api/tenders').field('reference', 'ZPPA/TEST/0001');
+    expect(anonymous.status).toBe(401);
+    const asSupplier = await request(app).post('/api/tenders').set('authorization', supplier.header)
+      .field('reference', 'ZPPA/TEST/0001');
+    expect(asSupplier.status).toBe(403);
+  });
+
+  test('bidding needs a signed-in bidder', async () => {
+    const { app } = fakes();
+    await publish(app);
+    const asOfficer = await request(app).post('/api/bids').set('authorization', officer.header)
+      .field('tenderId', 'ZPPA/TEST/0001').attach('bid', Buffer.from('x'), 'bid.txt');
+    expect(asOfficer.status).toBe(403);
+  });
+
+  test('a bidder cannot bid under another supplier\'s pseudonym', async () => {
+    const { app, calls } = fakes();
+    await publish(app);
+    await request(app).post('/api/bids').set('authorization', supplier.header).field('tenderId', 'ZPPA/TEST/0001')
+      .field('supplierRef', 'SUP-SOMEONE-ELSE').attach('bid', Buffer.from('x'), 'bid.txt');
+    const bidCall = calls.find((c) => c.fn === 'BidContract:SubmitBid');
+    expect(bidCall.args[2]).toBe(supplier.user.supplierRef);
+  });
+
+  test('a suspended officer is refused at once, even with a valid session', async () => {
+    const { app } = fakes();
+    await db.user.update({ where: { id: officer.user.id }, data: { status: 'SUSPENDED' } });
+    const res = await publish(app);
+    expect(res.status).toBe(401);
+  });
+
+  test('publishing and bidding are written to the audit log', async () => {
+    const { app } = fakes();
+    await publish(app);
+    await request(app).post('/api/bids').set('authorization', supplier.header).field('tenderId', 'ZPPA/TEST/0001')
+      .attach('bid', Buffer.from('x'), 'bid.txt');
+    const actions = (await db.auditLog.findMany()).map((a) => a.action).sort();
+    expect(actions).toEqual(['bid.submitted', 'tender.published']);
   });
 });
 
