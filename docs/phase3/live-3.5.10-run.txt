@@ -1,0 +1,16 @@
+publish 201 ZPPA/MOH/2026/N5189
+bid 201 BID-0A0DA205
+e-mails in Mailpit: 3
+  to grace@alpha.test: Bid received for ZPPA/MOH/2026/N5189
+  to peter@bravo.test: New tender: ZPPA/MOH/2026/N5189 Supply of hospital beds
+  to grace@alpha.test: New tender: ZPPA/MOH/2026/N5189 Supply of hospital beds
+SMS messages: 2
+  SMS-000002 to +260971000101: Bid BID-0A0DA205 for ZPPA/MOH/2026/N5189 received 18 Oct 2026, 12:57. Tx b9d766138528.
+  SMS-000001 to +260971000101: New tender ZPPA/MOH/2026/N5189: Supply of hospital beds. Closes 18 Oct 2026, 13:27.
+report procurement.pdf: 200 application/pdf 2143 bytes
+report procurement.xlsx: 200 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet 7068 bytes
+report payments.pdf: 200 application/pdf 2249 bytes
+report payments.xlsx: 200 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet 7102 bytes
+report alerts.pdf: 200 application/pdf 2309 bytes
+report alerts.xlsx: 200 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet 7172 bytes
+officer asking for the alerts report: 403

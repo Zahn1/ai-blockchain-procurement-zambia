@@ -50,6 +50,15 @@ cd network && ./fetch-fabric.sh
 cd chaincode && go mod vendor && go test ./...
 ```
 
+```bash
+# Back end and portals on http://localhost:3000 (needs the Fabric network, PostgreSQL and IPFS running)
+cd backend && cp .env.example .env    # then fill in the secrets
+npx prisma migrate deploy && node prisma/seed.js && ./start.sh
+
+# E-mail notifications in development: Mailpit catches them at http://127.0.0.1:8025
+brew install mailpit && mailpit --listen 127.0.0.1:8025 --smtp 127.0.0.1:1025
+```
+
 Fabric's scripts do not support paths with spaces, so clone the repository to a path without them.
 
 ## Status
@@ -58,8 +67,8 @@ Fabric's scripts do not support paths with spaces, so clone the repository to a 
 |---|---|---|
 | 0 Environment set-up | 1 | Done |
 | 1 Data and requirements | 1–2 | Done |
-| 2 Blockchain | 2–4 | In progress |
-| 3 Back end | 3–5 | |
+| 2 Blockchain | 2–4 | Done |
+| 3 Back end | 3–5 | Done: all ten Chapter 3 functional requirements (AI models in Phase 4) |
 | 4 AI models | 3–6 | |
 | 5 Front end | 5–7 | |
 | 6 Testing and evaluation | 7–8 | |

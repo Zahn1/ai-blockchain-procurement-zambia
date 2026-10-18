@@ -96,6 +96,25 @@ Live evidence: `docs/phase3/live-3.5.8-run.txt`; chaincode 1.3 upgrade log.
 
 Live evidence: `docs/phase3/live-3.5.9-run.txt`.
 
+## 3.5.10 Reporting and Notifications
+
+> *"The system must generate procurement, alert and payment reports that can be downloaded in PDF and spreadsheet formats, and must send e-mail and SMS notifications for key events such as tender publication, bid receipt, contract award and payment."*
+
+| Clause | Status | How it is met | Code | Tests and evidence |
+|---|---|---|---|---|
+| Generate **procurement, alert and payment reports** | ✅ | Procurement: each tender's buyer, dates, estimate, bids, ledger status, awardee and value. Payments: date, contract, milestone, amount, supplier, IFMIS reference, ledger transaction. Alerts: score, status, latest decision and reason. Officers download procurement and payments; regulators all three | `reports.js` `buildReport()`, `/reports/:kind` | *the procurement / payment / alert report lists …* (3); role checks (5); live: officer refused the alerts report |
+| Downloaded in **PDF and spreadsheet formats** | ✅ | Each report as PDF (pdfkit, A4 landscape) and Excel XLSX (exceljs, frozen header, number formats), built from the same rows | `toPdf()`, `toXlsx()` | *PDF and XLSX files are produced from the same rows*; live files in `docs/phase3/reports/` |
+| **E-mail** notifications | ✅ | Sent over SMTP with nodemailer. In development the mail goes to Mailpit (`http://127.0.0.1:8025`), where every message can be read | `notify.js` | *tender publication: … gets an e-mail …*; live: 3 e-mails in Mailpit |
+| **SMS** notifications | ✅ (stand-in) | Sent through an SMS gateway reached via `SMS_API_URL`; the prototype runs a stand-in that lists what each phone received. Users may give a mobile number in international format | `notify.js` `smsClient`; `standins/services.js` `smsStandIn` | *… and an SMS if they gave a number*; *mobile numbers must be in international format*; live: 2 SMS |
+| For **tender publication** | ✅ | Every active user of a verified supplier | `notifier.tenderPublished` from `/api/tenders` | Jest and live |
+| … **bid receipt** | ✅ | The bidder, with bid ID, ledger time and transaction, and the hash of the encrypted bid | `notifier.bidReceived` from `/api/bids` | *bid receipt: the bidder gets the bid ID and ledger transaction*; live |
+| … **contract award** | ✅ | The users of the winning company only | `notifier.contractAwarded` from `/contracts/award` | *contract award and payment: only the winning company is told* |
+| … **payment** | ✅ | The users of the paid company, with amount and IFMIS reference | `notifier.paymentMade` from the payment flow | same test |
+
+Notifications are sent after the action succeeds and never undo it; every attempt, sent or failed, is logged (*a failed e-mail is logged and never undoes the action*).
+
+Live evidence: `docs/phase3/live-3.5.10-run.txt` and `docs/phase3/reports/`.
+
 ## Summary of all functional requirements
 
 | Requirement | Status | Where |
@@ -109,4 +128,4 @@ Live evidence: `docs/phase3/live-3.5.9-run.txt`.
 | 3.5.7 AI Risk Scoring and Explained Alerts | 🟡 | Data ready (Phase 1); models in Phase 4 |
 | 3.5.8 Alert Review and Audit Trail | ✅ | Phase 3, step 5a (chaincode 1.3) |
 | 3.5.9 Public Verification Portal and Open Data | ✅ | Phase 3, step 5b |
-| 3.5.10 Reporting and Notifications | ⬜ | Phase 3, step 5 |
+| 3.5.10 Reporting and Notifications | ✅ | Phase 3, step 5c (SMS stand-in, Mailpit for e-mail) |

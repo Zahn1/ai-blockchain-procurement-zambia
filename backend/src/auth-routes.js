@@ -1,6 +1,6 @@
 // Routes for sign-in (3.5.1) and the administrator's user and procuring-entity management.
 import express from 'express';
-import { hashPassword, publicUser, MIN_PASSWORD, AuthError } from './auth.js';
+import { hashPassword, publicUser, MIN_PASSWORD, PHONE, AuthError } from './auth.js';
 
 // Chapter 3 roles: 3.5.1 (administrator, officer, bidder, regulator), 3.5.5 (committee), 3.5.6 (inspector).
 // Bidders (SUPPLIER) are not created here: they register themselves and are verified against PACRA and ZRA (3.5.2).
@@ -47,6 +47,8 @@ export function authRoutes({ db, auth, committeeIdentities = [], inspectorIdenti
 
   r.post('/admin/users', admin, wrap(async (req, res) => {
     const { email, name, role, password, entityId } = req.body;
+    const phone = String(req.body.phone ?? '').replace(/\s/g, '') || null;
+    if (phone && !PHONE.test(phone)) throw bad('Give the mobile number in international format, e.g. +260971234567.');
     const clean = String(email ?? '').trim().toLowerCase();
     if (!EMAIL.test(clean)) throw bad('Enter a valid email address.');
     if (!String(name ?? '').trim()) throw bad('Enter the person\'s name.');
@@ -59,7 +61,7 @@ export function authRoutes({ db, auth, committeeIdentities = [], inspectorIdenti
 
     const user = await db.user.create({ data: {
       email: clean, name: String(name).trim(), role, passwordHash: await hashPassword(password),
-      entityId: entityId || null, fabricIdentity: signsOwnTransactions(role) ? await freeIdentity(role) : null,
+      entityId: entityId || null, phone, fabricIdentity: signsOwnTransactions(role) ? await freeIdentity(role) : null,
     } });
     await auth.audit(req.user.id, 'user.created', { userId: user.id, email: clean, role }, req.ip);
     res.status(201).json(publicUser(user));

@@ -49,3 +49,21 @@ export function ifmisStandIn() {
   });
   return r;
 }
+
+// Stand-in for an SMS gateway (Chapter 3, 3.5.10). It accepts messages and lists them, so a demonstration can show
+// what each phone would have received. A real gateway replaces it through SMS_API_URL.
+export function smsStandIn() {
+  const r = express.Router();
+  r.use(express.json());
+  const messages = [];
+  r.post('/api/messages', (req, res) => {
+    const { to, message } = req.body ?? {};
+    if (!/^\+\d{9,15}$/.test(to ?? '')) return res.status(400).json({ error: 'The number must be in international format, e.g. +260971234567.' });
+    if (!message) return res.status(400).json({ error: 'The message is empty.' });
+    const sent = { messageId: `SMS-${String(messages.length + 1).padStart(6, '0')}`, to, message, at: new Date().toISOString() };
+    messages.push(sent);
+    res.status(201).json(sent);
+  });
+  r.get('/api/messages', (_req, res) => res.json([...messages].reverse()));
+  return r;
+}

@@ -32,6 +32,10 @@ export const config = {
   pacraUrl: process.env.PACRA_API_URL ?? `http://localhost:${process.env.PORT ?? 3000}/stand-in/pacra`,
   zraUrl: process.env.ZRA_API_URL ?? `http://localhost:${process.env.PORT ?? 3000}/stand-in/zra`,
   ifmisUrl: process.env.IFMIS_API_URL ?? `http://localhost:${process.env.PORT ?? 3000}/stand-in/ifmis`,
+  // Notifications (3.5.10): e-mail through SMTP (Mailpit in development), SMS through the gateway stand-in
+  smsUrl: process.env.SMS_API_URL ?? `http://localhost:${process.env.PORT ?? 3000}/stand-in/sms`,
+  smtp: { host: process.env.SMTP_HOST ?? '127.0.0.1', port: Number(process.env.SMTP_PORT ?? 1025) },
+  mailFrom: process.env.MAIL_FROM ?? 'ZPPA e-Procurement <no-reply@zppa.test>',
   dataDir: process.env.DATA_DIR ?? path.join(root, 'data'),
 };
 

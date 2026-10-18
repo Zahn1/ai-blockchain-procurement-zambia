@@ -33,7 +33,7 @@ const contractView = (c) => ({
   milestones: (c.milestones ?? []).sort((a, b) => a.milestoneId.localeCompare(b.milestoneId, 'en', { numeric: true })).map(milestoneView),
 });
 
-export function contractRoutes({ db, auth, ledger, ipfs, ifmis, officerIdentity, now = () => new Date() }) {
+export function contractRoutes({ db, auth, ledger, ipfs, ifmis, notifier, officerIdentity, now = () => new Date() }) {
   const r = express.Router();
   const officer = [auth.requireAuth, auth.requireRole('OFFICER')];
   const inspector = [auth.requireAuth, auth.requireRole('INSPECTOR')];
@@ -72,6 +72,7 @@ export function contractRoutes({ db, auth, ledger, ipfs, ifmis, officerIdentity,
       await db.milestone.update({ where, data: { paymentStatus: 'PAID', paymentNote: null, paymentId,
         ifmisRef: instruction.ifmisRef, paymentTxId: tx.txId, paidAt: now() } });
       await auth.audit(actor.id, 'payment.recorded', { awardId: c.awardId, milestoneId: m.milestoneId, ifmisRef: instruction.ifmisRef, txId: tx.txId }, ip);
+      notifier?.paymentMade(c, m, instruction.ifmisRef);
       return { status: 'PAID', ifmisRef: instruction.ifmisRef, txId: tx.txId };
     } catch (err) {
       // Very unlikely after CheckPayable; IFMIS keeps the same reference for this payment ID if it is retried
@@ -113,6 +114,7 @@ export function contractRoutes({ db, auth, ledger, ipfs, ifmis, officerIdentity,
       standstillEnds: new Date(onLedger.standstillEnds), status: 'AWARDED',
     }, include });
     await auth.audit(req.user.id, 'contract.awarded', { awardId, tender: tender.reference, bidId: bid.bidId, txId: tx.txId }, req.ip);
+    notifier?.contractAwarded(c, tender.title);
     res.status(201).json(contractView(c));
   }));
 

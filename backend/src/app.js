@@ -14,12 +14,15 @@ import { evaluationRoutes } from './evaluation-routes.js';
 import { contractRoutes } from './contract-routes.js';
 import { oversightRoutes } from './oversight-routes.js';
 import { publicRoutes, publicCid } from './public-routes.js';
+import { reportRoutes } from './reports.js';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
 const ID = /^[A-Za-z0-9._/-]{3,64}$/;
 
-export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, registries, ifmis,
+const silent = { tenderPublished() {}, bidReceived() {}, contractAwarded() {}, paymentMade() {}, flush: async () => {} };
+
+export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, registries, ifmis, notifier = silent,
   committeeIdentities = defaultCommittee, inspectorIdentities = defaultInspectors, regulatorIdentities = defaultRegulators }) {
   const app = express();
   app.use(express.json());
@@ -33,9 +36,10 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
   app.use('/api', authRoutes({ db, auth, committeeIdentities, inspectorIdentities, regulatorIdentities }));
   app.use('/api', supplierRoutes({ db, auth, registries }));
   app.use('/api', evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity: actors.officer }));
-  app.use('/api', contractRoutes({ db, auth, ledger, ipfs, ifmis, officerIdentity: actors.officer }));
+  app.use('/api', contractRoutes({ db, auth, ledger, ipfs, ifmis, notifier, officerIdentity: actors.officer }));
   app.use('/api', oversightRoutes({ db, auth, ledger, officerIdentity: actors.officer }));
   app.use('/api', publicRoutes({ db, ledger, officerIdentity: actors.officer }));
+  app.use('/api', reportRoutes({ db, auth, ledger, officerIdentity: actors.officer }));
 
   // 3.5.3: publish a tender. The document goes to IPFS; its SHA-256 hash and the closing time go on the ledger.
   app.post('/api/tenders', officer, upload.single('document'), wrap(async (req, res) => {
@@ -58,6 +62,7 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
       closingTime, txId: tx.txId, block: tx.block, publishedAt: new Date().toISOString() };
     await store.addTender({ ...record, publishedById: req.user.id });
     await auth.audit(req.user.id, 'tender.published', { reference, txId: tx.txId }, req.ip);
+    notifier.tenderPublished(record);
     res.status(201).json(record);
   }));
 
@@ -112,6 +117,7 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
     await store.addBid({ bidId, tenderId, supplierRef, supplierId: req.user.supplier.pacraNumber, cid, cipherHash,
       fileName: req.file.originalname, txId: tx.txId, submittedAt: tx.result.submittedAt });
     await auth.audit(req.user.id, 'bid.submitted', { bidId, tenderId, txId: tx.txId }, req.ip);
+    notifier.bidReceived(req.user, receipt);
     res.status(201).json(receipt);
   }));
 

@@ -1,7 +1,7 @@
 // Chapter 3, 3.5.2: supplier self-registration, verified against PACRA and ZRA, keyed to the PACRA number.
 import express from 'express';
 import crypto from 'node:crypto';
-import { hashPassword, MIN_PASSWORD, AuthError } from './auth.js';
+import { hashPassword, MIN_PASSWORD, PHONE, AuthError } from './auth.js';
 import { verifySupplier, endOfDayInZambia, zambianDate } from './registries.js';
 
 const PACRA = /^\d{12}$/;
@@ -33,6 +33,8 @@ export function supplierRoutes({ db, auth, registries, now = () => new Date() })
     const email = String(req.body.email ?? '').trim().toLowerCase();
     const name = String(req.body.name ?? '').trim();
     const password = String(req.body.password ?? '');
+    const phone = String(req.body.phone ?? '').replace(/\s/g, '') || null;
+    if (phone && !PHONE.test(phone)) throw new AuthError(400, 'Give the mobile number in international format, e.g. +260971234567.');
     if (!PACRA.test(pacraNumber)) throw new AuthError(400, 'The PACRA registration number has 12 digits.');
     if (!TPIN.test(tpin)) throw new AuthError(400, 'The ZRA TPIN has 10 digits.');
     if (!name) throw new AuthError(400, 'Enter the name of the person registering.');
@@ -55,7 +57,7 @@ export function supplierRoutes({ db, auth, registries, now = () => new Date() })
       pacraNumber, tpin, companyName: check.company.name, supplierRef: newSupplierRef(),
       pacraStatus: check.company.status, taxClearanceNumber: check.clearance.number,
       taxClearanceExpiry: endOfDayInZambia(check.clearance.expiry), verifiedAt: now(),
-      users: { create: { email, name, role: 'SUPPLIER', passwordHash: await hashPassword(password) } },
+      users: { create: { email, name, phone, role: 'SUPPLIER', passwordHash: await hashPassword(password) } },
     }, include: { users: true } });
     await auth.audit(supplier.users[0].id, 'supplier.registered', { pacraNumber, tpin, supplierRef: supplier.supplierRef }, req.ip);
     res.status(201).json({ companyName: supplier.companyName, supplierRef: supplier.supplierRef, email });

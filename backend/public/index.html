@@ -90,6 +90,8 @@
       <input id="r-name" name="name" autocomplete="name" required>
       <label for="r-email">Your email</label>
       <input id="r-email" name="email" type="email" autocomplete="email" required>
+      <label for="r-phone">Mobile number for SMS alerts (optional, e.g. +260971234567)</label>
+      <input id="r-phone" name="phone" type="tel" autocomplete="tel">
       <label for="r-password">Choose a password (at least 10 characters)</label>
       <input id="r-password" name="password" type="password" minlength="10" autocomplete="new-password" required>
       <button type="submit">Check and register</button>
@@ -122,6 +124,7 @@
     <button role="tab" aria-selected="false" data-tab="evaluation" data-roles="OFFICER,COMMITTEE">Evaluation</button>
     <button role="tab" aria-selected="false" data-tab="contracts" data-roles="OFFICER,INSPECTOR">Contracts</button>
     <button role="tab" aria-selected="false" data-tab="oversight" data-roles="REGULATOR">Oversight</button>
+    <button role="tab" aria-selected="false" data-tab="reports" data-roles="OFFICER,REGULATOR">Reports</button>
     <button role="tab" aria-selected="false" data-tab="verify">Public portal</button>
     <button role="tab" aria-selected="false" data-tab="admin" data-roles="ADMIN">Administration</button>
   </nav>
@@ -273,6 +276,23 @@
     </div>
   </section>
 
+  <!-- 3.5.10 Reports -->
+  <section role="tabpanel" id="reports">
+    <div class="card">
+      <h2>Reports</h2>
+      <p class="lead">Download each report as a PDF or a spreadsheet (Excel). Figures come from the ledger and the system's records at the moment you download.</p>
+      <table><tr><th>Report</th><th>Contents</th><th>Download</th></tr>
+        <tr data-kind="procurement" data-roles="OFFICER,REGULATOR"><td><strong>Procurement</strong></td><td>Every tender: buyer, dates, estimate, number of bids, status, awardee and contract value</td>
+          <td><button type="button" data-format="pdf">PDF</button> <button type="button" data-format="xlsx">Spreadsheet</button></td></tr>
+        <tr data-kind="payments" data-roles="OFFICER,REGULATOR"><td><strong>Payments</strong></td><td>Every payment: date, contract, milestone, amount, supplier, IFMIS reference and ledger transaction</td>
+          <td><button type="button" data-format="pdf">PDF</button> <button type="button" data-format="xlsx">Spreadsheet</button></td></tr>
+        <tr data-kind="alerts" data-roles="REGULATOR"><td><strong>Alerts</strong></td><td>Every risk alert: score, status, and the latest decision with its reason</td>
+          <td><button type="button" data-format="pdf">PDF</button> <button type="button" data-format="xlsx">Spreadsheet</button></td></tr>
+      </table>
+      <div class="result" id="rp-result" role="status"></div>
+    </div>
+  </section>
+
   <!-- 3.5.1 Administration -->
   <section role="tabpanel" id="admin">
     <div class="card">
@@ -290,6 +310,7 @@
         <option value="REGULATOR">Regulator</option><option value="COMMITTEE">Evaluation committee</option>
         <option value="INSPECTOR">Inspector</option><option value="ADMIN">Administrator</option>
       </select>
+      <label for="u-phone">Mobile number for SMS alerts (optional, e.g. +260971234567)</label><input id="u-phone" name="phone" type="tel">
       <label for="u-entity">Procuring entity (officers)</label><select id="u-entity" name="entityId"></select>
       <label for="u-password">Starting password (at least 10 characters)</label><input id="u-password" name="password" minlength="10" required>
       <button type="submit">Add user</button>
@@ -575,6 +596,7 @@ function enter(user) {
   $('#whoami').innerHTML = `Signed in as <strong>${esc(user.name)}</strong> (${esc(ROLE_NAMES[user.role] ?? user.role)})`;
   $('#my-ref').textContent = user.supplierRef ?? '';
   $('#my-company').textContent = user.companyName ?? '';
+  document.querySelectorAll('#reports tr[data-roles]').forEach((r) => { r.hidden = !r.dataset.roles.split(',').includes(user.role); });
   // Only the tabs this role may use
   const tabs = [...document.querySelectorAll('[role="tab"]')];
   tabs.forEach((t) => { t.hidden = !!t.dataset.roles && !t.dataset.roles.split(',').includes(user.role); });
@@ -913,6 +935,28 @@ $('#ov-load').addEventListener('click', async () => {
     <div class="table-scroll"><table><tr><th>When</th><th>Event</th><th>Detail</th><th>Ledger transaction</th></tr>
     ${h.events.map((e) => `<tr><td>${when(e.at)}</td><td><strong>${esc(e.what)}</strong></td><td>${esc(e.detail)}</td>
       <td class="mono">${e.txId ? esc(e.txId) : esc(e.source === 'ledger' ? 'on the ledger' : e.source)}</td></tr>`).join('')}</table></div>`;
+});
+
+// ---------- Reports (3.5.10) ----------
+$('#reports').addEventListener('click', async (e) => {
+  const format = e.target.dataset.format;
+  if (!format) return;
+  const kind = e.target.closest('tr').dataset.kind;
+  e.target.disabled = true;
+  try {
+    const res = await api(`/api/reports/${kind}?format=${format}`);
+    if (!res.ok) return show($('#rp-result'), false, (await res.json()).error);
+    const name = (res.headers.get('content-disposition') ?? '').match(/filename="?([^";]+)/)?.[1] ?? `${kind}.${format}`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(await res.blob());
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    $('#rp-result').className = 'result';
+  } finally {
+    e.target.disabled = false;
+  }
 });
 
 // ---------- Bidder registration (3.5.2) ----------

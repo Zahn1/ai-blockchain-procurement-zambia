@@ -10,6 +10,7 @@ export const LOCK_MINUTES = 15;
 const SESSION_HOURS = 8;
 const STEP_MINUTES = 5; // time allowed between password and one-time code
 export const MIN_PASSWORD = 10;
+export const PHONE = /^\+\d{9,15}$/; // international format, e.g. +260971234567 (optional; for SMS, 3.5.10)
 
 // Cost 12 in use; tests lower it with BCRYPT_ROUNDS so the suite runs quickly
 export const hashPassword = (password) => bcrypt.hash(password, Number(process.env.BCRYPT_ROUNDS ?? 12));
@@ -17,7 +18,7 @@ export const hashPassword = (password) => bcrypt.hash(password, Number(process.e
 /** Fields of a user that are safe to send to the browser. */
 export const publicUser = (u) => ({
   id: u.id, email: u.email, name: u.name, role: u.role, status: u.status,
-  entityId: u.entityId, totpEnabled: u.totpEnabled,
+  entityId: u.entityId, totpEnabled: u.totpEnabled, phone: u.phone ?? null,
   supplierRef: u.supplier?.supplierRef ?? null, companyName: u.supplier?.companyName ?? null,
   fabricIdentity: u.fabricIdentity ?? null,
 });

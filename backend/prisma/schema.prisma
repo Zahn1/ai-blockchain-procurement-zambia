@@ -38,6 +38,7 @@ model User {
   id             String           @id @default(uuid())
   email          String           @unique
   name           String
+  phone          String? // for SMS notifications (3.5.10), international format, e.g. +260971234567
   passwordHash   String
   role           Role
   status         Status           @default(ACTIVE)
@@ -237,6 +238,22 @@ model AlertDecision {
   createdAt   DateTime @default(now())
 
   @@index([alertId])
+}
+
+/// Every e-mail and SMS notification sent for a key event (3.5.10).
+model Notification {
+  id          String   @id @default(uuid())
+  event       String // TENDER_PUBLISHED, BID_RECEIVED, CONTRACT_AWARDED, PAYMENT_MADE
+  channel     String // EMAIL or SMS
+  recipient   String
+  subject     String?
+  body        String
+  status      String // SENT or FAILED
+  providerRef String?
+  error       String?
+  createdAt   DateTime @default(now())
+
+  @@index([event])
 }
 
 /// Who did what and when (FR-AUD-02).
