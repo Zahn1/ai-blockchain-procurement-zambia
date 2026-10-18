@@ -20,12 +20,26 @@ Each requirement from Chapter 3 is split into its clauses. Every clause points t
 
 Supporting non-functional requirements met here: **3.6.3 Security** (least privilege, multi-factor authentication for all internal users, encrypted secrets) and the audit trail used in **3.5.8** (every sign-in, failure and administrative change is logged and shown to the administrator).
 
+## 3.5.2 Supplier Registration and Verification
+
+> *"The system must allow suppliers to register and must verify their company registration and tax compliance against the Patents and Companies Registration Agency (PACRA) and the Zambia Revenue Authority (ZRA), using the integrations ZPPA has already built for the e-GP system. Every supplier record must be keyed to its PACRA registration number."*
+
+| Clause | Status | How it is met | Code | Tests |
+|---|---|---|---|---|
+| Allow suppliers to **register** | ✅ | Public *Register as a bidder* form: PACRA number, TPIN, name, email, password. Bidders cannot be created by the administrator | `supplier-routes.js` `POST /register/supplier`; `index.html` | *a company that PACRA and ZRA both confirm is registered …*; *cannot create bidders …* |
+| Verify **company registration** against **PACRA** | ✅ | The company must exist at PACRA and be ACTIVE. The company name is taken from PACRA, not typed | `registries.js` `verifySupplier()` | *refused: unknown company*; *refused: company deregistered at PACRA* |
+| Verify **tax compliance** against **ZRA** | ✅ | The TPIN must exist, belong to the same PACRA number, and have a valid tax clearance in date (end of day, Zambian time) | `verifySupplier()` | *refused: tax clearance expired*; *no tax clearance*; *unknown TPIN*; *TPIN of another company*; *Dates follow Zambian time* |
+| Using the **integrations ZPPA has already built** | ✅ (stand-in) | PACRA and ZRA are separate HTTP services reached only through `PACRA_API_URL` and `ZRA_API_URL`. The prototype runs fictional stand-ins; setting those URLs to ZPPA's real integrations replaces them with no code change. If a registry cannot be reached, nothing is created | `standins/services.js`; `registries.js` `registryClients()`; `config.js` | Registration tests call the stand-ins over HTTP; *if PACRA or ZRA cannot be reached …* |
+| Every supplier record **keyed to its PACRA registration number** | ✅ | `Supplier` table's primary key is `pacraNumber`; each bidder account links to it; one registration per company. The ledger code name belongs to the company, so its staff cannot bid twice on one tender | `schema.prisma` `model Supplier`; migration `…_suppliers` | *the supplier record is keyed to its PACRA registration number*; *a company can register only once* |
+
+Beyond the wording, following from it: a bidder's company is checked again **when they bid** (still verified, tax clearance still in date), and the administrator can **re-verify** a company, which suspends it if PACRA or ZRA no longer confirm it (*Staying verified*, 5 tests; *a bidder whose company tax clearance has expired cannot bid*).
+
 ## Summary of all functional requirements
 
 | Requirement | Status | Where |
 |---|---|---|
 | 3.5.1 User Authentication and Role Management | ✅ | Phase 3, step 1 |
-| 3.5.2 Supplier Registration and Verification | ⬜ | Phase 3, step 2 |
+| 3.5.2 Supplier Registration and Verification | ✅ | Phase 3, step 2 (PACRA and ZRA stand-ins) |
 | 3.5.3 Tender Publication | ✅ | Prototype; ledger in Phase 2 |
 | 3.5.4 Encrypted Bid Submission | ✅ | Prototype; ledger in Phase 2 |
 | 3.5.5 Bid Opening and Evaluation | 🟡 | Ledger rules done (Phase 2); screens in Phase 3, step 3 |

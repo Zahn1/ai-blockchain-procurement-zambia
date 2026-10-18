@@ -43,7 +43,8 @@ model User {
   status       Status           @default(ACTIVE)
   entityId     String?
   entity       ProcuringEntity? @relation(fields: [entityId], references: [id])
-  supplierRef  String?          @unique // ledger pseudonym for bidders, e.g. SUP-7K2Q9F
+  supplierId   String? // PACRA number of the bidder's company
+  supplier     Supplier?        @relation(fields: [supplierId], references: [pacraNumber])
 
   totpSecret   String? // AES-256-GCM encrypted with APP_KEY
   totpEnabled  Boolean   @default(false)
@@ -54,6 +55,27 @@ model User {
   auditLogs AuditLog[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+}
+
+enum SupplierStatus {
+  VERIFIED
+  SUSPENDED
+}
+
+/// Chapter 3, 3.5.2: every supplier record is keyed to its PACRA registration number.
+model Supplier {
+  pacraNumber        String         @id
+  companyName        String // as registered at PACRA
+  tpin               String         @unique // ZRA taxpayer number
+  supplierRef        String         @unique // ledger pseudonym, one per company, e.g. SUP-7K2Q9F
+  status             SupplierStatus @default(VERIFIED)
+  pacraStatus        String
+  taxClearanceNumber String
+  taxClearanceExpiry DateTime
+  verifiedAt         DateTime
+  users              User[]
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 }
 
 /// Who did what and when (FR-AUD-02).

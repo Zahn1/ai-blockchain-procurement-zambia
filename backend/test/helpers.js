@@ -12,7 +12,7 @@ export const APP_KEY = 'ab'.repeat(32);
 export const db = new PrismaClient({ datasources: { db: { url: process.env.TEST_DATABASE_URL } } });
 
 export async function resetDb() {
-  await db.$executeRawUnsafe('TRUNCATE "AuditLog", "User", "ProcuringEntity" CASCADE');
+  await db.$executeRawUnsafe('TRUNCATE "AuditLog", "User", "Supplier", "ProcuringEntity" CASCADE');
 }
 
 export function makeAuth(now) {
@@ -20,13 +20,25 @@ export function makeAuth(now) {
 }
 
 let n = 0;
-/** A user who has finished authenticator set-up, plus a session token for them. */
+/** A verified supplier company (keyed to its PACRA number), as registration would create it. */
+export async function verifiedSupplier(overrides = {}) {
+  n += 1;
+  const id = String(n).padStart(4, '0');
+  return db.supplier.create({ data: {
+    pacraNumber: `12026000${id}`, tpin: `100000${id}`, companyName: `Test Company ${n} Limited`,
+    supplierRef: `SUP-TEST${id}`, pacraStatus: 'ACTIVE', taxClearanceNumber: `TCC-${id}`,
+    taxClearanceExpiry: new Date(Date.now() + 365 * 86_400_000), verifiedAt: new Date(), ...overrides,
+  } });
+}
+
+/** A user who has finished authenticator set-up, plus a session token for them. Bidders get a verified company. */
 export async function signedIn(role, extra = {}) {
+  const supplier = role === 'SUPPLIER' && !extra.supplierId ? await verifiedSupplier() : null;
   n += 1;
   const user = await db.user.create({ data: {
     email: `${role.toLowerCase()}${n}@test.zm`, name: `${role} ${n}`, role, passwordHash: 'unused',
-    totpEnabled: true, supplierRef: role === 'SUPPLIER' ? `SUP-TEST${n}` : null, ...extra,
+    totpEnabled: true, supplierId: supplier?.pacraNumber ?? null, ...extra,
   } });
   const token = jwt.sign({ sub: user.id, purpose: 'session', role }, JWT_SECRET, { expiresIn: '1h' });
-  return { user, token, header: `Bearer ${token}` };
+  return { user, supplier, token, header: `Bearer ${token}` };
 }

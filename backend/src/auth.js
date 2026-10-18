@@ -17,7 +17,8 @@ export const hashPassword = (password) => bcrypt.hash(password, Number(process.e
 /** Fields of a user that are safe to send to the browser. */
 export const publicUser = (u) => ({
   id: u.id, email: u.email, name: u.name, role: u.role, status: u.status,
-  entityId: u.entityId, supplierRef: u.supplierRef, totpEnabled: u.totpEnabled,
+  entityId: u.entityId, totpEnabled: u.totpEnabled,
+  supplierRef: u.supplier?.supplierRef ?? null, companyName: u.supplier?.companyName ?? null,
 });
 
 export class AuthError extends Error {
@@ -113,7 +114,7 @@ export function createAuth({ db, jwtSecret, appKey, issuer = 'ZPPA Transparent P
       const user = await db.user.findUnique({ where: { id: sub } });
       if (!user?.totpSecret || user.status !== 'ACTIVE') throw new AuthError(401, 'Please sign in again.');
       const step = await checkCode(user, code);
-      const updated = await db.user.update({ where: { id: user.id }, data: { totpEnabled: true, totpLastStep: step } });
+      const updated = await db.user.update({ where: { id: user.id }, data: { totpEnabled: true, totpLastStep: step }, include: { supplier: true } });
       await audit(user.id, 'totp.enabled', null, ip);
       return session(updated, ip);
     },
@@ -130,7 +131,7 @@ export function createAuth({ db, jwtSecret, appKey, issuer = 'ZPPA Transparent P
         await audit(user.id, 'totp.failed', null, ip);
         throw err;
       }
-      const updated = await db.user.update({ where: { id: user.id }, data: { totpLastStep: step } });
+      const updated = await db.user.update({ where: { id: user.id }, data: { totpLastStep: step }, include: { supplier: true } });
       return session(updated, ip);
     },
 
@@ -139,7 +140,7 @@ export function createAuth({ db, jwtSecret, appKey, issuer = 'ZPPA Transparent P
       try {
         const raw = (req.headers.authorization ?? '').replace(/^Bearer /, '');
         const { sub } = readToken(raw, 'session');
-        const user = await db.user.findUnique({ where: { id: sub } });
+        const user = await db.user.findUnique({ where: { id: sub }, include: { supplier: true } });
         if (!user || user.status !== 'ACTIVE' || !user.totpEnabled) throw new AuthError(401, 'Please sign in.');
         req.user = user;
         next();

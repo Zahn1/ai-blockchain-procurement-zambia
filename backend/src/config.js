@@ -28,6 +28,9 @@ export const config = {
   mspId: 'ZPPAMSP',
   usersDir: path.join(networkDir, 'organizations/peerOrganizations/zppa.example.com/users'),
   ipfsApi: process.env.IPFS_API ?? 'http://127.0.0.1:5001',
+  // PACRA and ZRA: the stand-ins run inside this server; point these at the real services to replace them
+  pacraUrl: process.env.PACRA_API_URL ?? `http://localhost:${process.env.PORT ?? 3000}/stand-in/pacra`,
+  zraUrl: process.env.ZRA_API_URL ?? `http://localhost:${process.env.PORT ?? 3000}/stand-in/zra`,
   dataDir: process.env.DATA_DIR ?? path.join(root, 'data'),
 };
 

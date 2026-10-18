@@ -199,12 +199,18 @@ describe('Administrator', () => {
     expect(user.body).not.toHaveProperty('passwordHash');
   });
 
-  test('a new bidder gets a random ledger pseudonym', async () => {
+  test('cannot create bidders, who must register and be verified against PACRA and ZRA (3.5.2)', async () => {
     const app = makeApp();
     const admin = await signedIn('ADMIN');
     const res = await request(app).post('/api/admin/users').set('authorization', admin.header)
       .send({ email: 'bids@alpha.test', name: 'Alpha Ltd', role: 'SUPPLIER', password: 'starting-pass-1' });
-    expect(res.body.supplierRef).toMatch(/^SUP-[A-Z0-9]{6}$/);
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/register themselves/);
+
+    const officer = await signedIn('OFFICER');
+    const change = await request(app).patch(`/api/admin/users/${officer.user.id}`).set('authorization', admin.header)
+      .send({ role: 'SUPPLIER' });
+    expect(change.status).toBe(400);
   });
 
   test.each([

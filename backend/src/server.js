@@ -7,6 +7,8 @@ import * as keys from './sealed.js';
 import { fileStore } from './store.js';
 import { PrismaClient } from '@prisma/client';
 import { createAuth } from './auth.js';
+import { registryClients } from './registries.js';
+import { pacraStandIn, zraStandIn } from './standins/services.js';
 
 const receiptSigner = async () => {
   const { privateKey, cert } = await ledger.loadIdentity(actors.gateway);
@@ -16,7 +18,12 @@ const receiptSigner = async () => {
 const db = new PrismaClient();
 const auth = createAuth({ db, jwtSecret: process.env.JWT_SECRET, appKey: process.env.APP_KEY });
 
-const app = createApp({ ledger, ipfs, store: fileStore, keys, receiptSigner, db, auth });
+const registries = registryClients({ pacraUrl: config.pacraUrl, zraUrl: config.zraUrl });
+
+const app = createApp({ ledger, ipfs, store: fileStore, keys, receiptSigner, db, auth, registries });
+// Stand-in PACRA and ZRA services (3.5.2), reached by the back end over HTTP like the real ones
+app.use('/stand-in/pacra', pacraStandIn());
+app.use('/stand-in/zra', zraStandIn());
 const server = app.listen(config.port, () => {
   console.log(`Procurement prototype on http://localhost:${config.port}`);
 });

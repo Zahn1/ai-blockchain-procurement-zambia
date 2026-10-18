@@ -163,14 +163,14 @@ describe('3.5.4 Encrypted bid submission', () => {
 
     const bidCall = calls.find((c) => c.fn === 'BidContract:SubmitBid');
     expect(bidCall.user).toBe('gateway');
-    expect(bidCall.args).toEqual(['ZPPA/TEST/0001', res.body.bidId, supplier.user.supplierRef, res.body.cipherHash]);
+    expect(bidCall.args).toEqual(['ZPPA/TEST/0001', res.body.bidId, supplier.supplier.supplierRef, res.body.cipherHash]);
   });
 
   test('returns a receipt with the ledger transaction and a signature', async () => {
     const { app } = fakes();
     await publish(app);
     const res = await submitBid(app);
-    expect(res.body).toMatchObject({ tenderId: 'ZPPA/TEST/0001', supplierRef: supplier.user.supplierRef, txId: expect.any(String) });
+    expect(res.body).toMatchObject({ tenderId: 'ZPPA/TEST/0001', supplierRef: supplier.supplier.supplierRef, txId: expect.any(String) });
     expect(res.body.signature).toMatch(/^[A-Za-z0-9+/=]+$/);
   });
 
@@ -217,7 +217,7 @@ describe('3.5.1 Roles on tenders and bids', () => {
     await request(app).post('/api/bids').set('authorization', supplier.header).field('tenderId', 'ZPPA/TEST/0001')
       .field('supplierRef', 'SUP-SOMEONE-ELSE').attach('bid', Buffer.from('x'), 'bid.txt');
     const bidCall = calls.find((c) => c.fn === 'BidContract:SubmitBid');
-    expect(bidCall.args[2]).toBe(supplier.user.supplierRef);
+    expect(bidCall.args[2]).toBe(supplier.supplier.supplierRef);
   });
 
   test('a suspended officer is refused at once, even with a valid session', async () => {
@@ -267,5 +267,19 @@ describe('Receipt verification', () => {
     const signed = sign(receipt, privateKey, cert);
     expect((await request(app).post('/api/receipts/verify').send(signed)).body).toEqual({ valid: true });
     expect((await request(app).post('/api/receipts/verify').send({ ...signed, block: 99 })).body).toEqual({ valid: false });
+  });
+});
+
+describe('3.5.2 Bidding needs a verified company', () => {
+  test('a bidder whose company tax clearance has expired cannot bid', async () => {
+    const { app, calls } = fakes();
+    await publish(app);
+    await db.supplier.update({ where: { pacraNumber: supplier.supplier.pacraNumber },
+      data: { taxClearanceExpiry: new Date(Date.now() - 86_400_000) } });
+    const res = await request(app).post('/api/bids').set('authorization', supplier.header)
+      .field('tenderId', 'ZPPA/TEST/0001').attach('bid', Buffer.from('x'), 'bid.txt');
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/tax clearance expired/);
+    expect(calls.find((c) => c.fn === 'BidContract:SubmitBid')).toBeUndefined();
   });
 });

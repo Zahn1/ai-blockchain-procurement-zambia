@@ -77,6 +77,24 @@
       <input id="password" name="password" type="password" autocomplete="current-password" required>
       <button type="submit">Continue</button>
       <div class="result" id="login-result" role="status"></div>
+      <p class="note">A supplier without an account? <a href="#" id="show-register">Register as a bidder</a></p>
+    </form>
+    <form id="register-form" hidden>
+      <h2>Register as a bidder</h2>
+      <p class="lead">Your company is checked with PACRA (company registration) and ZRA (tax clearance) before your account is created.</p>
+      <label for="r-pacra">PACRA registration number (12 digits)</label>
+      <input id="r-pacra" name="pacraNumber" inputmode="numeric" required>
+      <label for="r-tpin">ZRA TPIN (10 digits)</label>
+      <input id="r-tpin" name="tpin" inputmode="numeric" required>
+      <label for="r-name">Your name</label>
+      <input id="r-name" name="name" autocomplete="name" required>
+      <label for="r-email">Your email</label>
+      <input id="r-email" name="email" type="email" autocomplete="email" required>
+      <label for="r-password">Choose a password (at least 10 characters)</label>
+      <input id="r-password" name="password" type="password" minlength="10" autocomplete="new-password" required>
+      <button type="submit">Check and register</button>
+      <div class="result" id="register-result" role="status"></div>
+      <p class="note"><a href="#" id="back-to-signin">Back to sign in</a></p>
     </form>
     <form id="code-form" hidden>
       <h2>Enter your code</h2>
@@ -141,7 +159,7 @@
         <label for="bid-tender">Tender</label>
         <select id="bid-tender" name="tenderId" required></select>
         <p class="note" id="bid-countdown" aria-live="polite"></p>
-        <p class="note">You bid as <strong id="my-ref"></strong>, your code name on the ledger.</p>
+        <p class="note">You bid for <strong id="my-company"></strong> as <strong id="my-ref"></strong>, your company's code name on the ledger.</p>
         <label for="bid-file">Bid document</label>
         <input id="bid-file" name="bid" type="file" required>
         <button class="btn" type="submit">Encrypt and submit</button>
@@ -197,12 +215,12 @@
     </div>
     <form id="user-form">
       <h2>Add a user</h2>
-      <p class="lead">Give the person their email and starting password. They set up their authenticator at first sign-in.</p>
+      <p class="lead">Give the person their email and starting password. They set up their authenticator at first sign-in. Bidders register themselves so their company can be checked with PACRA and ZRA.</p>
       <label for="u-name">Name</label><input id="u-name" name="name" required>
       <label for="u-email">Email</label><input id="u-email" name="email" type="email" required>
       <label for="u-role">Role</label>
       <select id="u-role" name="role">
-        <option value="OFFICER">Procurement officer</option><option value="SUPPLIER">Bidder</option>
+        <option value="OFFICER">Procurement officer</option>
         <option value="REGULATOR">Regulator</option><option value="COMMITTEE">Evaluation committee</option>
         <option value="INSPECTOR">Inspector</option><option value="ADMIN">Administrator</option>
       </select>
@@ -211,6 +229,12 @@
       <button type="submit">Add user</button>
       <div class="result" id="user-result" role="status"></div>
     </form>
+    <div class="card">
+      <h2>Bidders</h2>
+      <p class="lead">Supplier companies, keyed to their PACRA registration number. Re-verify asks PACRA and ZRA again, for example after a tax clearance is renewed; a company that no longer checks out is suspended.</p>
+      <div class="table-scroll" id="supplier-list"></div>
+      <div class="result" id="supplier-result" role="status"></div>
+    </div>
     <div class="card">
       <h2>Procuring entities</h2>
       <div class="table-scroll" id="entity-list"></div>
@@ -402,8 +426,8 @@ const ROLE_NAMES = { ADMIN: 'Administrator', OFFICER: 'Procurement officer', SUP
   COMMITTEE: 'Evaluation committee', INSPECTOR: 'Inspector' };
 
 function showStep(id) {
-  for (const f of ['#login-form', '#code-form', '#setup-form']) $(f).hidden = f !== id;
-  const focus = { '#login-form': '#email', '#code-form': '#code', '#setup-form': '#setup-code' }[id];
+  for (const f of ['#login-form', '#code-form', '#setup-form', '#register-form']) $(f).hidden = f !== id;
+  const focus = { '#login-form': '#email', '#code-form': '#code', '#setup-form': '#setup-code', '#register-form': '#r-pacra' }[id];
   setTimeout(() => $(focus).focus(), 0);
 }
 
@@ -448,6 +472,7 @@ function enter(user) {
   $('[role="tablist"]').hidden = false;
   $('#whoami').innerHTML = `Signed in as <strong>${esc(user.name)}</strong> (${esc(ROLE_NAMES[user.role] ?? user.role)})`;
   $('#my-ref').textContent = user.supplierRef ?? '';
+  $('#my-company').textContent = user.companyName ?? '';
   // Only the tabs this role may use
   const tabs = [...document.querySelectorAll('[role="tab"]')];
   tabs.forEach((t) => { t.hidden = !!t.dataset.roles && !t.dataset.roles.split(',').includes(user.role); });
@@ -475,22 +500,49 @@ function showPublic() {
 }
 $('#signout').addEventListener('click', () => signOut());
 
+// ---------- Bidder registration (3.5.2) ----------
+$('#show-register').addEventListener('click', (e) => { e.preventDefault(); showStep('#register-form'); });
+$('#back-to-signin').addEventListener('click', (e) => { e.preventDefault(); showStep('#login-form'); });
+$('#register-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const form = e.target;
+  withButton(form, async () => {
+    const res = await fetch('/api/register/supplier', json(Object.fromEntries(new FormData(form))));
+    const data = await res.json();
+    if (!res.ok) {
+      const list = data.problems ? `<ul>${data.problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>` : '';
+      return show($('#register-result'), false, data.problems ? 'Your company could not be verified' : data.error, list);
+    }
+    form.reset();
+    showStep('#login-form');
+    $('#email').value = data.email;
+    show($('#login-result'), true, `${data.companyName} is registered`,
+      `<p>Your code name on the ledger is <strong>${esc(data.supplierRef)}</strong>. Sign in now to set up your authenticator.</p>`);
+  });
+});
+
 // ---------- Administration (3.5.1) ----------
 async function loadAdmin() {
-  const [users, entities, audit] = await Promise.all(['/api/admin/users', '/api/admin/entities', '/api/admin/audit']
+  const [users, entities, audit, suppliers] = await Promise.all(['/api/admin/users', '/api/admin/entities', '/api/admin/audit', '/api/admin/suppliers']
     .map(async (u) => (await api(u)).json()));
   $('#u-entity').innerHTML = '<option value="">None</option>' +
     entities.filter((e) => e.status === 'ACTIVE').map((e) => `<option value="${esc(e.id)}">${esc(e.code)} · ${esc(e.name)}</option>`).join('');
 
-  const roleOptions = (current) => Object.entries(ROLE_NAMES)
+  const roleOptions = (current) => Object.entries(ROLE_NAMES).filter(([v]) => v !== 'SUPPLIER')
     .map(([v, n]) => `<option value="${v}"${v === current ? ' selected' : ''}>${esc(n)}</option>`).join('');
   $('#user-list').innerHTML = `<table><tr><th>Name</th><th>Email</th><th>Role</th><th>Entity</th><th>Code name</th><th>Authenticator</th><th>Status</th><th></th></tr>
     ${users.map((u) => `<tr data-id="${esc(u.id)}"><td>${esc(u.name)}</td><td>${esc(u.email)}</td>
-      <td><select class="u-role" aria-label="Role for ${esc(u.email)}">${roleOptions(u.role)}</select></td>
+      <td>${u.role === 'SUPPLIER' ? `Bidder (${esc(u.companyName ?? '')})` : `<select class="u-role" aria-label="Role for ${esc(u.email)}">${roleOptions(u.role)}</select>`}</td>
       <td>${esc(u.entity ?? '')}</td><td>${esc(u.supplierRef ?? '')}</td>
       <td>${u.totpEnabled ? 'Set up' : 'Not yet'}</td><td>${u.status === 'ACTIVE' ? 'Active' : '<strong>Suspended</strong>'}</td>
       <td class="inline"><button type="button" class="u-status">${u.status === 'ACTIVE' ? 'Suspend' : 'Reactivate'}</button>
         ${u.totpEnabled ? '<button type="button" class="u-reset">Reset code</button>' : ''}</td></tr>`).join('')}</table>`;
+
+  $('#supplier-list').innerHTML = suppliers.length ? `<table><tr><th>PACRA number</th><th>Company</th><th>TPIN</th><th>Tax clearance until</th><th>Code name</th><th>Status</th><th>Checked</th><th></th></tr>
+    ${suppliers.map((sp) => `<tr data-pacra="${esc(sp.pacraNumber)}"><td>${esc(sp.pacraNumber)}</td><td>${esc(sp.companyName)}</td><td>${esc(sp.tpin)}</td>
+      <td>${new Date(sp.taxClearanceExpiry).toLocaleDateString('en-GB', { dateStyle: 'medium', timeZone: 'Africa/Lusaka' })}</td><td>${esc(sp.supplierRef)}</td>
+      <td>${sp.status === 'VERIFIED' ? 'Verified' : '<strong>Suspended</strong>'}</td><td>${when(sp.verifiedAt)}</td>
+      <td><button type="button" class="s-reverify">Re-verify</button></td></tr>`).join('')}</table>` : '<p class="empty">No bidders have registered yet.</p>';
 
   $('#entity-list').innerHTML = `<table><tr><th>Code</th><th>Name</th><th>Status</th><th></th></tr>
     ${entities.map((e) => `<tr data-id="${esc(e.id)}"><td>${esc(e.code)}</td><td>${esc(e.name)}</td>
@@ -518,6 +570,17 @@ $('#user-list').addEventListener('click', async (e) => {
     await api(`/api/admin/users/${id}/reset-code`, { method: 'POST' });
     await loadAdmin();
   }
+});
+$('#supplier-list').addEventListener('click', async (e) => {
+  if (!e.target.matches('.s-reverify')) return;
+  e.target.disabled = true;
+  const pacra = e.target.closest('tr').dataset.pacra;
+  const res = await api(`/api/admin/suppliers/${pacra}/reverify`, { method: 'POST' });
+  const d = await res.json();
+  if (!res.ok) show($('#supplier-result'), false, d.error);
+  else if (d.problems.length) show($('#supplier-result'), false, `${d.companyName} no longer checks out and is suspended`, `<ul>${d.problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>`);
+  else show($('#supplier-result'), true, `${d.companyName} checked with PACRA and ZRA: verified`);
+  await loadAdmin();
 });
 $('#entity-list').addEventListener('click', (e) => {
   if (!e.target.matches('.e-status')) return;

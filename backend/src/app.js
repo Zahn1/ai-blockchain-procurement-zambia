@@ -8,12 +8,13 @@ import { root, actors } from './config.js';
 import { sha256, encrypt, newKey } from './sealed.js';
 import { sign, verify } from './receipt.js';
 import { authRoutes } from './auth-routes.js';
+import { supplierRoutes, bidBlocker } from './supplier-routes.js';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
 const ID = /^[A-Za-z0-9._/-]{3,64}$/;
 
-export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth }) {
+export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, registries }) {
   const app = express();
   app.use(express.json());
   app.use(express.static(path.join(root, 'public')));
@@ -24,6 +25,7 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth }
   const bidder = [auth.requireAuth, auth.requireRole('SUPPLIER')];
 
   app.use('/api', authRoutes({ db, auth }));
+  app.use('/api', supplierRoutes({ db, auth, registries }));
 
   // 3.5.3: publish a tender. The document goes to IPFS; its SHA-256 hash and the closing time go on the ledger.
   app.post('/api/tenders', officer, upload.single('document'), wrap(async (req, res) => {
@@ -77,13 +79,15 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth }
 
   // 3.5.4: submit a sealed bid. Encrypted with a fresh AES-256-GCM key, stored on IPFS, hash recorded on the
   // ledger. The chaincode rejects it if the tender has closed. The supplier gets a signed receipt.
-  // The supplier reference is the signed-in bidder's own pseudonym, never taken from the form.
+  // The code name is the bidder's company's (one per PACRA number), never taken from the form.
+  // The company must still be verified and its ZRA tax clearance in date (3.5.2).
   app.post('/api/bids', bidder, upload.single('bid'), wrap(async (req, res) => {
     const { tenderId } = req.body;
-    const { supplierRef } = req.user;
+    const blocked = bidBlocker(req.user.supplier);
+    if (blocked) return res.status(403).json({ error: blocked, source: 'auth' });
+    const { supplierRef } = req.user.supplier;
     if (!req.file) return bad(res, 'Attach the bid document.');
     if (!ID.test(tenderId ?? '')) return bad(res, 'Choose a tender.');
-    if (!supplierRef) return bad(res, 'Your account has no supplier reference. Contact the system administrator.');
 
     const key = newKey();
     const sealed = encrypt(req.file.buffer, key);
