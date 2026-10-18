@@ -114,6 +114,7 @@ var (
 	auditor    = fakeIdentity{"x509::CN=auditor1::CN=ca.oag", MSPOAG, RoleAuditor}
 	regulator  = fakeIdentity{"x509::CN=regulator1::CN=ca.zppa", MSPZPPA, RoleRegulator}
 	aiService  = fakeIdentity{"x509::CN=risk-service::CN=ca.zppa", MSPZPPA, RoleAI}
+	inspector  = fakeIdentity{"x509::CN=inspector1::CN=ca.zppa", MSPZPPA, RoleInspector}
 )
 
 // ledger bundles a fake stub with a helper to act as a given caller at a given time.

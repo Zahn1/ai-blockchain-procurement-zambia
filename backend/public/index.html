@@ -120,6 +120,7 @@
     <button role="tab" aria-selected="false" data-tab="publish" data-roles="OFFICER">Publish tender</button>
     <button role="tab" aria-selected="false" data-tab="bid" data-roles="SUPPLIER">Submit sealed bid</button>
     <button role="tab" aria-selected="false" data-tab="evaluation" data-roles="OFFICER,COMMITTEE">Evaluation</button>
+    <button role="tab" aria-selected="false" data-tab="contracts" data-roles="OFFICER,INSPECTOR">Contracts</button>
     <button role="tab" aria-selected="false" data-tab="verify">Verify and ledger</button>
     <button role="tab" aria-selected="false" data-tab="admin" data-roles="ADMIN">Administration</button>
   </nav>
@@ -220,6 +221,22 @@
     <div id="ev-body"></div>
   </section>
 
+  <!-- 3.5.6 Award and milestone payment -->
+  <section role="tabpanel" id="contracts">
+    <div class="card" id="ct-awardable-card" hidden>
+      <h2>Ready to award</h2>
+      <p class="lead">Tenders whose evaluation committee has made its recommendation. Awarding records the evaluation report hash on the ledger.</p>
+      <div id="ct-awardable"></div>
+    </div>
+    <div class="card">
+      <h2>Contracts</h2>
+      <p class="lead">Payment happens when the inspector's certificate passes the ledger's checks and neither the contract nor its tender is flagged as high risk.</p>
+      <div class="inline"><select id="ct-select"></select><button type="button" id="ct-load">Load</button></div>
+      <div class="result" id="ct-result" role="status"></div>
+    </div>
+    <div id="ct-body"></div>
+  </section>
+
   <!-- 3.5.1 Administration -->
   <section role="tabpanel" id="admin">
     <div class="card">
@@ -276,6 +293,7 @@ let tenders = [];
 // Tabs
 document.querySelectorAll('[role="tab"]').forEach((tab) => tab.addEventListener('click', () => {
   if (tab.dataset.tab === 'evaluation' && me) setTimeout(loadEvaluation, 0);
+  if (tab.dataset.tab === 'contracts' && me) setTimeout(() => loadContracts(), 0);
   document.querySelectorAll('[role="tab"]').forEach((t) => t.setAttribute('aria-selected', t === tab));
   document.querySelectorAll('[role="tabpanel"]').forEach((p) => p.classList.toggle('active', p.id === tab.dataset.tab));
 }));
@@ -650,6 +668,136 @@ $('#ev-body').addEventListener('change', (e) => {
   if (e.target.id !== 'ev-choice') return;
   const departs = e.target.value !== ev.ranking.recommendedBidId;
   $('#ev-why-need').textContent = departs ? '(required: at least 50 characters, because this departs from the recommended bid)' : '(only needed if you choose a different bid from the recommended one)';
+});
+
+// ---------- Award and milestone payment (3.5.6) ----------
+let contracts = [];
+const ctMsg = (ok, title, body) => show($('#ct-result'), ok, title, body);
+const day = (iso) => (iso ? new Date(iso).toLocaleDateString('en-GB', { dateStyle: 'medium', timeZone: 'Africa/Lusaka' }) : '');
+
+async function loadContracts(selectId) {
+  if (me.role === 'OFFICER') {
+    const ready = await (await api('/api/contracts/awardable')).json();
+    $('#ct-awardable-card').hidden = false;
+    $('#ct-awardable').innerHTML = ready.length ? `<table><tr><th>Tender</th><th>Title</th><th>Recommended bid</th><th></th></tr>
+      ${ready.map((t) => `<tr><td class="mono">${esc(t.reference)}</td><td>${esc(t.title)}</td><td class="mono">${esc(t.bidId)}</td>
+        <td><button type="button" class="ct-award" data-ref="${esc(t.reference)}">Award</button></td></tr>`).join('')}</table>` : '<p class="empty">Nothing waiting to be awarded.</p>';
+  }
+  contracts = await (await api('/api/contracts')).json();
+  $('#ct-select').innerHTML = contracts.map((c) => `<option value="${esc(c.awardId)}">${esc(c.awardId)} · ${esc(c.tenderRef)} · ${esc(c.title ?? '')}</option>`).join('');
+  if (selectId) $('#ct-select').value = selectId;
+  if (contracts.length) await loadContract(); else $('#ct-body').innerHTML = '<div class="card"><p class="empty">No contracts yet.</p></div>';
+}
+
+async function loadContract() {
+  const res = await api(`/api/contracts/detail?awardId=${encodeURIComponent($('#ct-select').value)}`);
+  const c = await res.json();
+  if (!res.ok) { $('#ct-body').innerHTML = `<div class="card"><p class="empty">${esc(c.error)}</p></div>`; return; }
+  const flagged = c.alerts.filter((a) => a.score >= 70 && ['OPEN', 'REFERRED'].includes(a.status));
+  let html = `<div class="card"><h2>${esc(c.awardId)} · ${esc(c.title ?? '')}</h2>${fields([
+    ['Tender', c.tenderRef], ['Awarded bid', `${c.bidId} (${c.supplierRef})`], ['Contract value', kwacha(c.amountNgwee)],
+    ['Status on the ledger', c.ledger.status], ['Paid so far (ledger)', kwacha(c.ledger.paidTotal)],
+    ['Award transaction', c.awardTxId], ['Evaluation report hash', c.evalHash],
+    ...(c.status === 'AWARDED' ? [['Standstill ends', when(c.standstillEnds)]] : [['Contract hash', c.contractHash], ['Signed', when(c.signedAt)], ['Inspector', c.inspector?.name ?? '']]),
+  ])}`;
+  html += `<h3>Risk alerts on this contract or its tender</h3>${c.alerts.length ? `<table><tr><th>Alert</th><th>On</th><th>Score</th><th>Status</th><th>Raised</th></tr>
+    ${c.alerts.map((a) => `<tr><td class="mono">${esc(a.id)}</td><td>${esc(a.subjectType)}</td><td>${a.score}</td><td>${esc(a.status)}</td><td>${when(a.raisedAt)}</td></tr>`).join('')}</table>
+    ${flagged.length ? '<p><strong>Flagged as high risk:</strong> payments are held until a regulator clears the alert or decides to monitor it.</p>' : ''}` : '<p class="empty">None.</p>'}</div>`;
+
+  if (c.status === 'AWARDED' && me.role === 'OFFICER') {
+    const inspectors = await (await api('/api/contracts/inspectors')).json();
+    html += `<form class="card" id="ct-sign"><h2>Sign the contract</h2>
+      <p class="lead">The smart contract records the signed contract's hash and each milestone with its amount and due date (the payment schedule). The milestones must add up to ${kwacha(c.amountNgwee)}.</p>
+      <label for="ct-file">Signed contract document</label><input id="ct-file" type="file" required>
+      <label for="ct-inspector">Authorised inspector</label><select id="ct-inspector">${inspectors.map((i) => `<option value="${esc(i.id)}">${esc(i.name)} (${esc(i.email)})</option>`).join('')}</select>
+      <h3>Milestones</h3><table id="ct-ms"><tr><th>Description</th><th>Amount (K)</th><th>Due date</th></tr></table>
+      <button type="button" id="ct-add-ms">Add milestone</button> <button type="submit">Sign and record on the ledger</button></form>`;
+  }
+
+  if (c.milestones.length) {
+    html += `<div class="card"><h2>Milestones and payments</h2><div class="table-scroll"><table>
+      <tr><th>Milestone</th><th>Amount</th><th>Due</th><th>Completion certificate</th><th>Payment</th><th></th></tr>
+      ${c.milestones.map((m) => {
+        const cert = m.certifyTxId ? `Certified by ${esc(m.certifiedBy)}, completed ${day(m.completionDate)}<br><span class="mono">${esc(m.certificateHash)}</span>` : 'Not yet certified';
+        const pay = m.paymentStatus === 'PAID' ? `<strong>Paid</strong> ${when(m.paidAt)}<br>IFMIS ${esc(m.ifmisRef)}<br><span class="mono">tx ${esc(m.paymentTxId)}</span>`
+          : m.paymentStatus === 'HELD' ? `<strong>Held</strong>: ${esc(m.paymentNote)}` : '';
+        let action = '';
+        if (me.role === 'INSPECTOR' && !m.certifyTxId) {
+          action = `<form class="ct-certify" data-ms="${esc(m.milestoneId)}" style="border:0;padding:0;margin:0">
+            <input type="file" name="certificate" required><label>Completion date</label><input type="date" name="completionDate" required>
+            <button type="submit">Upload signed certificate</button></form>`;
+        } else if (me.role === 'OFFICER' && m.paymentStatus === 'HELD') {
+          action = `<button type="button" class="ct-pay" data-ms="${esc(m.milestoneId)}">Try payment again</button>`;
+        }
+        return `<tr><td><strong>${esc(m.milestoneId)}</strong> ${esc(m.description)}</td><td>${kwacha(m.amountNgwee)}</td><td>${day(m.dueDate)}</td>
+          <td>${cert}</td><td>${pay}</td><td>${action}</td></tr>`;
+      }).join('')}</table></div></div>`;
+  }
+  $('#ct-body').innerHTML = html;
+  if ($('#ct-ms')) { addMilestoneRow(); addMilestoneRow(); }
+}
+
+function addMilestoneRow() {
+  const row = document.createElement('tr');
+  row.innerHTML = '<td><input class="ms-desc" required></td><td><input class="ms-amount" type="number" min="1" step="0.01" required></td><td><input class="ms-due" type="date" required></td>';
+  $('#ct-ms').appendChild(row);
+}
+
+$('#ct-load').addEventListener('click', () => { $('#ct-result').className = 'result'; loadContract(); });
+$('#ct-select').addEventListener('change', () => { $('#ct-result').className = 'result'; loadContract(); });
+$('#ct-awardable').addEventListener('click', async (e) => {
+  if (!e.target.matches('.ct-award')) return;
+  e.target.disabled = true;
+  const res = await api('/api/contracts/award', json({ reference: e.target.dataset.ref }));
+  const d = await res.json();
+  if (!res.ok) return ctMsg(false, d.source === 'ledger' ? 'Refused by the ledger' : 'Not awarded', `<p>${esc(d.error)}</p>`);
+  ctMsg(true, `Awarded: contract ${d.awardId}`, `<p>The evaluation report hash is on the ledger. ${new Date(d.standstillEnds) > new Date() ? `Standstill ends ${when(d.standstillEnds)}.` : ''}</p>`);
+  await loadContracts(d.awardId);
+});
+$('#ct-body').addEventListener('click', async (e) => {
+  if (e.target.id === 'ct-add-ms') addMilestoneRow();
+  if (e.target.matches('.ct-pay')) {
+    e.target.disabled = true;
+    const res = await api('/api/contracts/pay', json({ awardId: $('#ct-select').value, milestoneId: e.target.dataset.ms }));
+    const d = await res.json();
+    if (!res.ok) ctMsg(false, d.error);
+    else if (d.status === 'PAID') ctMsg(true, 'Paid through IFMIS', `<p>IFMIS reference ${esc(d.ifmisRef)}, recorded on the ledger.</p>`);
+    else ctMsg(false, 'Payment still held', `<p>${esc(d.reason)}</p>`);
+    await loadContract();
+  }
+});
+$('#ct-body').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  try {
+    if (e.target.id === 'ct-sign') {
+      const form = new FormData();
+      form.append('awardId', $('#ct-select').value);
+      form.append('inspectorId', $('#ct-inspector').value);
+      form.append('contract', $('#ct-file').files[0]);
+      form.append('milestones', JSON.stringify([...document.querySelectorAll('#ct-ms tr')].slice(1).map((r) => ({
+        description: r.querySelector('.ms-desc').value, amountKwacha: r.querySelector('.ms-amount').value, dueDate: r.querySelector('.ms-due').value }))));
+      const res = await api('/api/contracts/sign', { method: 'POST', body: form });
+      const d = await res.json();
+      if (!res.ok) return ctMsg(false, d.source === 'ledger' ? 'Refused by the ledger' : 'Not signed', `<p>${esc(d.error)}</p>`);
+      ctMsg(true, 'Contract signed and milestones recorded on the ledger');
+      await loadContract();
+    } else if (e.target.matches('.ct-certify')) {
+      const form = new FormData(e.target);
+      form.append('awardId', $('#ct-select').value);
+      form.append('milestoneId', e.target.dataset.ms);
+      const res = await api('/api/contracts/certify', { method: 'POST', body: form });
+      const d = await res.json();
+      if (!res.ok) return ctMsg(false, d.source === 'ledger' ? 'Refused by the ledger' : 'Not certified', `<p>${esc(d.error)}</p>`);
+      const p = d.payment;
+      ctMsg(p.status === 'PAID', p.status === 'PAID' ? 'Certificate accepted and payment made through IFMIS' : 'Certificate accepted; payment held',
+        p.status === 'PAID' ? `<p>IFMIS reference ${esc(p.ifmisRef)}, recorded on the ledger.</p>` : `<p>${esc(p.reason)}</p>`);
+      await loadContract();
+    }
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 // ---------- Bidder registration (3.5.2) ----------

@@ -1,10 +1,10 @@
 # Phase 2 end-to-end scenario
 
-Run 1791870367 on 13 October 2026 07:47 · tender `ZPPA/DEMO/1791870367` · channel `procurement` · chaincode `procurement`
+Run 1792307863 on 18 October 2026 09:19 · tender `ZPPA/DEMO/1792307863` · channel `procurement` · chaincode `procurement`
 
 Every transaction was endorsed by both peer0.zppa and peer0.oag (majority policy) and waited for commit.
 
-**Result: 25 passed, 0 failed**
+**Result: 30 passed, 0 failed**
 
 | # | Step | Caller | Result | Detail |
 |---|---|---|---|---|
@@ -26,23 +26,28 @@ Every transaction was endorsed by both peer0.zppa and peer0.oag (majority policy
 | 16 | Officer records signed contract | officer1 (ZPPA) | PASS | committed (VALID) |
 | 17 | Officer adds milestone 1 (K60,000) | officer1 (ZPPA) | PASS | committed (VALID) |
 | 18 | Officer adds milestone 2 (K80,000) | officer1 (ZPPA) | PASS | committed (VALID) |
-| 19 | Payment before completion is refused | officer1 (ZPPA) | PASS | rejected: only after completion |
-| 20 | Officer completes milestone 1 with evidence | officer1 (ZPPA) | PASS | committed (VALID) |
-| 21 | Officer records payment for milestone 1 | officer1 (ZPPA) | PASS | committed (VALID) |
-| 22 | Duplicate payment is refused | officer1 (ZPPA) | PASS | rejected: already been recorded |
-| 23 | AI service raises risk alert (score 82) | risk-service (ZPPA) | PASS | committed (VALID) |
-| 24 | Auditor cannot publish a tender | auditor1 (OAG) | PASS | rejected: organisation OAGMSP |
-| 25 | Auditor (OAG) escalates the alert | auditor1 (OAG) | PASS | committed (VALID) |
+| 19 | Payment before completion is refused | officer1 (ZPPA) | PASS | rejected: only after an inspector certifies completion |
+| 20 | Officer cannot certify completion | officer1 (ZPPA) | PASS | rejected: role \"officer\" |
+| 21 | Certificate for the wrong amount is refused | inspector1 (ZPPA) | PASS | rejected: certifies 5000000 ngwee, but milestone MS-1 is for 6000000 |
+| 22 | Inspector certifies milestone 1 complete (signed certificate) | inspector1 (ZPPA) | PASS | committed (VALID) |
+| 23 | AI service flags the contract as high risk (score 82) | risk-service (ZPPA) | PASS | committed (VALID) |
+| 24 | Payment is held while the contract is flagged high risk | officer1 (ZPPA) | PASS | rejected: flagged as high risk |
+| 25 | Regulator reviews the alert and decides to monitor | regulator1 (ZPPA) | PASS | committed (VALID) |
+| 26 | Officer records payment for milestone 1 with its IFMIS reference | officer1 (ZPPA) | PASS | committed (VALID) |
+| 27 | Duplicate payment is refused | officer1 (ZPPA) | PASS | rejected: already been recorded |
+| 28 | AI service raises a risk alert on the tender (score 82) | risk-service (ZPPA) | PASS | committed (VALID) |
+| 29 | Auditor cannot publish a tender | auditor1 (OAG) | PASS | rejected: organisation OAGMSP |
+| 30 | Auditor (OAG) refers the alert for investigation | auditor1 (OAG) | PASS | committed (VALID) |
 
 ## Ledger state read back by OAG
 
 ```json
 {
   "docType": "tender",
-  "id": "ZPPA/DEMO/1791870367",
+  "id": "ZPPA/DEMO/1792307863",
   "estValue": 15000000,
   "currency": "ZMW",
-  "closingTime": "2026-10-13T05:47:22Z",
+  "closingTime": "2026-10-18T07:18:58Z",
   "docHashes": [
     "9cdde828e5491fac166a202b926ed01a263d4ae255b56f23f37a130179a661fd"
   ],
@@ -55,12 +60,12 @@ Every transaction was endorsed by both peer0.zppa and peer0.oag (majority policy
   "status": "AWARDED",
   "version": 2,
   "publishedBy": "ZPPAMSP",
-  "updatedAt": "2026-10-13T05:47:34Z"
+  "updatedAt": "2026-10-18T07:19:10Z"
 }
 {
   "docType": "award",
-  "id": "AWD-1791870367",
-  "tenderId": "ZPPA/DEMO/1791870367",
+  "id": "AWD-1792307863",
+  "tenderId": "ZPPA/DEMO/1792307863",
   "bidId": "BID-A",
   "supplierRef": "SUP-alpha",
   "amount": 14000000,
@@ -70,18 +75,18 @@ Every transaction was endorsed by both peer0.zppa and peer0.oag (majority policy
   "contractHash": "e637614e017ccc88662c34e53d4083ad3b63ee7381a94ea934d730f77efe9b23",
   "variations": 0,
   "status": "SIGNED",
-  "awardedAt": "2026-10-13T05:47:34Z",
-  "standstillEnds": "2026-10-13T05:47:34Z",
-  "signedAt": "2026-10-13T05:47:37Z",
-  "updatedAt": "2026-10-13T05:47:45Z"
+  "awardedAt": "2026-10-18T07:19:10Z",
+  "standstillEnds": "2026-10-18T07:19:10Z",
+  "signedAt": "2026-10-18T07:19:13Z",
+  "updatedAt": "2026-10-18T07:19:26Z"
 }
 ```
 
 ## Tender history (every version, oldest first)
 
 ```
-2026-10-13T05:46:10Z  v1  PUBLISHED  approvals=0  tx 97c5562d9a38ac26158d3c128ce4cc7072d1b5ad67df36e6dc6fae2171864cf5
-2026-10-13T05:47:25Z  v1  PUBLISHED  approvals=1  tx 56a1cd973d50543832a28d8d4bb52708403377fbb8cc2cc3e11614026acf44c2
-2026-10-13T05:47:28Z  v1  PUBLISHED  approvals=2  tx fa84ad4de04f4aec048b9d5737352ab0ed373360e05c812acceff3156538e5dd
-2026-10-13T05:47:34Z  v2  AWARDED  approvals=2  tx 2660be6a8ff15ca510b4441d9d0c11674a5fe963391acc69b49ce0a526423241
+2026-10-18T07:17:45Z  v1  PUBLISHED  approvals=0  tx 7de6095d067064475b3f38eb79d0c27c90630dc2aad03da29ad104ea981cd723
+2026-10-18T07:19:02Z  v1  PUBLISHED  approvals=1  tx c532709ae761c35ba21e8a3808163cf8bd00b907873b69c72793832d4b00faa4
+2026-10-18T07:19:04Z  v1  PUBLISHED  approvals=2  tx 06270e3bc4591d0396af5443e60a882f28156ad57195a6e8d79496261674f845
+2026-10-18T07:19:10Z  v2  AWARDED  approvals=2  tx 3c4c863cfe1e148e11e6317e69905fd988818d7321c4508a28680720d993e181
 ```

@@ -50,6 +50,22 @@ Related rules: a recommendation waits until every member has scored every opened
 
 Live evidence on the network: `docs/phase3/live-3.5.5-run.txt` (the run) and `docs/phase3/live-3.5.5-ledger.json` (the ledger read back).
 
+## 3.5.6 Smart Contract Award and Milestone Payment
+
+> *"On award, the system must create a smart contract that encodes the contract milestones, amounts and payment schedule. When an authorised inspector uploads a signed completion certificate, the smart contract must check it against the milestone terms and, if valid and not flagged as high risk, send a payment instruction to IFMIS. The payment reference must be recorded on the ledger."*
+
+| Clause | Status | How it is met | Code | Tests and evidence |
+|---|---|---|---|---|
+| **On award, create a smart contract** | ✅ | The officer awards the committee's recommended bid; the award transaction carries the evaluation report hash (3.5.5). Signing records the signed contract's hash | `contract-routes.js` `/contracts/award`, `/contracts/sign`; `award.go` `MakeAward`, `SignContract` | *awards the recommended bid, with the evaluation report hash on the ledger*; live run |
+| … that **encodes the contract milestones, amounts and payment schedule** | ✅ | Each milestone is a ledger record with its amount and due date. The milestones must add up to the contract value; the ledger also refuses milestones above it | `/contracts/sign`; `milestone.go` `AddMilestone` | *signing records the contract hash and each milestone with its amount and due date*; *rejects an invalid schedule* (4) |
+| An **authorised inspector** uploads a **signed completion certificate** | ✅ | The officer assigns an inspector to each contract. Only that inspector can certify; the certificate is stored on IPFS and its hash recorded in a ledger transaction signed with the inspector's own key. The chaincode accepts only the inspector role | `/contracts/certify`; `milestone.go` `CompleteMilestone` (role `inspector`) | Jest: *the certificate is signed with the inspector's own ledger identity …*; *only the inspector assigned …*; Go: *TestCompleteMilestone_OnlyAnInspector*; live: officer refused |
+| The smart contract **checks it against the milestone terms** | ✅ | The certificate states the amount certified and the completion date. The chaincode refuses a certificate whose amount differs from the milestone's, or whose date is before the contract signature or in the future | `CompleteMilestone` | Go: *TestCompleteMilestone_CertificateCheckedAgainstTerms*; live: wrong amount refused |
+| **If valid and not flagged as high risk** | ✅ | Before any instruction, the back end asks the ledger (`CheckPayable`). The chaincode holds payment while the contract or its tender has an alert scoring 70 or more that is unreviewed or referred; a regulator's decision to clear or monitor releases it. The same rule is applied again when the payment is recorded | `milestone.go` `CheckPayable`, `payBlocker`, `RecordPayment`; `alert.go` `highRiskFlag` | Go: *…BlockedWhileFlaggedHighRisk*, *…TenderAlertAlsoBlocks*, *…MonitoredOrLowScoreDoesNotBlock*; Jest: *a contract flagged as high risk is not paid: no instruction goes to IFMIS*; live: payment held, then paid after *monitor* |
+| **Send a payment instruction to IFMIS** | ✅ (stand-in) | IFMIS is a separate HTTP service reached through `IFMIS_API_URL`; the prototype runs a stand-in. A payment ID gets the same reference if the instruction is resent, so a retry is never paid twice | `ifmis.js`; `standins/services.js` `ifmisStandIn` | *a valid certificate … is paid*; *IFMIS gives the same reference if an instruction is sent twice* |
+| **The payment reference must be recorded on the ledger** | ✅ | The IFMIS reference is recorded with the payment in `RecordPayment` | `RecordPayment` | Jest: *… the IFMIS reference goes on the ledger*; live: `IFMIS-2026-000001` and `…000002` on the ledger |
+
+Live evidence on the network: `docs/phase3/live-3.5.6-run.txt`; chaincode 1.2 upgrade log; end-to-end scenario (30 of 30 steps) in `docs/phase3/e2e-console-chaincode-1.2.txt`.
+
 ## Summary of all functional requirements
 
 | Requirement | Status | Where |
@@ -59,8 +75,8 @@ Live evidence on the network: `docs/phase3/live-3.5.5-run.txt` (the run) and `do
 | 3.5.3 Tender Publication | ✅ | Prototype; ledger in Phase 2 |
 | 3.5.4 Encrypted Bid Submission | ✅ | Prototype; ledger in Phase 2 |
 | 3.5.5 Bid Opening and Evaluation | ✅ | Phase 3, step 3 (ledger rules from Phase 2) |
-| 3.5.6 Smart Contract Award and Milestone Payment | 🟡 | Ledger rules done; inspector, IFMIS and risk check in Phase 3, step 4 |
+| 3.5.6 Smart Contract Award and Milestone Payment | ✅ | Phase 3, step 4 (IFMIS stand-in) |
 | 3.5.7 AI Risk Scoring and Explained Alerts | 🟡 | Data ready (Phase 1); models in Phase 4 |
-| 3.5.8 Alert Review and Audit Trail | 🟡 | Ledger alerts done; decision names to align to *cleared / monitor / refer*; Phase 3, step 5 |
+| 3.5.8 Alert Review and Audit Trail | 🟡 | Ledger decisions now *cleared / monitor / refer* (step 4); review screen and full history in Phase 3, step 5 |
 | 3.5.9 Public Verification Portal and Open Data | 🟡 | Public document and receipt checks work without signing in; search and OCDS download in Phase 3, step 5 |
 | 3.5.10 Reporting and Notifications | ⬜ | Phase 3, step 5 |

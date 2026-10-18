@@ -15,16 +15,18 @@ const (
 
 // Milestone is a deliverable in a signed contract, with the payments made against it.
 type Milestone struct {
-	DocType      string   `json:"docType"`
-	ID           string   `json:"id"`
-	AwardID      string   `json:"awardId"`
-	Amount       int64    `json:"amount"` // ngwee
-	DueDate      string   `json:"dueDate"`
-	Status       string   `json:"status"`
-	EvidenceHash string   `json:"evidenceHash,omitempty" metadata:",optional"`
-	CompletedAt  string   `json:"completedAt,omitempty" metadata:",optional"`
-	PaidTotal    int64    `json:"paidTotal"`
-	PaymentIDs   []string `json:"paymentIds"`
+	DocType        string   `json:"docType"`
+	ID             string   `json:"id"`
+	AwardID        string   `json:"awardId"`
+	Amount         int64    `json:"amount"` // ngwee
+	DueDate        string   `json:"dueDate"`
+	Status         string   `json:"status"`
+	EvidenceHash   string   `json:"evidenceHash,omitempty" metadata:",optional"` // hash of the signed completion certificate
+	CompletedAt    string   `json:"completedAt,omitempty" metadata:",optional"`
+	CompletionDate string   `json:"completionDate,omitempty" metadata:",optional"` // date of completion stated on the certificate
+	CertifiedBy    string   `json:"certifiedBy,omitempty" metadata:",optional"`    // callerRef of the inspector
+	PaidTotal      int64    `json:"paidTotal"`
+	PaymentIDs     []string `json:"paymentIds"`
 }
 
 // Payment is a payment recorded against a milestone, with its IFMIS reference.
@@ -109,14 +111,24 @@ func (c *MilestoneContract) AddMilestone(ctx contractapi.TransactionContextInter
 		Status: m.Status, Amount: amount, TxTime: formatTime(now)})
 }
 
-// CompleteMilestone marks a milestone delivered, with the hash of the evidence (e.g. a signed delivery note).
-func (c *MilestoneContract) CompleteMilestone(ctx contractapi.TransactionContextInterface,
-	awardID string, milestoneID string, evidenceHash string) error {
-	if err := requireAccess(ctx, []string{MSPZPPA}, RoleOfficer); err != nil {
+// CompleteMilestone records an authorised inspector's signed completion certificate (Chapter 3, 3.5.6).
+// The transaction is signed with the inspector's own key. The contract checks the certificate against the milestone
+// terms: the amount certified must equal the milestone amount, and the completion date must fall between the
+// contract signature and now.
+func (c *MilestoneContract) CompleteMilestone(ctx contractapi.TransactionContextInterface, awardID string,
+	milestoneID string, certificateHash string, certifiedAmount int64, completionDate string) error {
+	if err := requireAccess(ctx, []string{MSPZPPA}, RoleInspector); err != nil {
 		return err
 	}
-	if err := checkHash("evidence hash", evidenceHash); err != nil {
+	if err := checkHash("certificate hash", certificateHash); err != nil {
 		return err
+	}
+	a, _, err := loadAward(ctx, awardID)
+	if err != nil {
+		return err
+	}
+	if a.Status != ContractSigned {
+		return fmt.Errorf("award %s has no signed contract", awardID)
 	}
 	m, k, err := loadMilestone(ctx, awardID, milestoneID)
 	if err != nil {
@@ -125,21 +137,88 @@ func (c *MilestoneContract) CompleteMilestone(ctx contractapi.TransactionContext
 	if m.Status != MilestonePending {
 		return fmt.Errorf("milestone %s is already %s", milestoneID, m.Status)
 	}
+	if certifiedAmount != m.Amount {
+		return fmt.Errorf("the certificate certifies %d ngwee, but milestone %s is for %d ngwee", certifiedAmount, milestoneID, m.Amount)
+	}
 	now, err := txTime(ctx)
 	if err != nil {
 		return err
 	}
-	m.Status, m.EvidenceHash, m.CompletedAt = MilestoneCompleted, evidenceHash, formatTime(now)
+	done, err := parseTime(completionDate)
+	if err != nil {
+		return err
+	}
+	signed, _ := parseTime(a.SignedAt)
+	if done.Before(signed) {
+		return fmt.Errorf("the completion date %s is before the contract was signed on %s", formatTime(done), a.SignedAt)
+	}
+	if done.After(now) {
+		return fmt.Errorf("the completion date %s is in the future", formatTime(done))
+	}
+	ref, err := callerRef(ctx)
+	if err != nil {
+		return err
+	}
+	m.Status, m.EvidenceHash, m.CompletedAt = MilestoneCompleted, certificateHash, formatTime(now)
+	m.CompletionDate, m.CertifiedBy = formatTime(done), ref
 	if err := putJSON(ctx, k, m); err != nil {
 		return err
 	}
 	return emit(ctx, "MilestoneCompleted", MilestoneEvent{AwardID: awardID, MilestoneID: milestoneID,
-		Status: m.Status, Amount: m.Amount, DocHash: evidenceHash, TxTime: m.CompletedAt})
+		Status: m.Status, Amount: m.Amount, DocHash: certificateHash, TxTime: m.CompletedAt})
 }
 
-// RecordPayment records a payment against a completed milestone (FR-MIL-03, FR-MIL-04).
-// It refuses payment before completion, a reused payment ID, more than the milestone amount,
-// and anything that would take total payments above the contract value.
+// Payability is the ledger's answer to "may this payment be made?".
+type Payability struct {
+	Payable bool   `json:"payable"`
+	Reason  string `json:"reason"`
+}
+
+// CheckPayable answers, without changing anything, whether a payment would be accepted. The back end asks this
+// before sending a payment instruction to IFMIS, so no instruction is issued that the ledger would then refuse.
+func (c *MilestoneContract) CheckPayable(ctx contractapi.TransactionContextInterface,
+	awardID string, milestoneID string, amount int64) (*Payability, error) {
+	a, _, err := loadAward(ctx, awardID)
+	if err != nil {
+		return nil, err
+	}
+	m, _, err := loadMilestone(ctx, awardID, milestoneID)
+	if err != nil {
+		return nil, err
+	}
+	reason, err := payBlocker(ctx, a, m, amount)
+	if err != nil {
+		return nil, err
+	}
+	return &Payability{Payable: reason == "", Reason: reason}, nil
+}
+
+// payBlocker returns why a payment may not be made, or "" if it may: the milestone must be certified complete,
+// the amount must fit the milestone and the contract, and neither the contract nor its tender may be flagged
+// as high risk (3.5.6).
+func payBlocker(ctx contractapi.TransactionContextInterface, a *Award, m *Milestone, amount int64) (string, error) {
+	if amount <= 0 {
+		return "the payment amount must be positive", nil
+	}
+	if m.Status != MilestoneCompleted {
+		return fmt.Sprintf("milestone %s is %s; payment is allowed only after an inspector certifies completion", m.ID, m.Status), nil
+	}
+	if m.PaidTotal+amount > m.Amount {
+		return fmt.Sprintf("payment would bring milestone %s to %d ngwee, above its amount of %d", m.ID, m.PaidTotal+amount, m.Amount), nil
+	}
+	if a.PaidTotal+amount > a.ContractValue {
+		return fmt.Sprintf("payment would bring the contract to %d ngwee, above its value of %d; record a variation first",
+			a.PaidTotal+amount, a.ContractValue), nil
+	}
+	flag, err := highRiskFlag(ctx, a.ID, a.TenderID)
+	if err != nil || flag == "" {
+		return "", err
+	}
+	return flag + "; payment is held until a regulator clears or decides to monitor it", nil
+}
+
+// RecordPayment records a payment made through IFMIS, with its IFMIS reference (Chapter 3, 3.5.6).
+// It applies the same checks as CheckPayable and refuses a payment ID that was already used.
 func (c *MilestoneContract) RecordPayment(ctx contractapi.TransactionContextInterface,
 	awardID string, milestoneID string, paymentID string, amount int64, ifmisRef string) error {
 	if err := requireAccess(ctx, []string{MSPZPPA}, RoleOfficer); err != nil {
@@ -151,9 +230,6 @@ func (c *MilestoneContract) RecordPayment(ctx contractapi.TransactionContextInte
 	if err := checkID("IFMIS reference", ifmisRef); err != nil {
 		return err
 	}
-	if err := checkAmount("payment amount", amount); err != nil {
-		return err
-	}
 	a, ak, err := loadAward(ctx, awardID)
 	if err != nil {
 		return err
@@ -161,9 +237,6 @@ func (c *MilestoneContract) RecordPayment(ctx contractapi.TransactionContextInte
 	m, mk, err := loadMilestone(ctx, awardID, milestoneID)
 	if err != nil {
 		return err
-	}
-	if m.Status != MilestoneCompleted {
-		return fmt.Errorf("milestone %s is %s; payment is allowed only after completion", milestoneID, m.Status)
 	}
 	pk, err := key(ctx, typePayment, paymentID)
 	if err != nil {
@@ -174,13 +247,10 @@ func (c *MilestoneContract) RecordPayment(ctx contractapi.TransactionContextInte
 	} else if exists {
 		return fmt.Errorf("payment %s has already been recorded", paymentID)
 	}
-	if m.PaidTotal+amount > m.Amount {
-		return fmt.Errorf("payment would bring milestone %s to %d ngwee, above its amount of %d",
-			milestoneID, m.PaidTotal+amount, m.Amount)
-	}
-	if a.PaidTotal+amount > a.ContractValue {
-		return fmt.Errorf("payment would bring the contract to %d ngwee, above its value of %d; record a variation first",
-			a.PaidTotal+amount, a.ContractValue)
+	if reason, err := payBlocker(ctx, a, m, amount); err != nil {
+		return err
+	} else if reason != "" {
+		return fmt.Errorf("%s", reason)
 	}
 	now, err := txTime(ctx)
 	if err != nil {

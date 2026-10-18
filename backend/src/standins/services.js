@@ -23,3 +23,29 @@ export function zraStandIn() {
   });
   return r;
 }
+
+// Stand-in for IFMIS, the government payment system (Chapter 3, 3.5.6). It accepts payment instructions and returns
+// a payment reference. The same payment ID always gets the same reference, so a retried instruction is not paid twice.
+export function ifmisStandIn() {
+  const r = express.Router();
+  r.use(express.json());
+  const instructions = new Map();
+  let next = 1;
+  r.post('/api/payment-instructions', (req, res) => {
+    const { paymentId, contractRef, milestoneRef, amountNgwee, payeeRef } = req.body ?? {};
+    if (!paymentId || !contractRef || !milestoneRef || !(Number(amountNgwee) > 0) || !payeeRef) {
+      return res.status(400).json({ error: 'paymentId, contractRef, milestoneRef, amountNgwee and payeeRef are required.' });
+    }
+    const existing = instructions.get(paymentId);
+    if (existing) {
+      if (existing.amountNgwee !== Number(amountNgwee)) return res.status(409).json({ error: 'That payment ID was used for a different amount.' });
+      return res.json(existing);
+    }
+    const instruction = { paymentId, contractRef, milestoneRef, amountNgwee: Number(amountNgwee), payeeRef,
+      ifmisRef: `IFMIS-${new Date().getUTCFullYear()}-${String(next++).padStart(6, '0')}`, status: 'ACCEPTED',
+      receivedAt: new Date().toISOString() };
+    instructions.set(paymentId, instruction);
+    res.status(201).json(instruction);
+  });
+  return r;
+}

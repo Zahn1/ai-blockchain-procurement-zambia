@@ -1,0 +1,28 @@
+create inspector 201 inspector1
+award 201 AWD-191E9F value K138500
+sign 200 SIGNED MS-1 K60000, MS-2 K78500
+certify MS-1 200 {"status":"PAID","ifmisRef":"IFMIS-2026-000001","txId":"2546475eb1ede75fc8cd549224207bc01915cf349fc14ab2e181fd4578150589"}
+AI service flags the contract (score 82)
+certify MS-2 200 {"status":"HELD","reason":"contract AWD-191E9F is flagged as high risk (alert ALT-AWD-191E9F, score 82, OPEN); payment is held until a regulator clears or decides to monitor it"}
+regulator decides to monitor
+node:internal/deps/undici/undici:14976
+      Error.captureStackTrace(err);
+            ^
+
+TypeError: fetch failed
+    at node:internal/deps/undici/undici:14976:13
+    at async call (file:///private/tmp/claude-501/-Users-zhani-Desktop-AI-And-Blockchain-Procurement-System/ca9e44e6-83e8-4d8a-8ddf-064080392fe9/scratchpad/live-3.5.6.mjs:13:15)
+    at async file:///private/tmp/claude-501/-Users-zhani-Desktop-AI-And-Blockchain-Procurement-System/ca9e44e6-83e8-4d8a-8ddf-064080392fe9/scratchpad/live-3.5.6.mjs:103:15 {
+  [cause]: Error: read ECONNRESET
+      at TCP.onStreamRead (node:internal/stream_base_commons:218:20) {
+    errno: -54,
+    code: 'ECONNRESET',
+    syscall: 'read'
+  }
+}
+
+Node.js v20.20.2
+retry MS-2 200 {"status":"PAID","ifmisRef":"IFMIS-2026-000002","txId":"233275f7e2f6e24a7dd1de19a9dfd8119310f289391a95a2d13f2ba91d5e65da"}
+ledger: {"status":"SIGNED","contractValue":13850000,"paidTotal":13850000}
+alerts: [{"id":"ALT-AWD-191E9F","subjectType":"contract","score":82,"status":"MONITOR","raisedAt":"2026-10-18T07:25:28Z"}]
+milestones: [["MS-1","PAID","IFMIS-2026-000001"],["MS-2","PAID","IFMIS-2026-000002"]]

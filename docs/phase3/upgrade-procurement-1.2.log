@@ -1,0 +1,139 @@
+[0;34mUsing docker and docker-compose[0m
+[0;34mdeploying chaincode on channel 'procurement'[0m
+executing with the following
+- CHANNEL_NAME: [0;32mprocurement[0m
+- CC_NAME: [0;32mprocurement[0m
+- CC_SRC_PATH: [0;32m../../chaincode[0m
+- CC_SRC_LANGUAGE: [0;32mgo[0m
+- CC_VERSION: [0;32m1.2[0m
+- CC_SEQUENCE: [0;32m3[0m
+- CC_END_POLICY: [0;32mNA[0m
+- CC_COLL_CONFIG: [0;32mNA[0m
+- CC_INIT_FCN: [0;32mNA[0m
+- DELAY: [0;32m3[0m
+- MAX_RETRY: [0;32m5[0m
+- VERBOSE: [0;32mfalse[0m
+executing with the following
+- CC_NAME: [0;32mprocurement[0m
+- CC_SRC_PATH: [0;32m../../chaincode[0m
+- CC_SRC_LANGUAGE: [0;32mgo[0m
+- CC_VERSION: [0;32m1.2[0m
+~/procurement/chaincode ~/procurement/network/zambia
+[0;34mUsing existing vendored Go dependencies at ../../chaincode[0m
+~/procurement/network/zambia
+[0;32mFinished vendoring Go dependencies[0m
++ '[' false = true ']'
++ peer lifecycle chaincode package procurement.tar.gz --path ../../chaincode --lang golang --label procurement_1.2
++ res=0
+[0;32mChaincode is packaged[0m
+[0;34mInstalling chaincode on peer0.zppa...[0m
+[0;34mUsing organization 1[0m
++ peer lifecycle chaincode queryinstalled --output json
++ jq -r 'try (.installed_chaincodes[].package_id)'
++ grep '^procurement_1.2:34f2140294d8da3f637e7a8f740ff30bae5550cafdf05186627da0675e36d6e3$'
++ test 1 -ne 0
++ peer lifecycle chaincode install procurement.tar.gz
++ res=0
+[34m2026-10-18 09:16:32.120 CAT 0001 INFO[0m [cli.lifecycle.chaincode] [34;1msubmitInstallProposal[0m -> Installed remotely: response:<status:200 payload:"\nPprocurement_1.2:34f2140294d8da3f637e7a8f740ff30bae5550cafdf05186627da0675e36d6e3\022\017procurement_1.2" > 
+[34m2026-10-18 09:16:32.122 CAT 0002 INFO[0m [cli.lifecycle.chaincode] [34;1msubmitInstallProposal[0m -> Chaincode code package identifier: procurement_1.2:34f2140294d8da3f637e7a8f740ff30bae5550cafdf05186627da0675e36d6e3
+[0;32mChaincode is installed on peer0.zppa[0m
+[0;34mInstall chaincode on peer0.oag...[0m
+[0;34mUsing organization 2[0m
++ peer lifecycle chaincode queryinstalled --output json
++ jq -r 'try (.installed_chaincodes[].package_id)'
++ grep '^procurement_1.2:34f2140294d8da3f637e7a8f740ff30bae5550cafdf05186627da0675e36d6e3$'
++ test 1 -ne 0
++ peer lifecycle chaincode install procurement.tar.gz
++ res=0
+[34m2026-10-18 09:16:49.449 CAT 0001 INFO[0m [cli.lifecycle.chaincode] [34;1msubmitInstallProposal[0m -> Installed remotely: response:<status:200 payload:"\nPprocurement_1.2:34f2140294d8da3f637e7a8f740ff30bae5550cafdf05186627da0675e36d6e3\022\017procurement_1.2" > 
+[34m2026-10-18 09:16:49.449 CAT 0002 INFO[0m [cli.lifecycle.chaincode] [34;1msubmitInstallProposal[0m -> Chaincode code package identifier: procurement_1.2:34f2140294d8da3f637e7a8f740ff30bae5550cafdf05186627da0675e36d6e3
+[0;32mChaincode is installed on peer0.oag[0m
+[0;34mUsing organization 1[0m
++ peer lifecycle chaincode queryinstalled --output json
++ jq -r 'try (.installed_chaincodes[].package_id)'
++ grep '^procurement_1.2:34f2140294d8da3f637e7a8f740ff30bae5550cafdf05186627da0675e36d6e3$'
++ res=0
+procurement_1.2:34f2140294d8da3f637e7a8f740ff30bae5550cafdf05186627da0675e36d6e3
+[0;32mQuery installed successful on peer0.zppa on channel[0m
+[0;34mUsing organization 1[0m
++ peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem --channelID procurement --name procurement --version 1.2 --package-id procurement_1.2:34f2140294d8da3f637e7a8f740ff30bae5550cafdf05186627da0675e36d6e3 --sequence 3
++ res=0
+[34m2026-10-18 09:16:51.662 CAT 0001 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [4d660a4d4aa5c783aebfab22ecaa86e78fe2a186efde8b4b2fcea942a95ad319] committed with status (VALID) at localhost:7051
+[0;32mChaincode definition approved on peer0.zppa on channel 'procurement'[0m
+[0;34mUsing organization 1[0m
+[0;34mChecking the commit readiness of the chaincode definition on peer0.zppa on channel 'procurement'...[0m
+[0;34mAttempting to check the commit readiness of the chaincode definition on peer0.zppa, Retry after 3 seconds.[0m
++ peer lifecycle chaincode checkcommitreadiness --channelID procurement --name procurement --version 1.2 --sequence 3 --output json
++ res=0
+{
+	"approvals": {
+		"OAGMSP": false,
+		"ZPPAMSP": true
+	}
+}
+[0;34mChecking the commit readiness of the chaincode definition successful on peer0.zppa on channel 'procurement'[0m
+[0;34mUsing organization 2[0m
+[0;34mChecking the commit readiness of the chaincode definition on peer0.oag on channel 'procurement'...[0m
+[0;34mAttempting to check the commit readiness of the chaincode definition on peer0.oag, Retry after 3 seconds.[0m
++ peer lifecycle chaincode checkcommitreadiness --channelID procurement --name procurement --version 1.2 --sequence 3 --output json
++ res=0
+{
+	"approvals": {
+		"OAGMSP": false,
+		"ZPPAMSP": true
+	}
+}
+[0;34mChecking the commit readiness of the chaincode definition successful on peer0.oag on channel 'procurement'[0m
+[0;34mUsing organization 2[0m
++ peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem --channelID procurement --name procurement --version 1.2 --package-id procurement_1.2:34f2140294d8da3f637e7a8f740ff30bae5550cafdf05186627da0675e36d6e3 --sequence 3
++ res=0
+[34m2026-10-18 09:17:00.061 CAT 0001 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [22ee00f774e04c892bccb348b40ec8a6ba45f5968e4f53f31c2861d75784d4af] committed with status (VALID) at localhost:9051
+[0;32mChaincode definition approved on peer0.oag on channel 'procurement'[0m
+[0;34mUsing organization 1[0m
+[0;34mChecking the commit readiness of the chaincode definition on peer0.zppa on channel 'procurement'...[0m
+[0;34mAttempting to check the commit readiness of the chaincode definition on peer0.zppa, Retry after 3 seconds.[0m
++ peer lifecycle chaincode checkcommitreadiness --channelID procurement --name procurement --version 1.2 --sequence 3 --output json
++ res=0
+{
+	"approvals": {
+		"OAGMSP": true,
+		"ZPPAMSP": true
+	}
+}
+[0;34mChecking the commit readiness of the chaincode definition successful on peer0.zppa on channel 'procurement'[0m
+[0;34mUsing organization 2[0m
+[0;34mChecking the commit readiness of the chaincode definition on peer0.oag on channel 'procurement'...[0m
+[0;34mAttempting to check the commit readiness of the chaincode definition on peer0.oag, Retry after 3 seconds.[0m
++ peer lifecycle chaincode checkcommitreadiness --channelID procurement --name procurement --version 1.2 --sequence 3 --output json
++ res=0
+{
+	"approvals": {
+		"OAGMSP": true,
+		"ZPPAMSP": true
+	}
+}
+[0;34mChecking the commit readiness of the chaincode definition successful on peer0.oag on channel 'procurement'[0m
+[0;34mUsing organization 1[0m
+[0;34mUsing organization 2[0m
++ peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile /Users/zhani/procurement/network/zambia/organizations/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem --channelID procurement --name procurement --peerAddresses localhost:7051 --tlsRootCertFiles /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/zppa.example.com/tlsca/tlsca.zppa.example.com-cert.pem --peerAddresses localhost:9051 --tlsRootCertFiles /Users/zhani/procurement/network/zambia/organizations/peerOrganizations/oag.example.com/tlsca/tlsca.oag.example.com-cert.pem --version 1.2 --sequence 3
++ res=0
+[34m2026-10-18 09:17:08.568 CAT 0001 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [b32243d07ced50c409c2b3104c38b650a6175678d5f39b70ebf12bd7bb9a7f36] committed with status (VALID) at localhost:7051
+[34m2026-10-18 09:17:08.587 CAT 0002 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [b32243d07ced50c409c2b3104c38b650a6175678d5f39b70ebf12bd7bb9a7f36] committed with status (VALID) at localhost:9051
+[0;32mChaincode definition committed on channel 'procurement'[0m
+[0;34mUsing organization 1[0m
+[0;34mQuerying chaincode definition on peer0.zppa on channel 'procurement'...[0m
+[0;34mAttempting to Query committed status on peer0.zppa, Retry after 3 seconds.[0m
++ peer lifecycle chaincode querycommitted --channelID procurement --name procurement
++ res=0
+Committed chaincode definition for chaincode 'procurement' on channel 'procurement':
+Version: 1.2, Sequence: 3, Endorsement Plugin: escc, Validation Plugin: vscc, Approvals: [OAGMSP: true, ZPPAMSP: true]
+[0;32mQuery chaincode definition successful on peer0.zppa on channel 'procurement'[0m
+[0;34mUsing organization 2[0m
+[0;34mQuerying chaincode definition on peer0.oag on channel 'procurement'...[0m
+[0;34mAttempting to Query committed status on peer0.oag, Retry after 3 seconds.[0m
++ peer lifecycle chaincode querycommitted --channelID procurement --name procurement
++ res=0
+Committed chaincode definition for chaincode 'procurement' on channel 'procurement':
+Version: 1.2, Sequence: 3, Endorsement Plugin: escc, Validation Plugin: vscc, Approvals: [OAGMSP: true, ZPPAMSP: true]
+[0;32mQuery chaincode definition successful on peer0.oag on channel 'procurement'[0m
+[0;34mChaincode initialization is not required[0m

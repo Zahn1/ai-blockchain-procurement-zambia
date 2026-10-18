@@ -31,6 +31,7 @@ export const config = {
   // PACRA and ZRA: the stand-ins run inside this server; point these at the real services to replace them
   pacraUrl: process.env.PACRA_API_URL ?? `http://localhost:${process.env.PORT ?? 3000}/stand-in/pacra`,
   zraUrl: process.env.ZRA_API_URL ?? `http://localhost:${process.env.PORT ?? 3000}/stand-in/zra`,
+  ifmisUrl: process.env.IFMIS_API_URL ?? `http://localhost:${process.env.PORT ?? 3000}/stand-in/ifmis`,
   dataDir: process.env.DATA_DIR ?? path.join(root, 'data'),
 };
 
@@ -43,3 +44,6 @@ export const actors = {
 // Ledger identities enrolled for evaluation committee members (registerEnroll.sh). Each committee user gets
 // one of their own, so every opening approval carries that member's own digital signature (3.5.5).
 export const committeeIdentities = (process.env.COMMITTEE_IDENTITIES ?? 'committee1,committee2').split(',');
+
+// Ledger identities enrolled for inspectors, who sign milestone completion certificates (3.5.6).
+export const inspectorIdentities = (process.env.INSPECTOR_IDENTITIES ?? 'inspector1,inspector2').split(',');

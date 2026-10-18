@@ -1,0 +1,42 @@
+Scenario 1792307863: tender ZPPA/DEMO/1792307863
+PASS Regulator sets standstill to 0 h for the demo                  committed (VALID)
+PASS Officer publishes tender (K150,000, closes in 75 s)            committed (VALID)
+PASS Gateway cannot publish a tender                                rejected: role \"gateway\"
+PASS Supplier alpha submits sealed bid                              committed (VALID)
+PASS Supplier bravo submits sealed bid                              committed (VALID)
+PASS Same supplier cannot bid twice                                 rejected: already bid
+PASS Committee cannot approve opening before closing                rejected: before closing
+     waiting 69 s for the tender to close...
+PASS Late bid after closing is rejected                             rejected: closed at
+PASS Bid cannot be opened without committee quorum                  rejected: needs 2 committee approvals
+PASS Committee member 1 approves opening                            committed (VALID)
+PASS Same member cannot approve twice                               rejected: already approved
+PASS Committee member 2 approves opening (quorum reached)           committed (VALID)
+PASS Officer opens bid A                                            committed (VALID)
+PASS Officer opens bid B                                            committed (VALID)
+PASS Officer awards tender to bid A (K140,000)                      committed (VALID)
+PASS Officer records signed contract                                committed (VALID)
+PASS Officer adds milestone 1 (K60,000)                             committed (VALID)
+PASS Officer adds milestone 2 (K80,000)                             committed (VALID)
+PASS Payment before completion is refused                           rejected: only after an inspector certifies completion
+PASS Officer cannot certify completion                              rejected: role \"officer\"
+PASS Certificate for the wrong amount is refused                    rejected: certifies 5000000 ngwee, but milestone MS-1 is for 6000000
+PASS Inspector certifies milestone 1 complete (signed certificate)  committed (VALID)
+PASS AI service flags the contract as high risk (score 82)          committed (VALID)
+PASS Payment is held while the contract is flagged high risk        rejected: flagged as high risk
+PASS Regulator reviews the alert and decides to monitor             committed (VALID)
+PASS Officer records payment for milestone 1 with its IFMIS reference committed (VALID)
+PASS Duplicate payment is refused                                   rejected: already been recorded
+PASS AI service raises a risk alert on the tender (score 82)        committed (VALID)
+PASS Auditor cannot publish a tender                                rejected: organisation OAGMSP
+PASS Auditor (OAG) refers the alert for investigation               committed (VALID)
+
+Ledger state read back by the auditor from the OAG peer:
+{"id":"ZPPA/DEMO/1792307863","status":"AWARDED","estValue":15000000,"version":2,"approvals":2,"openingApproved":true}
+{"id":"AWD-1792307863","status":"SIGNED","supplierRef":"SUP-alpha","amount":14000000,"contractValue":14000000,"paidTotal":6000000}
+  2026-10-18T07:17:45Z  v1  PUBLISHED  tx 7de6095d0670…
+  2026-10-18T07:19:02Z  v1  PUBLISHED  tx c532709ae761…
+  2026-10-18T07:19:04Z  v1  PUBLISHED  tx 06270e3bc459…
+  2026-10-18T07:19:10Z  v2  AWARDED  tx 3c4c863cfe1e…
+
+Result: 30 passed, 0 failed · report: docs/phase2/e2e-results.md

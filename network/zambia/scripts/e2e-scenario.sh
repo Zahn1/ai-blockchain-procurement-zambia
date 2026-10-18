@@ -132,17 +132,32 @@ ok "Officer awards tender to bid A (K140,000)" AwardContract:MakeAward "$AWARD" 
 ok "Officer records signed contract" AwardContract:SignContract "$AWARD" "$(sha "signed contract")"
 ok "Officer adds milestone 1 (K60,000)" MilestoneContract:AddMilestone "$AWARD" MS-1 6000000 "$(iso $(( RUN + 30*86400 )))"
 ok "Officer adds milestone 2 (K80,000)" MilestoneContract:AddMilestone "$AWARD" MS-2 8000000 "$(iso $(( RUN + 60*86400 )))"
-denied "Payment before completion is refused" "only after completion" MilestoneContract:RecordPayment "$AWARD" MS-1 "PAY-${RUN}-1" 6000000 IFMIS-DEMO-1
-ok "Officer completes milestone 1 with evidence" MilestoneContract:CompleteMilestone "$AWARD" MS-1 "$(sha "delivery note")"
-ok "Officer records payment for milestone 1" MilestoneContract:RecordPayment "$AWARD" MS-1 "PAY-${RUN}-1" 6000000 IFMIS-DEMO-1
+denied "Payment before completion is refused" "only after an inspector certifies completion" MilestoneContract:RecordPayment "$AWARD" MS-1 "PAY-${RUN}-1" 6000000 IFMIS-DEMO-1
+denied "Officer cannot certify completion" 'role \"officer\"' MilestoneContract:CompleteMilestone "$AWARD" MS-1 "$(sha "completion certificate")" 6000000 "$(iso $(( $(date +%s) - 5 )))"
+
+as inspector1 zppa
+denied "Certificate for the wrong amount is refused" "certifies 5000000 ngwee, but milestone MS-1 is for 6000000" MilestoneContract:CompleteMilestone "$AWARD" MS-1 "$(sha "completion certificate")" 5000000 "$(iso $(( $(date +%s) - 5 )))"
+ok "Inspector certifies milestone 1 complete (signed certificate)" MilestoneContract:CompleteMilestone "$AWARD" MS-1 "$(sha "completion certificate")" 6000000 "$(iso $(( $(date +%s) - 5 )))"
+
+as risk-service zppa
+ok "AI service flags the contract as high risk (score 82)" AlertContract:RaiseAlert "ALT-${RUN}-C" contract "$AWARD" 82 rf-0.1.0 "$(sha "shap explanation")"
+
+as officer1 zppa
+denied "Payment is held while the contract is flagged high risk" "flagged as high risk" MilestoneContract:RecordPayment "$AWARD" MS-1 "PAY-${RUN}-1" 6000000 IFMIS-DEMO-1
+
+as regulator1 zppa
+ok "Regulator reviews the alert and decides to monitor" AlertContract:ReviewAlert "$AWARD" "ALT-${RUN}-C" MONITOR "$(sha "monitoring note")"
+
+as officer1 zppa
+ok "Officer records payment for milestone 1 with its IFMIS reference" MilestoneContract:RecordPayment "$AWARD" MS-1 "PAY-${RUN}-1" 6000000 IFMIS-DEMO-1
 denied "Duplicate payment is refused" "already been recorded" MilestoneContract:RecordPayment "$AWARD" MS-1 "PAY-${RUN}-1" 6000000 IFMIS-DEMO-1
 
 as risk-service zppa
-ok "AI service raises risk alert (score 82)" AlertContract:RaiseAlert "ALT-${RUN}" tender "$TENDER" 82 rf-0.1.0 "$(sha "shap explanation")"
+ok "AI service raises a risk alert on the tender (score 82)" AlertContract:RaiseAlert "ALT-${RUN}" tender "$TENDER" 82 rf-0.1.0 "$(sha "shap explanation")"
 
 as auditor1 oag
 denied "Auditor cannot publish a tender" "organisation OAGMSP" TenderContract:PublishTender "${TENDER}-Y" 100 "$(iso $(( $(date +%s) + 600 )))" "[\"$(sha y)\"]" 2
-ok "Auditor (OAG) escalates the alert" AlertContract:ReviewAlert "$TENDER" "ALT-${RUN}" ESCALATED "$(sha "escalation note")"
+ok "Auditor (OAG) refers the alert for investigation" AlertContract:ReviewAlert "$TENDER" "ALT-${RUN}" REFERRED "$(sha "referral note")"
 
 echo
 echo "Ledger state read back by the auditor from the OAG peer:"

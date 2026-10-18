@@ -8,7 +8,8 @@ import { dbStore } from './store.js';
 import { PrismaClient } from '@prisma/client';
 import { createAuth } from './auth.js';
 import { registryClients } from './registries.js';
-import { pacraStandIn, zraStandIn } from './standins/services.js';
+import { pacraStandIn, zraStandIn, ifmisStandIn } from './standins/services.js';
+import { ifmisClient } from './ifmis.js';
 
 const receiptSigner = async () => {
   const { privateKey, cert } = await ledger.loadIdentity(actors.gateway);
@@ -20,10 +21,13 @@ const auth = createAuth({ db, jwtSecret: process.env.JWT_SECRET, appKey: process
 
 const registries = registryClients({ pacraUrl: config.pacraUrl, zraUrl: config.zraUrl });
 
-const app = createApp({ ledger, ipfs, store: dbStore(db), keys, receiptSigner, db, auth, registries });
+const ifmis = ifmisClient({ url: config.ifmisUrl });
+
+const app = createApp({ ledger, ipfs, store: dbStore(db), keys, receiptSigner, db, auth, registries, ifmis });
 // Stand-in PACRA and ZRA services (3.5.2), reached by the back end over HTTP like the real ones
 app.use('/stand-in/pacra', pacraStandIn());
 app.use('/stand-in/zra', zraStandIn());
+app.use('/stand-in/ifmis', ifmisStandIn()); // 3.5.6
 const server = app.listen(config.port, () => {
   console.log(`Procurement prototype on http://localhost:${config.port}`);
 });

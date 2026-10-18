@@ -12,12 +12,14 @@ const CODE = /^[A-Z0-9]{2,12}$/;
 const bad = (message) => new AuthError(400, message);
 const wrap = (fn) => (req, res, next) => fn(req, res).catch(next);
 
-export function authRoutes({ db, auth, committeeIdentities = [] }) {
-  // The next enrolled committee ledger identity no user holds yet
-  async function freeCommitteeIdentity() {
+export function authRoutes({ db, auth, committeeIdentities = [], inspectorIdentities = [] }) {
+  // Committee members and inspectors each sign ledger transactions with their own enrolled identity
+  const pools = { COMMITTEE: committeeIdentities, INSPECTOR: inspectorIdentities };
+  const signsOwnTransactions = (role) => role in pools;
+  async function freeIdentity(role) {
     const taken = new Set((await db.user.findMany({ where: { fabricIdentity: { not: null } } })).map((u) => u.fabricIdentity));
-    const free = committeeIdentities.find((id) => !taken.has(id));
-    if (!free) throw bad('Every enrolled committee ledger identity is in use. Enrol another with the certificate authority first.');
+    const free = pools[role].find((id) => !taken.has(id));
+    if (!free) throw bad(`Every enrolled ${role.toLowerCase()} ledger identity is in use. Enrol another with the certificate authority first.`);
     return free;
   }
 
@@ -57,7 +59,7 @@ export function authRoutes({ db, auth, committeeIdentities = [] }) {
 
     const user = await db.user.create({ data: {
       email: clean, name: String(name).trim(), role, passwordHash: await hashPassword(password),
-      entityId: entityId || null, fabricIdentity: role === 'COMMITTEE' ? await freeCommitteeIdentity() : null,
+      entityId: entityId || null, fabricIdentity: signsOwnTransactions(role) ? await freeIdentity(role) : null,
     } });
     await auth.audit(req.user.id, 'user.created', { userId: user.id, email: clean, role }, req.ip);
     res.status(201).json(publicUser(user));
@@ -80,8 +82,9 @@ export function authRoutes({ db, auth, committeeIdentities = [] }) {
     if (role !== undefined) data.role = role;
     if (status !== undefined) data.status = status;
     if (entityId !== undefined) data.entityId = entityId || null;
-    if (role === 'COMMITTEE' && !target.fabricIdentity) data.fabricIdentity = await freeCommitteeIdentity();
-    if (role !== undefined && role !== 'COMMITTEE' && target.fabricIdentity) data.fabricIdentity = null;
+    if (role !== undefined && role !== target.role) {
+      data.fabricIdentity = signsOwnTransactions(role) ? await freeIdentity(role) : null;
+    }
     const user = await db.user.update({ where: { id: target.id }, data, include: { supplier: true } });
     await auth.audit(req.user.id, 'user.updated', { userId: user.id, ...data }, req.ip);
     res.json(publicUser(user));

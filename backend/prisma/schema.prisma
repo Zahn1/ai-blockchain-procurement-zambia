@@ -58,6 +58,8 @@ model User {
   scores           Score[]
   publishedTenders Tender[]          @relation("PublishedBy")
   recommendations  Recommendation[]
+  inspecting       Contract[]        @relation("Inspector")
+  certified        Milestone[]       @relation("CertifiedBy")
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -102,6 +104,7 @@ model Tender {
   committee       CommitteeMember[]
   bids            Bid[]
   recommendation  Recommendation?
+  contract        Contract?
   createdAt       DateTime          @default(now())
 }
 
@@ -165,6 +168,57 @@ model Recommendation {
   decidedById      String
   decidedBy        User     @relation(fields: [decidedById], references: [id])
   createdAt        DateTime @default(now())
+}
+
+/// Off-chain details of an awarded contract (3.5.6). The ledger holds the award, contract hash and milestones.
+model Contract {
+  awardId          String      @id
+  tenderRef        String      @unique
+  tender           Tender      @relation(fields: [tenderRef], references: [reference])
+  bidId            String
+  supplierRef      String
+  amountNgwee      BigInt
+  evalHash         String // the evaluation report hash recorded with the award (3.5.5)
+  awardTxId        String
+  awardedAt        DateTime
+  standstillEnds   DateTime
+  status           String // AWARDED or SIGNED, as on the ledger
+  contractFileName String?
+  contractCid      String?
+  contractHash     String?
+  signTxId         String?
+  signedAt         DateTime?
+  inspectorId      String? // the authorised inspector for this contract
+  inspector        User?       @relation("Inspector", fields: [inspectorId], references: [id])
+  milestones       Milestone[]
+  createdAt        DateTime    @default(now())
+}
+
+/// One milestone of a contract: its terms, the inspector's certificate and the payment (3.5.6).
+model Milestone {
+  awardId             String
+  contract            Contract  @relation(fields: [awardId], references: [awardId])
+  milestoneId         String
+  description         String
+  amountNgwee         BigInt
+  dueDate             DateTime
+  // Completion certificate
+  certificateFileName String?
+  certificateCid      String?
+  certificateHash     String?
+  completionDate      DateTime?
+  certifiedById       String?
+  certifiedBy         User?     @relation("CertifiedBy", fields: [certifiedById], references: [id])
+  certifyTxId         String?
+  // Payment through IFMIS
+  paymentStatus       String? // HELD (with the ledger's reason) or PAID
+  paymentNote         String?
+  paymentId           String?
+  ifmisRef            String?
+  paymentTxId         String?
+  paidAt              DateTime?
+
+  @@id([awardId, milestoneId])
 }
 
 /// Who did what and when (FR-AUD-02).

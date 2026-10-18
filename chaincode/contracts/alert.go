@@ -8,13 +8,19 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
-// Alert statuses.
+// Alert statuses. The regulator's decisions follow Chapter 3, 3.5.8: cleared, monitor or refer.
 const (
-	AlertOpen      = "OPEN"
-	AlertReviewed  = "REVIEWED"  // checked; no wrongdoing found or action taken
-	AlertDismissed = "DISMISSED" // false positive
-	AlertEscalated = "ESCALATED" // passed on for investigation (e.g. to the ACC)
+	AlertOpen     = "OPEN"     // raised, not yet reviewed
+	AlertCleared  = "CLEARED"  // reviewed: no concern
+	AlertMonitor  = "MONITOR"  // reviewed: keep watching, may proceed
+	AlertReferred = "REFERRED" // reviewed: referred for investigation (e.g. to the ACC)
 )
+
+// HighRiskScore is the score from which an alert flags its subject as high risk (Chapter 3, 3.5.6 and 3.5.7).
+const HighRiskScore = 70
+
+// An alert flags its subject while it is unreviewed or referred; a cleared or monitored alert does not.
+var flaggingStatuses = []string{AlertOpen, AlertReferred}
 
 var subjectTypes = []string{"tender", "contract"}
 
@@ -85,9 +91,10 @@ func (c *AlertContract) RaiseAlert(ctx contractapi.TransactionContextInterface, 
 	return emit(ctx, "AlertRaised", a)
 }
 
-// ReviewAlert records a regulator's or auditor's decision on an alert (FR-AI-04).
-// An open alert can be reviewed, dismissed or escalated; an escalated one can then be reviewed or dismissed.
-// Reviewed and dismissed alerts are final.
+// ReviewAlert records a regulator's decision on an alert: cleared, monitor or refer (Chapter 3, 3.5.8).
+// An open alert can take any decision; a monitored one can later be cleared or referred;
+// a referred one can be cleared once the investigation ends. Cleared is final.
+// Regulators sit at ZPPA (role "regulator") and the Office of the Auditor General (role "auditor").
 func (c *AlertContract) ReviewAlert(ctx contractapi.TransactionContextInterface,
 	subjectID string, alertID string, decision string, reasonHash string) error {
 	if err := requireAccess(ctx, []string{MSPZPPA, MSPOAG}, RoleRegulator, RoleAuditor); err != nil {
@@ -97,8 +104,9 @@ func (c *AlertContract) ReviewAlert(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 	allowed := map[string][]string{
-		AlertOpen:      {AlertReviewed, AlertDismissed, AlertEscalated},
-		AlertEscalated: {AlertReviewed, AlertDismissed},
+		AlertOpen:     {AlertCleared, AlertMonitor, AlertReferred},
+		AlertMonitor:  {AlertCleared, AlertReferred},
+		AlertReferred: {AlertCleared},
 	}
 	k, err := key(ctx, typeAlert, subjectID, alertID)
 	if err != nil {
@@ -129,8 +137,29 @@ func (c *AlertContract) ReviewAlert(ctx contractapi.TransactionContextInterface,
 	return emit(ctx, "AlertReviewed", a)
 }
 
+// highRiskFlag returns a reason if any of the subjects has an alert that flags it as high risk, or "" if none does.
+func highRiskFlag(ctx contractapi.TransactionContextInterface, subjectIDs ...string) (string, error) {
+	for _, id := range subjectIDs {
+		alerts, err := alertsFor(ctx, id)
+		if err != nil {
+			return "", err
+		}
+		for _, a := range alerts {
+			if a.Score >= HighRiskScore && slices.Contains(flaggingStatuses, a.Status) {
+				return fmt.Sprintf("%s %s is flagged as high risk (alert %s, score %d, %s)",
+					a.SubjectType, id, a.ID, a.Score, a.Status), nil
+			}
+		}
+	}
+	return "", nil
+}
+
 // GetAlertsForSubject lists the alerts on a tender or contract in key order.
 func (c *AlertContract) GetAlertsForSubject(ctx contractapi.TransactionContextInterface, subjectID string) ([]*Alert, error) {
+	return alertsFor(ctx, subjectID)
+}
+
+func alertsFor(ctx contractapi.TransactionContextInterface, subjectID string) ([]*Alert, error) {
 	it, err := ctx.GetStub().GetStateByPartialCompositeKey(typeAlert, []string{subjectID})
 	if err != nil {
 		return nil, err

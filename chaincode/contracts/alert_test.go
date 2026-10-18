@@ -53,35 +53,36 @@ func TestRaiseAlert_Rejections(t *testing.T) {
 	require.ErrorContains(t, raise(l, "ALT-001", 60), "already exists")
 }
 
-// FR-AI-04
+// 3.5.8: cleared, monitor or refer
 func TestReviewAlert_DecisionsAndFinality(t *testing.T) {
 	l := newLedger(t)
 	require.NoError(t, raise(l, "ALT-001", 87))
 	c := &AlertContract{}
 
-	require.NoError(t, c.ReviewAlert(l.as(regulator), tenderID, "ALT-001", AlertEscalated, hash(31)))
-	require.NoError(t, c.ReviewAlert(l.as(auditor), tenderID, "ALT-001", AlertReviewed, hash(32)))
+	require.NoError(t, c.ReviewAlert(l.as(regulator), tenderID, "ALT-001", AlertMonitor, hash(31)))
+	require.NoError(t, c.ReviewAlert(l.as(auditor), tenderID, "ALT-001", AlertReferred, hash(32)))
+	require.NoError(t, c.ReviewAlert(l.as(regulator), tenderID, "ALT-001", AlertCleared, hash(33)))
 
 	alerts, _ := c.GetAlertsForSubject(l.as(auditor), tenderID)
 	a := alerts[0]
-	require.Equal(t, AlertReviewed, a.Status)
-	require.Equal(t, MSPOAG, a.ReviewerMSP)
-	require.Equal(t, hash(32), a.ReasonHash)
+	require.Equal(t, AlertCleared, a.Status)
+	require.Equal(t, MSPZPPA, a.ReviewerMSP)
+	require.Equal(t, hash(33), a.ReasonHash)
 	require.NoError(t, checkHash("reviewer", a.ReviewerRef), "reviewers are recorded as hashes, not names")
 	require.Equal(t, "AlertReviewed", l.lastEvent().Name)
 
-	err := c.ReviewAlert(l.as(regulator), tenderID, "ALT-001", AlertDismissed, hash(33))
-	require.ErrorContains(t, err, "REVIEWED cannot become")
+	err := c.ReviewAlert(l.as(regulator), tenderID, "ALT-001", AlertReferred, hash(34))
+	require.ErrorContains(t, err, "CLEARED cannot become", "cleared is final")
 }
 
 func TestReviewAlert_Rejections(t *testing.T) {
 	l := newLedger(t)
 	require.NoError(t, raise(l, "ALT-001", 87))
 	c := &AlertContract{}
-	require.ErrorContains(t, c.ReviewAlert(l.as(officer), tenderID, "ALT-001", AlertDismissed, hash(31)), `role "officer"`)
-	require.ErrorContains(t, c.ReviewAlert(l.as(aiService), tenderID, "ALT-001", AlertDismissed, hash(31)), `role "ai"`)
+	require.ErrorContains(t, c.ReviewAlert(l.as(officer), tenderID, "ALT-001", AlertCleared, hash(31)), `role "officer"`)
+	require.ErrorContains(t, c.ReviewAlert(l.as(aiService), tenderID, "ALT-001", AlertCleared, hash(31)), `role "ai"`)
 	require.ErrorContains(t, c.ReviewAlert(l.as(regulator), tenderID, "ALT-001", "IGNORED", hash(31)), "cannot become")
-	require.ErrorContains(t, c.ReviewAlert(l.as(regulator), tenderID, "ALT-404", AlertDismissed, hash(31)), "does not exist")
+	require.ErrorContains(t, c.ReviewAlert(l.as(regulator), tenderID, "ALT-404", AlertCleared, hash(31)), "does not exist")
 }
 
 func TestGetAlertsForSubject_OnlyThatSubject(t *testing.T) {

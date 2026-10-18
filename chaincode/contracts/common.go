@@ -26,6 +26,7 @@ const (
 const (
 	RoleOfficer   = "officer"   // procurement officer at a procuring entity
 	RoleCommittee = "committee" // evaluation committee member
+	RoleInspector = "inspector" // certifies milestone completion (3.5.6)
 	RoleGateway   = "gateway"   // back-end service submitting on behalf of suppliers
 	RoleAI        = "ai"        // AI risk service
 	RoleRegulator = "regulator" // ZPPA compliance staff
