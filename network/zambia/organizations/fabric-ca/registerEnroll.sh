@@ -106,7 +106,7 @@ function createZPPA() {
   { set +x; } 2>/dev/null
 
   cp "${PWD}/organizations/peerOrganizations/zppa.example.com/msp/config.yaml" "${PWD}/organizations/peerOrganizations/zppa.example.com/users/Admin@zppa.example.com/msp/config.yaml"
-  registerRoleUsers zppa 7054 officer1:officer committee1:committee committee2:committee inspector1:inspector inspector2:inspector gateway:gateway risk-service:ai regulator1:regulator
+  registerRoleUsers zppa 7054 officer1:officer committee1:committee committee2:committee inspector1:inspector inspector2:inspector gateway:gateway risk-service:ai regulator1:regulator regulator2:regulator
 }
 
 function createOAG() {

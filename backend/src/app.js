@@ -4,20 +4,22 @@ import express from 'express';
 import multer from 'multer';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { root, actors, committeeIdentities as defaultCommittee, inspectorIdentities as defaultInspectors } from './config.js';
+import { root, actors, committeeIdentities as defaultCommittee, inspectorIdentities as defaultInspectors,
+  regulatorIdentities as defaultRegulators } from './config.js';
 import { sha256, encrypt, newKey } from './sealed.js';
 import { sign, verify } from './receipt.js';
 import { authRoutes } from './auth-routes.js';
 import { supplierRoutes, bidBlocker } from './supplier-routes.js';
 import { evaluationRoutes } from './evaluation-routes.js';
 import { contractRoutes } from './contract-routes.js';
+import { oversightRoutes } from './oversight-routes.js';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
 const ID = /^[A-Za-z0-9._/-]{3,64}$/;
 
 export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, registries, ifmis,
-  committeeIdentities = defaultCommittee, inspectorIdentities = defaultInspectors }) {
+  committeeIdentities = defaultCommittee, inspectorIdentities = defaultInspectors, regulatorIdentities = defaultRegulators }) {
   const app = express();
   app.use(express.json());
   app.use(express.static(path.join(root, 'public')));
@@ -27,10 +29,11 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
   const officer = [auth.requireAuth, auth.requireRole('OFFICER')];
   const bidder = [auth.requireAuth, auth.requireRole('SUPPLIER')];
 
-  app.use('/api', authRoutes({ db, auth, committeeIdentities, inspectorIdentities }));
+  app.use('/api', authRoutes({ db, auth, committeeIdentities, inspectorIdentities, regulatorIdentities }));
   app.use('/api', supplierRoutes({ db, auth, registries }));
   app.use('/api', evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity: actors.officer }));
   app.use('/api', contractRoutes({ db, auth, ledger, ipfs, ifmis, officerIdentity: actors.officer }));
+  app.use('/api', oversightRoutes({ db, auth, ledger, officerIdentity: actors.officer }));
 
   // 3.5.3: publish a tender. The document goes to IPFS; its SHA-256 hash and the closing time go on the ledger.
   app.post('/api/tenders', officer, upload.single('document'), wrap(async (req, res) => {

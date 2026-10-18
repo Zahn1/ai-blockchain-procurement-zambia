@@ -154,13 +154,19 @@ func highRiskFlag(ctx contractapi.TransactionContextInterface, subjectIDs ...str
 	return "", nil
 }
 
+// GetAllAlerts lists every alert on the ledger, for regulators to review (Chapter 3, 3.5.8).
+func (c *AlertContract) GetAllAlerts(ctx contractapi.TransactionContextInterface) ([]*Alert, error) {
+	return alertsFor(ctx)
+}
+
 // GetAlertsForSubject lists the alerts on a tender or contract in key order.
 func (c *AlertContract) GetAlertsForSubject(ctx contractapi.TransactionContextInterface, subjectID string) ([]*Alert, error) {
 	return alertsFor(ctx, subjectID)
 }
 
-func alertsFor(ctx contractapi.TransactionContextInterface, subjectID string) ([]*Alert, error) {
-	it, err := ctx.GetStub().GetStateByPartialCompositeKey(typeAlert, []string{subjectID})
+// alertsFor lists the alerts on the given subject, or every alert when no subject is given.
+func alertsFor(ctx contractapi.TransactionContextInterface, subjectID ...string) ([]*Alert, error) {
+	it, err := ctx.GetStub().GetStateByPartialCompositeKey(typeAlert, subjectID)
 	if err != nil {
 		return nil, err
 	}

@@ -121,6 +121,7 @@
     <button role="tab" aria-selected="false" data-tab="bid" data-roles="SUPPLIER">Submit sealed bid</button>
     <button role="tab" aria-selected="false" data-tab="evaluation" data-roles="OFFICER,COMMITTEE">Evaluation</button>
     <button role="tab" aria-selected="false" data-tab="contracts" data-roles="OFFICER,INSPECTOR">Contracts</button>
+    <button role="tab" aria-selected="false" data-tab="oversight" data-roles="REGULATOR">Oversight</button>
     <button role="tab" aria-selected="false" data-tab="verify">Verify and ledger</button>
     <button role="tab" aria-selected="false" data-tab="admin" data-roles="ADMIN">Administration</button>
   </nav>
@@ -237,6 +238,22 @@
     <div id="ct-body"></div>
   </section>
 
+  <!-- 3.5.8 Alert review and audit trail -->
+  <section role="tabpanel" id="oversight">
+    <div class="card">
+      <h2>Risk alerts</h2>
+      <p class="lead">Every alert on the ledger. Record a decision (cleared, monitor or refer) with the reason; the hash of the decision is recorded on the ledger, signed with your ledger identity. An unreviewed or referred alert scoring 70 or more holds payments on its contract.</p>
+      <div class="table-scroll" id="ov-alerts"></div>
+      <div class="result" id="ov-result" role="status"></div>
+    </div>
+    <div class="card">
+      <h2>Procurement history</h2>
+      <p class="lead">The complete record of a procurement, from tender publication to final payment, read from the ledger.</p>
+      <div class="inline"><select id="ov-tender"></select><button type="button" id="ov-load">Show history</button></div>
+      <div id="ov-history"></div>
+    </div>
+  </section>
+
   <!-- 3.5.1 Administration -->
   <section role="tabpanel" id="admin">
     <div class="card">
@@ -294,6 +311,7 @@ let tenders = [];
 document.querySelectorAll('[role="tab"]').forEach((tab) => tab.addEventListener('click', () => {
   if (tab.dataset.tab === 'evaluation' && me) setTimeout(loadEvaluation, 0);
   if (tab.dataset.tab === 'contracts' && me) setTimeout(() => loadContracts(), 0);
+  if (tab.dataset.tab === 'oversight' && me) setTimeout(async () => { if (!tenders.length) await loadTenders(); loadOversight(); }, 0);
   document.querySelectorAll('[role="tab"]').forEach((t) => t.setAttribute('aria-selected', t === tab));
   document.querySelectorAll('[role="tabpanel"]').forEach((p) => p.classList.toggle('active', p.id === tab.dataset.tab));
 }));
@@ -798,6 +816,51 @@ $('#ct-body').addEventListener('submit', async (e) => {
   } finally {
     btn.disabled = false;
   }
+});
+
+// ---------- Alert review and audit trail (3.5.8) ----------
+const DECISION_NAMES = { CLEARED: 'Cleared', MONITOR: 'Monitor', REFERRED: 'Refer' };
+const NEXT = { OPEN: ['CLEARED', 'MONITOR', 'REFERRED'], MONITOR: ['CLEARED', 'REFERRED'], REFERRED: ['CLEARED'] };
+
+async function loadOversight() {
+  const alerts = await (await api('/api/oversight/alerts')).json();
+  $('#ov-alerts').innerHTML = alerts.length ? `<table><tr><th>Alert</th><th>On</th><th>Score</th><th>Status</th><th>Raised</th><th>Decisions and reasons</th><th>Record a decision</th></tr>
+    ${alerts.map((a) => {
+      const options = NEXT[a.status] ?? [];
+      const form = options.length ? `<form class="ov-decide" data-alert="${esc(a.id)}" data-subject="${esc(a.subjectId)}" style="border:0;padding:0;margin:0">
+          <select name="decision">${options.map((d) => `<option value="${d}">${DECISION_NAMES[d]}</option>`).join('')}</select>
+          <textarea name="reason" rows="2" placeholder="Reason (at least 20 characters)" required minlength="20"></textarea>
+          <button type="submit">Record decision</button></form>` : 'Final';
+      return `<tr><td class="mono">${esc(a.id)}</td><td>${esc(a.subjectType)} <span class="mono">${esc(a.subjectId)}</span></td>
+        <td>${a.score >= 70 ? `<strong>${a.score}</strong>` : a.score}</td><td>${esc(a.status)}</td><td>${when(a.raisedAt)}</td>
+        <td>${a.decisions.map((d) => `<p style="margin:0 0 6px"><strong>${esc(DECISION_NAMES[d.decision])}</strong> by ${esc(d.by)}, ${when(d.at)}: ${esc(d.reason)}<br><span class="mono">hash ${esc(d.recordHash.slice(0, 16))}… · tx ${esc(d.txId.slice(0, 12))}…</span></p>`).join('') || '<span class="empty">None yet</span>'}</td>
+        <td>${form}</td></tr>`;
+    }).join('')}</table>` : '<p class="empty">No alerts on the ledger.</p>';
+  for (const t of tenders) if (![...$('#ov-tender').options].some((o) => o.value === t.reference)) {
+    $('#ov-tender').add(new Option(`${t.reference} · ${t.title}`, t.reference));
+  }
+}
+
+$('#ov-alerts').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  f.querySelector('button').disabled = true;
+  const res = await api('/api/oversight/alerts/decide', json({ alertId: f.dataset.alert, subjectId: f.dataset.subject,
+    decision: f.decision.value, reason: f.reason.value }));
+  const d = await res.json();
+  if (!res.ok) show($('#ov-result'), false, d.source === 'ledger' ? 'Refused by the ledger' : 'Not recorded', `<p>${esc(d.error)}</p>`);
+  else show($('#ov-result'), true, `Decision recorded: ${DECISION_NAMES[d.decision].toLowerCase()}`, `<p>Decision hash ${esc(d.recordHash)} is on the ledger (transaction ${esc(d.txId)}).</p>`);
+  await loadOversight();
+});
+
+$('#ov-load').addEventListener('click', async () => {
+  const res = await api(`/api/oversight/history?reference=${encodeURIComponent($('#ov-tender').value)}`);
+  const h = await res.json();
+  if (!res.ok) { $('#ov-history').innerHTML = `<p class="empty">${esc(h.error)}</p>`; return; }
+  $('#ov-history').innerHTML = `<h3>${esc(h.reference)} · ${esc(h.title)}${h.fullyPaid ? ' (fully paid)' : ''}</h3>
+    <div class="table-scroll"><table><tr><th>When</th><th>Event</th><th>Detail</th><th>Ledger transaction</th></tr>
+    ${h.events.map((e) => `<tr><td>${when(e.at)}</td><td><strong>${esc(e.what)}</strong></td><td>${esc(e.detail)}</td>
+      <td class="mono">${e.txId ? esc(e.txId) : esc(e.source === 'ledger' ? 'on the ledger' : e.source)}</td></tr>`).join('')}</table></div>`;
 });
 
 // ---------- Bidder registration (3.5.2) ----------

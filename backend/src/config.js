@@ -47,3 +47,6 @@ export const committeeIdentities = (process.env.COMMITTEE_IDENTITIES ?? 'committ
 
 // Ledger identities enrolled for inspectors, who sign milestone completion certificates (3.5.6).
 export const inspectorIdentities = (process.env.INSPECTOR_IDENTITIES ?? 'inspector1,inspector2').split(',');
+
+// Ledger identities enrolled for regulators, who sign their alert decisions (3.5.8).
+export const regulatorIdentities = (process.env.REGULATOR_IDENTITIES ?? 'regulator1,regulator2').split(',');

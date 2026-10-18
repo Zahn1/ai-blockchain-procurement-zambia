@@ -12,7 +12,7 @@ export const APP_KEY = 'ab'.repeat(32);
 export const db = new PrismaClient({ datasources: { db: { url: process.env.TEST_DATABASE_URL } } });
 
 export async function resetDb() {
-  await db.$executeRawUnsafe('TRUNCATE "Milestone", "Contract", "Recommendation", "Score", "CommitteeMember", "Bid", "Tender", "AuditLog", "User", "Supplier", "ProcuringEntity" CASCADE');
+  await db.$executeRawUnsafe('TRUNCATE "AlertDecision", "Milestone", "Contract", "Recommendation", "Score", "CommitteeMember", "Bid", "Tender", "AuditLog", "User", "Supplier", "ProcuringEntity" CASCADE');
 }
 
 export function makeAuth(now) {

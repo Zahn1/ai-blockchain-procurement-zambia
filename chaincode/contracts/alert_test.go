@@ -95,3 +95,17 @@ func TestGetAlertsForSubject_OnlyThatSubject(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []string{"ALT-001", "ALT-002"}, []string{alerts[0].ID, alerts[1].ID})
 }
+
+// 3.5.8: regulators can list every alert to review it.
+func TestGetAllAlerts(t *testing.T) {
+	l := newLedger(t)
+	require.NoError(t, raise(l, "ALT-001", 90))
+	require.NoError(t, (&AlertContract{}).RaiseAlert(l.as(aiService), "ALT-002", "contract", "AWD-0042", 55, "if-1.0.0", hash(30)))
+	all, err := (&AlertContract{}).GetAllAlerts(l.as(regulator))
+	require.NoError(t, err)
+	require.Len(t, all, 2)
+
+	empty, err := (&AlertContract{}).GetAllAlerts(newLedger(t).as(regulator))
+	require.NoError(t, err)
+	require.Empty(t, empty)
+}

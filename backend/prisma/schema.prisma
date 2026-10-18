@@ -60,6 +60,7 @@ model User {
   recommendations  Recommendation[]
   inspecting       Contract[]        @relation("Inspector")
   certified        Milestone[]       @relation("CertifiedBy")
+  alertDecisions   AlertDecision[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -219,6 +220,23 @@ model Milestone {
   paidAt              DateTime?
 
   @@id([awardId, milestoneId])
+}
+
+/// A regulator's decision on an AI alert (3.5.8). The record's SHA-256 hash is on the ledger with the decision.
+model AlertDecision {
+  id          String   @id @default(uuid())
+  alertId     String
+  subjectId   String
+  decision    String // CLEARED, MONITOR or REFERRED
+  reason      String
+  record      Json // exactly what was hashed
+  recordHash  String
+  decidedById String
+  decidedBy   User     @relation(fields: [decidedById], references: [id])
+  txId        String
+  createdAt   DateTime @default(now())
+
+  @@index([alertId])
 }
 
 /// Who did what and when (FR-AUD-02).

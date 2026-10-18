@@ -66,6 +66,22 @@ Live evidence on the network: `docs/phase3/live-3.5.5-run.txt` (the run) and `do
 
 Live evidence on the network: `docs/phase3/live-3.5.6-run.txt`; chaincode 1.2 upgrade log; end-to-end scenario (30 of 30 steps) in `docs/phase3/e2e-console-chaincode-1.2.txt`.
 
+## 3.5.8 Alert Review and Audit Trail
+
+> *"The system must allow regulators to review each alert and record a decision (cleared, monitor or refer) together with the reason, and must record the hash of that decision on the ledger. Authorised regulators must be able to view the complete history of any procurement, from tender publication to final payment."*
+
+| Clause | Status | How it is met | Code | Tests and evidence |
+|---|---|---|---|---|
+| Regulators **review each alert** | ✅ | The Oversight tab lists every alert on the ledger (new chaincode function `GetAllAlerts`, version 1.3), unreviewed first, with earlier decisions and reasons. Only regulators can see it | `oversight-routes.js` `/oversight/alerts`; `alert.go` `GetAllAlerts` | *lists every alert on the ledger, unreviewed first*; *only regulators can see or decide alerts*; Go: *TestGetAllAlerts* |
+| Record a **decision (cleared, monitor or refer)** | ✅ | The ledger's alert statuses are exactly OPEN, CLEARED, MONITOR and REFERRED. The chaincode controls which decision may follow which; cleared is final | `alert.go` `ReviewAlert`; `/oversight/alerts/decide` | Go: *TestReviewAlert_DecisionsAndFinality*; Jest: *the ledger decides which decisions may follow: cleared is final*; live: refused to change a cleared alert |
+| … **together with the reason** | ✅ | A reason of at least 20 characters is required and stored with the decision | `/oversight/alerts/decide` | *rejects {"reason":"Fine."}* |
+| **Record the hash of that decision on the ledger** | ✅ | The decision record (alert, subject, score, previous status, decision, reason, regulator, time) is hashed with SHA-256; the hash goes on the ledger with the decision, signed with the regulator's own enrolled identity | `/oversight/alerts/decide`; `evaluation.js` `reportHash()` | *… puts the decision record's hash on the ledger, signed by the regulator*; *a changed reason would no longer match the hash on the ledger*; live: hash `d6c96d9b…` on the ledger |
+| Authorised regulators view the **complete history of any procurement, from tender publication to final payment** | ✅ | A timeline built from the ledger: every tender version, bids, committee approvals, openings, award, contract signature, milestone certificates, payments with IFMIS references, alerts and decisions, each with its transaction ID. The committee recommendation, which is off-chain, is labelled as such | `/oversight/history` | *runs from tender publication to final payment, in time order, with ledger transactions*; live: 17 events for `ZPPA/MOH/2026/E3932` |
+
+Notes: alerts raised before the decision names were aligned keep their old status on the ledger (for example ESCALATED), because ledger records cannot be changed. Decisions made directly on the ledger rather than through the Oversight tab appear in the ledger but without a stored reason.
+
+Live evidence: `docs/phase3/live-3.5.8-run.txt`; chaincode 1.3 upgrade log.
+
 ## Summary of all functional requirements
 
 | Requirement | Status | Where |
@@ -77,6 +93,6 @@ Live evidence on the network: `docs/phase3/live-3.5.6-run.txt`; chaincode 1.2 up
 | 3.5.5 Bid Opening and Evaluation | ✅ | Phase 3, step 3 (ledger rules from Phase 2) |
 | 3.5.6 Smart Contract Award and Milestone Payment | ✅ | Phase 3, step 4 (IFMIS stand-in) |
 | 3.5.7 AI Risk Scoring and Explained Alerts | 🟡 | Data ready (Phase 1); models in Phase 4 |
-| 3.5.8 Alert Review and Audit Trail | 🟡 | Ledger decisions now *cleared / monitor / refer* (step 4); review screen and full history in Phase 3, step 5 |
+| 3.5.8 Alert Review and Audit Trail | ✅ | Phase 3, step 5a (chaincode 1.3) |
 | 3.5.9 Public Verification Portal and Open Data | 🟡 | Public document and receipt checks work without signing in; search and OCDS download in Phase 3, step 5 |
 | 3.5.10 Reporting and Notifications | ⬜ | Phase 3, step 5 |

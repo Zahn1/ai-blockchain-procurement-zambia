@@ -15,7 +15,7 @@ function makeApp() {
   const auth = makeAuth(() => clock);
   const app = express();
   app.use(express.json());
-  app.use('/api', authRoutes({ db, auth }));
+  app.use('/api', authRoutes({ db, auth, committeeIdentities: ['committee1'], inspectorIdentities: ['inspector1'], regulatorIdentities: ['regulator1'] }));
   app.get('/api/protected', auth.requireAuth, (_req, res) => res.json({ ok: true }));
   app.use((err, _req, res, _next) => res.status(err.status ?? 500).json({ error: err.message }));
   return app;

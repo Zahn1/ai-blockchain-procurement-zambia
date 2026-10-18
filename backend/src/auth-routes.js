@@ -12,9 +12,9 @@ const CODE = /^[A-Z0-9]{2,12}$/;
 const bad = (message) => new AuthError(400, message);
 const wrap = (fn) => (req, res, next) => fn(req, res).catch(next);
 
-export function authRoutes({ db, auth, committeeIdentities = [], inspectorIdentities = [] }) {
+export function authRoutes({ db, auth, committeeIdentities = [], inspectorIdentities = [], regulatorIdentities = [] }) {
   // Committee members and inspectors each sign ledger transactions with their own enrolled identity
-  const pools = { COMMITTEE: committeeIdentities, INSPECTOR: inspectorIdentities };
+  const pools = { COMMITTEE: committeeIdentities, INSPECTOR: inspectorIdentities, REGULATOR: regulatorIdentities };
   const signsOwnTransactions = (role) => role in pools;
   async function freeIdentity(role) {
     const taken = new Set((await db.user.findMany({ where: { fabricIdentity: { not: null } } })).map((u) => u.fabricIdentity));
