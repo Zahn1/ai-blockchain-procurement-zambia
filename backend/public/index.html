@@ -119,6 +119,7 @@
   <nav role="tablist" hidden>
     <button role="tab" aria-selected="false" data-tab="publish" data-roles="OFFICER">Publish tender</button>
     <button role="tab" aria-selected="false" data-tab="bid" data-roles="SUPPLIER">Submit sealed bid</button>
+    <button role="tab" aria-selected="false" data-tab="evaluation" data-roles="OFFICER,COMMITTEE">Evaluation</button>
     <button role="tab" aria-selected="false" data-tab="verify">Verify and ledger</button>
     <button role="tab" aria-selected="false" data-tab="admin" data-roles="ADMIN">Administration</button>
   </nav>
@@ -207,6 +208,18 @@
     </div>
   </section>
 
+  <!-- 3.5.5 Bid opening and evaluation -->
+  <section role="tabpanel" id="evaluation">
+    <div class="card">
+      <h2>Bid opening and evaluation</h2>
+      <p class="lead">Bids open only after the closing time and once the required committee members have each signed their approval on the ledger. Each bid is checked against its ledger hash when it is opened.</p>
+      <label for="ev-tender">Tender</label>
+      <div class="inline"><select id="ev-tender"></select><button type="button" id="ev-load">Load</button></div>
+      <div class="result" id="ev-result" role="status"></div>
+    </div>
+    <div id="ev-body"></div>
+  </section>
+
   <!-- 3.5.1 Administration -->
   <section role="tabpanel" id="admin">
     <div class="card">
@@ -262,6 +275,7 @@ let tenders = [];
 
 // Tabs
 document.querySelectorAll('[role="tab"]').forEach((tab) => tab.addEventListener('click', () => {
+  if (tab.dataset.tab === 'evaluation' && me) setTimeout(loadEvaluation, 0);
   document.querySelectorAll('[role="tab"]').forEach((t) => t.setAttribute('aria-selected', t === tab));
   document.querySelectorAll('[role="tabpanel"]').forEach((p) => p.classList.toggle('active', p.id === tab.dataset.tab));
 }));
@@ -305,7 +319,7 @@ async function loadTenders() {
     ${tenders.map((t) => `<tr><td class="mono">${esc(t.reference)}</td><td>${esc(t.title)}</td><td>${when(t.closingTime)}</td>
       <td>${new Date(t.closingTime) > now ? 'Open' : 'Closed'}</td></tr>`).join('')}
   </table>` : '<p class="empty">No tenders published yet.</p>';
-  for (const sel of ['#bid-tender', '#verify-tender', '#ledger-tender']) {
+  for (const sel of ['#bid-tender', '#verify-tender', '#ledger-tender', '#ev-tender']) {
     const keep = $(sel).value;
     $(sel).innerHTML = tenders.map((t) => `<option value="${esc(t.reference)}">${esc(t.reference)} · ${esc(t.title)}</option>`).join('');
     if (keep) $(sel).value = keep;
@@ -499,6 +513,144 @@ function showPublic() {
   loadTenders();
 }
 $('#signout').addEventListener('click', () => signOut());
+
+// ---------- Bid opening and evaluation (3.5.5) ----------
+let ev = null;
+const evMsg = (ok, title, body) => show($('#ev-result'), ok, title, body);
+const kw = (ngwee) => (ngwee == null ? '' : kwacha(ngwee));
+
+async function loadEvaluation() {
+  if (!$('#ev-tender').options.length) await loadTenders(); // the tender list may still be loading
+  const ref = $('#ev-tender').value;
+  if (!ref) { $('#ev-body').innerHTML = '<p class="empty">No tenders yet.</p>'; return; }
+  const res = await api(`/api/evaluation?reference=${encodeURIComponent(ref)}`);
+  const data = await res.json();
+  if (!res.ok) { ev = null; $('#ev-body').innerHTML = `<div class="card"><p class="empty">${esc(data.error)}</p></div>`; return; }
+  ev = data;
+  renderEvaluation(me.role === 'OFFICER' && !ev.committee.some((m) => m.approvedAt) ? await (await api('/api/evaluation/candidates')).json() : []);
+}
+
+function renderEvaluation(candidates) {
+  const isMember = ev.me.onCommittee;
+  const mine = ev.committee.find((m) => m.id === ev.me.id);
+  const decided = !!ev.recommendation;
+  const unopened = ev.bids.filter((b) => !b.integrity).length;
+  const rank = Object.fromEntries(ev.ranking.rows.map((r, i) => [r.bidId, { ...r, place: i + 1 }]));
+
+  let html = `<div class="card"><h2>${esc(ev.reference)} · ${esc(ev.title)}</h2>
+    ${fields([['Closing time', when(ev.closingTime)], ['Bidding', ev.closed ? 'Closed' : 'Open'],
+      ['Opening approvals on the ledger', `${ev.committee.filter((m) => m.approvedAt).length} of ${ev.quorum} needed${ev.openingApproved ? ' (approved)' : ''}`],
+      ['Method', `Technical ${ev.technicalWeight}% · financial ${100 - ev.technicalWeight}% · technical pass mark ${ev.passMark}`]])}
+    <h3>Evaluation committee</h3>`;
+  html += ev.committee.length ? `<table><tr><th>Member</th><th>Approved opening</th><th>Ledger transaction</th></tr>
+    ${ev.committee.map((m) => `<tr><td>${esc(m.name)}</td><td>${m.approvedAt ? when(m.approvedAt) : 'Not yet'}</td><td class="mono">${esc(m.approvalTxId ?? '')}</td></tr>`).join('')}</table>`
+    : '<p class="empty">No committee appointed yet.</p>';
+  if (candidates.length) {
+    html += `<form id="ev-committee" style="border:0;padding:0;margin:10px 0 0"><p class="note">Appoint at least ${ev.quorum} members:</p>
+      ${candidates.map((c) => `<label style="font-weight:normal"><input type="checkbox" name="m" value="${esc(c.id)}" style="width:auto"
+        ${ev.committee.some((m) => m.id === c.id) ? 'checked' : ''}> ${esc(c.name)} (${esc(c.email)})</label>`).join('')}
+      <button type="submit">Appoint committee</button></form>`;
+  }
+  if (isMember && !mine.approvedAt) html += `<button type="button" id="ev-approve"${ev.closed ? '' : ' disabled'}>Approve opening (signed with your ledger identity)</button>${ev.closed ? '' : ' <span class="note">Available after the closing time.</span>'}`;
+  if (ev.openingApproved && unopened) html += ` <button type="button" id="ev-open">Open ${unopened} bid${unopened === 1 ? '' : 's'}</button>`;
+  html += '</div>';
+
+  html += `<div class="card"><h2>Bids (${ev.bids.length})</h2>`;
+  html += ev.bids.length ? `<div class="table-scroll"><table><tr><th>Bid</th><th>Bidder</th><th>Submitted</th><th>Checked against ledger hash</th><th>Price</th>${isMember ? '<th>Your technical score</th>' : ''}<th>Scores in</th></tr>
+    ${ev.bids.map((b) => {
+      const open = b.integrity === 'MATCH';
+      const check = !b.integrity ? 'Sealed' : open ? 'Match: opened' : '<strong>Mismatch: not opened</strong>';
+      const price = open && isMember && !decided
+        ? `<div class="inline"><input class="ev-price" data-bid="${esc(b.bidId)}" type="number" min="1" step="0.01" value="${b.priceNgwee ? b.priceNgwee / 100 : ''}" placeholder="K" style="width:9em"><button type="button" class="ev-save-price">Save</button></div>`
+        : kw(b.priceNgwee);
+      const score = open && isMember ? (decided ? esc(b.myScore?.technicalScore ?? '')
+        : `<div class="inline"><input class="ev-score" type="number" min="0" max="100" step="1" value="${b.myScore?.technicalScore ?? ''}" style="width:5em">
+           <input class="ev-comment" value="${esc(b.myScore?.comment ?? '')}" placeholder="Comment"><button type="button" class="ev-save-score" data-bid="${esc(b.bidId)}">Save</button></div>`) : '';
+      return `<tr><td class="mono">${esc(b.bidId)}${open ? `<br><a href="#" class="ev-file" data-bid="${esc(b.bidId)}">Read opened bid</a>` : ''}</td>
+        <td>${esc(b.supplierRef)}</td><td>${when(b.submittedAt)}</td><td>${check}</td><td>${price}</td>${isMember ? `<td>${score}</td>` : ''}
+        <td>${open ? `${b.scoresIn} of ${ev.committee.length}` : ''}</td></tr>`;
+    }).join('')}</table></div>` : '<p class="empty">No bids.</p>';
+  html += '</div>';
+
+  if (ev.ranking.rows.length) {
+    html += `<div class="card"><h2>Ranking</h2><p class="lead">Technical score = average of the members' scores. Financial score = lowest eligible price ÷ bid price × 100.</p>
+      <div class="table-scroll"><table><tr><th>Rank</th><th>Bid</th><th>Bidder</th><th>Technical</th><th>Price</th><th>Financial</th><th>Combined</th><th>Eligible</th></tr>
+      ${ev.ranking.rows.map((r, i) => `<tr${r.bidId === ev.ranking.recommendedBidId ? ' style="font-weight:bold"' : ''}><td>${i + 1}</td><td class="mono">${esc(r.bidId)}</td><td>${esc(r.supplierRef)}</td>
+        <td>${r.technical ?? '–'}</td><td>${kw(r.priceNgwee)}</td><td>${r.financial ?? '–'}</td><td>${r.combined ?? '–'}</td><td>${r.eligible ? 'Yes' : 'No'}</td></tr>`).join('')}
+      </table></div>${ev.ranking.recommendedBidId ? `<p>Recommended award: <strong>${esc(ev.ranking.recommendedBidId)}</strong> (${esc(rank[ev.ranking.recommendedBidId].supplierRef)})</p>` : '<p class="empty">No bid is eligible yet.</p>'}</div>`;
+  }
+
+  if (decided) {
+    const r = ev.recommendation;
+    html += `<div class="card"><h2>Committee recommendation</h2>${fields([['Recommended bid', r.bidId],
+      ['Departs from the ranking', r.bidId !== r.recommendedBidId ? `Yes (ranking recommended ${r.recommendedBidId})` : 'No'],
+      ...(r.justification ? [['Written justification', r.justification]] : []), ['Evaluation report hash (goes on the ledger at award)', r.reportHash],
+      ['Recorded', when(r.createdAt)]])}</div>`;
+  } else if (isMember && ev.ranking.recommendedBidId) {
+    html += `<form class="card" id="ev-recommend"><h2>Recommend the award</h2>
+      <label for="ev-choice">Bid</label><select id="ev-choice">${ev.ranking.rows.filter((r) => r.eligible).map((r) =>
+        `<option value="${esc(r.bidId)}">${esc(r.bidId)} · ${esc(r.supplierRef)} · combined ${r.combined}${r.bidId === ev.ranking.recommendedBidId ? ' (recommended)' : ''}</option>`).join('')}</select>
+      <label for="ev-why">Written justification <span id="ev-why-need" class="note">(only needed if you choose a different bid from the recommended one)</span></label>
+      <textarea id="ev-why" rows="3"></textarea>
+      <button type="submit">Record recommendation</button></form>`;
+  }
+  $('#ev-body').innerHTML = html;
+}
+
+async function evPost(url, body, okTitle) {
+  const res = await api(url, json(body));
+  const data = await res.json();
+  if (!res.ok) { evMsg(false, data.source === 'ledger' ? 'Refused by the ledger' : 'Not done', `<p>${esc(data.error)}</p>`); return null; }
+  if (okTitle) evMsg(true, okTitle);
+  await loadEvaluation();
+  return data;
+}
+
+$('#ev-load').addEventListener('click', () => { $('#ev-result').className = 'result'; loadEvaluation(); });
+$('#ev-tender').addEventListener('change', () => { $('#ev-result').className = 'result'; loadEvaluation(); });
+$('#ev-body').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (e.target.id === 'ev-committee') {
+    const memberIds = [...e.target.querySelectorAll('input[name=m]:checked')].map((i) => i.value);
+    await evPost('/api/evaluation/committee', { reference: ev.reference, memberIds }, 'Committee appointed');
+  } else if (e.target.id === 'ev-recommend') {
+    const data = await evPost('/api/evaluation/recommend', { reference: ev.reference, bidId: $('#ev-choice').value, justification: $('#ev-why').value }, 'Recommendation recorded');
+    if (data) evMsg(true, 'Recommendation recorded', `<p>Evaluation report hash: <code>${esc(data.reportHash)}</code></p>`);
+  }
+});
+$('#ev-body').addEventListener('click', async (e) => {
+  const t = e.target;
+  if (t.id === 'ev-approve') {
+    t.disabled = true;
+    const d = await evPost('/api/evaluation/approve', { reference: ev.reference });
+    if (d) evMsg(true, 'Your approval is signed and on the ledger', `<p>Transaction ${esc(d.txId)}, block ${d.block}</p>`);
+  } else if (t.id === 'ev-open') {
+    t.disabled = true;
+    const d = await evPost('/api/evaluation/open', { reference: ev.reference });
+    if (d) {
+      const bad = d.results.filter((r) => r.integrity !== 'MATCH');
+      evMsg(!bad.length, bad.length ? `${bad.length} bid(s) failed the hash check and were not opened` : `${d.results.length} bid(s) opened; each matched its ledger hash`,
+        bad.length ? `<ul>${bad.map((r) => `<li>${esc(r.bidId)}: ${esc(r.reason)}</li>`).join('')}</ul>` : '');
+    }
+  } else if (t.matches('.ev-save-price')) {
+    const input = t.parentElement.querySelector('.ev-price');
+    await evPost('/api/evaluation/price', { bidId: input.dataset.bid, priceKwacha: input.value }, 'Price saved');
+  } else if (t.matches('.ev-save-score')) {
+    const row = t.parentElement;
+    await evPost('/api/evaluation/score', { bidId: t.dataset.bid, technicalScore: Number(row.querySelector('.ev-score').value), comment: row.querySelector('.ev-comment').value }, 'Score saved');
+  } else if (t.matches('.ev-file')) {
+    e.preventDefault();
+    const res = await api(`/api/evaluation/bid-file?bidId=${encodeURIComponent(t.dataset.bid)}`);
+    if (!res.ok) return evMsg(false, (await res.json()).error);
+    const url = URL.createObjectURL(await res.blob());
+    window.open(url, '_blank');
+  }
+});
+$('#ev-body').addEventListener('change', (e) => {
+  if (e.target.id !== 'ev-choice') return;
+  const departs = e.target.value !== ev.ranking.recommendedBidId;
+  $('#ev-why-need').textContent = departs ? '(required: at least 50 characters, because this departs from the recommended bid)' : '(only needed if you choose a different bid from the recommended one)';
+});
 
 // ---------- Bidder registration (3.5.2) ----------
 $('#show-register').addEventListener('click', (e) => { e.preventDefault(); showStep('#register-form'); });

@@ -1,0 +1,43 @@
+{
+  "tender": {
+    "status": "PUBLISHED",
+    "openingApproved": true,
+    "approvals": [
+      "099b087ac4eb901a…",
+      "f07acd2c6826f958…"
+    ]
+  },
+  "bids": [
+    {
+      "id": "BID-305E289B",
+      "supplierRef": "SUP-R3NTAQ",
+      "opened": true,
+      "cipherHash": "d7e835fe17c5…",
+      "plainHash": "ae718019a9f0…"
+    },
+    {
+      "id": "BID-77338C7D",
+      "supplierRef": "SUP-FS9373",
+      "opened": true,
+      "cipherHash": "203247fe089b…",
+      "plainHash": "8a3d798a3499…"
+    }
+  ],
+  "history": [
+    {
+      "v": 1,
+      "approvals": 0,
+      "tx": "e6de05e289…"
+    },
+    {
+      "v": 1,
+      "approvals": 1,
+      "tx": "6a035d08e1…"
+    },
+    {
+      "v": 1,
+      "approvals": 2,
+      "tx": "687b1466fb…"
+    }
+  ]
+}

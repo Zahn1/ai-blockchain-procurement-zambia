@@ -19,6 +19,7 @@ export const publicUser = (u) => ({
   id: u.id, email: u.email, name: u.name, role: u.role, status: u.status,
   entityId: u.entityId, totpEnabled: u.totpEnabled,
   supplierRef: u.supplier?.supplierRef ?? null, companyName: u.supplier?.companyName ?? null,
+  fabricIdentity: u.fabricIdentity ?? null,
 });
 
 export class AuthError extends Error {

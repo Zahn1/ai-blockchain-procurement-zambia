@@ -39,3 +39,7 @@ export const actors = {
   officer: 'officer1',
   gateway: 'gateway',
 };
+
+// Ledger identities enrolled for evaluation committee members (registerEnroll.sh). Each committee user gets
+// one of their own, so every opening approval carries that member's own digital signature (3.5.5).
+export const committeeIdentities = (process.env.COMMITTEE_IDENTITIES ?? 'committee1,committee2').split(',');

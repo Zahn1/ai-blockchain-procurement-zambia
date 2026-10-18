@@ -34,6 +34,22 @@ Supporting non-functional requirements met here: **3.6.3 Security** (least privi
 
 Beyond the wording, following from it: a bidder's company is checked again **when they bid** (still verified, tax clearance still in date), and the administrator can **re-verify** a company, which suspends it if PACRA or ZRA no longer confirm it (*Staying verified*, 5 tests; *a bidder whose company tax clearance has expired cannot bid*).
 
+## 3.5.5 Bid Opening and Evaluation
+
+> *"The system must open bids only after the closing time and only with the digital signatures of the required evaluation committee members. On opening, each bid must be checked against its recorded hash. The system must record technical and financial scores, and must require a written justification whenever the committee departs from the recommended award."*
+
+| Clause | Status | How it is met | Code | Tests and evidence |
+|---|---|---|---|---|
+| Open bids **only after the closing time** | ✅ | The chaincode refuses opening approvals before the closing time, using the transaction timestamp | `chaincode/contracts/bid.go` `ApproveOpening`; `evaluation-routes.js` `/evaluation/approve` | Go: *TestApproveOpening_BeforeClosingRejected*; Jest: *approval before the closing time is refused by the ledger*; live run: refused before closing |
+| … **only with the digital signatures of the required evaluation committee members** | ✅ | The officer appoints the committee for each tender (at least the quorum, 2). Each member has their own enrolled ledger identity, so each approval is a transaction signed with that member's own key. The chaincode counts each signer once and refuses to open until the quorum has signed | `auth-routes.js` (one ledger identity per committee user); `evaluation-routes.js` `/evaluation/committee`, `/evaluation/approve`, `/evaluation/open`; `bid.go` `OpenBid` | *each member signs the approval with their own ledger identity*; *bids cannot be opened until the quorum has signed*; *only appointed members can see or act*; *each committee user gets their own ledger identity*; live ledger shows two distinct approver hashes |
+| **On opening, each bid checked against its recorded hash** | ✅ | Each encrypted bid is fetched from IPFS and its SHA-256 compared with the hash on the ledger; AES-GCM decryption also detects tampering. A bid that fails is not opened and is flagged in the audit log. For each bid that passes, the hash of the opened file is recorded on the ledger | `evaluation-routes.js` `/evaluation/open`, `/evaluation/bid-file` | *on opening, each bid is checked against its ledger hash …*; *a bid whose stored file was altered is not opened and is flagged*; live run: both bids *MATCH*, opened-file hashes on the ledger |
+| **Record technical and financial scores** | ✅ | Each member records a technical score (0–100) and comment per bid. The bid price is recorded from the opened document; the financial score = lowest eligible price ÷ price × 100. Combined = 70% technical + 30% financial; technical pass mark 60 | `evaluation.js` `rankBids()`; `/evaluation/score`, `/evaluation/price` | *Scoring method* (5 tests); *records each member's technical score and the bid price …*; *rejects an invalid score* (3) |
+| **Written justification whenever the committee departs from the recommended award** | ✅ | The ranking gives the recommended award. Choosing any other eligible bid is refused unless a written justification (at least 50 characters) is given. The full evaluation, with the justification, is stored and its SHA-256 hash recorded for the award transaction (3.5.6) | `/evaluation/recommend`; `evaluation.js` `reportHash()` | *departing from the recommended award requires a written justification*; *recommending the top-ranked bid needs no justification*; live run: refused without, accepted with |
+
+Related rules: a recommendation waits until every member has scored every opened bid; a bid below the pass mark cannot be recommended; after the recommendation, scores and prices are locked.
+
+Live evidence on the network: `docs/phase3/live-3.5.5-run.txt` (the run) and `docs/phase3/live-3.5.5-ledger.json` (the ledger read back).
+
 ## Summary of all functional requirements
 
 | Requirement | Status | Where |
@@ -42,7 +58,7 @@ Beyond the wording, following from it: a bidder's company is checked again **whe
 | 3.5.2 Supplier Registration and Verification | ✅ | Phase 3, step 2 (PACRA and ZRA stand-ins) |
 | 3.5.3 Tender Publication | ✅ | Prototype; ledger in Phase 2 |
 | 3.5.4 Encrypted Bid Submission | ✅ | Prototype; ledger in Phase 2 |
-| 3.5.5 Bid Opening and Evaluation | 🟡 | Ledger rules done (Phase 2); screens in Phase 3, step 3 |
+| 3.5.5 Bid Opening and Evaluation | ✅ | Phase 3, step 3 (ledger rules from Phase 2) |
 | 3.5.6 Smart Contract Award and Milestone Payment | 🟡 | Ledger rules done; inspector, IFMIS and risk check in Phase 3, step 4 |
 | 3.5.7 AI Risk Scoring and Explained Alerts | 🟡 | Data ready (Phase 1); models in Phase 4 |
 | 3.5.8 Alert Review and Audit Trail | 🟡 | Ledger alerts done; decision names to align to *cleared / monitor / refer*; Phase 3, step 5 |

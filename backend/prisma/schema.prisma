@@ -35,16 +35,17 @@ model ProcuringEntity {
 }
 
 model User {
-  id           String           @id @default(uuid())
-  email        String           @unique
-  name         String
-  passwordHash String
-  role         Role
-  status       Status           @default(ACTIVE)
-  entityId     String?
-  entity       ProcuringEntity? @relation(fields: [entityId], references: [id])
-  supplierId   String? // PACRA number of the bidder's company
-  supplier     Supplier?        @relation(fields: [supplierId], references: [pacraNumber])
+  id             String           @id @default(uuid())
+  email          String           @unique
+  name           String
+  passwordHash   String
+  role           Role
+  status         Status           @default(ACTIVE)
+  entityId       String?
+  entity         ProcuringEntity? @relation(fields: [entityId], references: [id])
+  supplierId     String? // PACRA number of the bidder's company
+  supplier       Supplier?        @relation(fields: [supplierId], references: [pacraNumber])
+  fabricIdentity String?          @unique // enrolled ledger identity that signs this user's transactions (committee members)
 
   totpSecret   String? // AES-256-GCM encrypted with APP_KEY
   totpEnabled  Boolean   @default(false)
@@ -52,9 +53,13 @@ model User {
   failedLogins Int       @default(0)
   lockedUntil  DateTime?
 
-  auditLogs AuditLog[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  auditLogs        AuditLog[]
+  committees       CommitteeMember[]
+  scores           Score[]
+  publishedTenders Tender[]          @relation("PublishedBy")
+  recommendations  Recommendation[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 enum SupplierStatus {
@@ -74,8 +79,92 @@ model Supplier {
   taxClearanceExpiry DateTime
   verifiedAt         DateTime
   users              User[]
+  bids               Bid[]
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
+}
+
+/// Off-chain details of a tender. The ledger holds its hashes, value, closing time and status (3.5.3).
+model Tender {
+  reference       String            @id
+  title           String
+  fileName        String
+  docHash         String
+  cid             String
+  closingTime     DateTime
+  txId            String
+  block           Int
+  publishedById   String
+  publishedBy     User              @relation("PublishedBy", fields: [publishedById], references: [id])
+  // Evaluation method (3.5.5): combined score = technical x weight + financial x (100 - weight)
+  technicalWeight Int               @default(70)
+  passMark        Int               @default(60)
+  committee       CommitteeMember[]
+  bids            Bid[]
+  recommendation  Recommendation?
+  createdAt       DateTime          @default(now())
+}
+
+/// Off-chain details of a sealed bid. The ledger holds its ciphertext hash and submission time (3.5.4).
+model Bid {
+  bidId       String    @id
+  tenderRef   String
+  tender      Tender    @relation(fields: [tenderRef], references: [reference])
+  supplierId  String
+  supplier    Supplier  @relation(fields: [supplierId], references: [pacraNumber])
+  supplierRef String
+  fileName    String
+  cid         String
+  cipherHash  String
+  txId        String
+  submittedAt DateTime
+  // Opening (3.5.5)
+  integrity   String? // MATCH or MISMATCH: the stored file checked against the ledger hash
+  plainHash   String?
+  openedAt    DateTime?
+  priceNgwee  BigInt? // bid price read from the opened document
+  scores      Score[]
+
+  @@index([tenderRef])
+}
+
+/// The evaluation committee appointed for a tender (3.5.5).
+model CommitteeMember {
+  tenderRef    String
+  tender       Tender    @relation(fields: [tenderRef], references: [reference])
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  approvedAt   DateTime? // when this member signed the opening approval on the ledger
+  approvalTxId String?
+
+  @@id([tenderRef, userId])
+}
+
+/// One committee member's technical score for one bid (3.5.5).
+model Score {
+  bidId          String
+  bid            Bid      @relation(fields: [bidId], references: [bidId])
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  technicalScore Int
+  comment        String
+  updatedAt      DateTime @updatedAt
+
+  @@id([bidId, userId])
+}
+
+/// The committee's award recommendation; a written justification is required if it departs from the top-ranked bid.
+model Recommendation {
+  tenderRef        String   @id
+  tender           Tender   @relation(fields: [tenderRef], references: [reference])
+  bidId            String
+  recommendedBidId String // the bid the scores ranked first
+  justification    String?
+  report           Json // the full evaluation as recorded
+  reportHash       String // SHA-256 of the report; goes on the ledger with the award (3.5.6)
+  decidedById      String
+  decidedBy        User     @relation(fields: [decidedById], references: [id])
+  createdAt        DateTime @default(now())
 }
 
 /// Who did what and when (FR-AUD-02).

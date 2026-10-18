@@ -4,7 +4,7 @@ import { config, actors } from './config.js';
 import * as ledger from './fabric.js';
 import * as ipfs from './ipfs.js';
 import * as keys from './sealed.js';
-import { fileStore } from './store.js';
+import { dbStore } from './store.js';
 import { PrismaClient } from '@prisma/client';
 import { createAuth } from './auth.js';
 import { registryClients } from './registries.js';
@@ -20,7 +20,7 @@ const auth = createAuth({ db, jwtSecret: process.env.JWT_SECRET, appKey: process
 
 const registries = registryClients({ pacraUrl: config.pacraUrl, zraUrl: config.zraUrl });
 
-const app = createApp({ ledger, ipfs, store: fileStore, keys, receiptSigner, db, auth, registries });
+const app = createApp({ ledger, ipfs, store: dbStore(db), keys, receiptSigner, db, auth, registries });
 // Stand-in PACRA and ZRA services (3.5.2), reached by the back end over HTTP like the real ones
 app.use('/stand-in/pacra', pacraStandIn());
 app.use('/stand-in/zra', zraStandIn());

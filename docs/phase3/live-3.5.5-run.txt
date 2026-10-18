@@ -1,0 +1,19 @@
+create member1@moh.test 201 committee1
+create member2@moh.test 201 committee2
+register Bravo 201 SUP-R3NTAQ
+signed in: officer, 2 committee members, 2 bidders
+publish 201 ZPPA/MOH/2026/E3932 block 36 closes 2026-10-18T07:08:23Z
+bid bid-alpha.txt 201 BID-77338C7D SUP-FS9373
+bid bid-bravo.txt 201 BID-305E289B SUP-R3NTAQ
+appoint 200
+approve before closing: {"error":"bids for tender ZPPA/MOH/2026/E3932 cannot be approved for opening before closing at 2026-10-18T07:08:23Z","source":"ledger"}
+waiting 54 s for closing...
+open before quorum: {"error":"Opening needs 2 committee approvals on the ledger; it has 0.","source":"auth"}
+approve member1 200 6a035d08e189f01e7b28dc261f13d680a18aab006caa04bea421de3377ecd313
+approve member2 200 687b1466fb4e1aa72bea108378e9c28332c34fd32fb2203cd5fad78377ec075a
+open 200 [["BID-77338C7D","MATCH"],["BID-305E289B","MATCH"]]
+read opened bid: "Bid from Alpha Computers Ltd\nPrice: K138"
+ranking: [["SUP-R3NTAQ",82.5,97.54,87.01],["SUP-FS9373",71,100,79.7]] recommended BID-305E289B
+depart without justification: "This departs from the recommended bid (BID-305E289B). Write a justification of at least 50 characters."
+recommend with justification 201 {"bidId":"BID-77338C7D","departsFromRecommendation":true,"reportHash":"63caae037588bf03a8ef32efa9edf53cccf6d0b7a47f64d4a03520d06b140769"}
+REF=ZPPA/MOH/2026/E3932

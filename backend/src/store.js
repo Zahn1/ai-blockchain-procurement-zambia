@@ -1,27 +1,32 @@
-// Off-chain records the UI needs (tender titles, file names, IPFS CIDs). A JSON file for today's prototype;
-// Phase 3 moves this to PostgreSQL with Prisma.
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { config } from './config.js';
+// Off-chain records the pages need (tender titles, file names, IPFS CIDs), in PostgreSQL.
+// The ledger stays the record of truth for hashes, times and statuses.
 
-const file = () => path.join(config.dataDir, 'records.json');
+const tenderView = (t) => ({
+  reference: t.reference, title: t.title, fileName: t.fileName, docHash: t.docHash, cid: t.cid,
+  closingTime: t.closingTime.toISOString().replace(/\.\d{3}Z$/, 'Z'), txId: t.txId, block: t.block,
+  publishedAt: t.createdAt.toISOString(),
+});
 
-async function read() {
-  try {
-    return JSON.parse(await fs.readFile(file(), 'utf8'));
-  } catch {
-    return { tenders: [], bids: [] };
-  }
+export function dbStore(db) {
+  return {
+    async addTender(t) {
+      await db.tender.create({ data: {
+        reference: t.reference, title: t.title, fileName: t.fileName, docHash: t.docHash, cid: t.cid,
+        closingTime: new Date(t.closingTime), txId: t.txId, block: t.block, publishedById: t.publishedById,
+      } });
+    },
+    async listTenders() {
+      return (await db.tender.findMany({ orderBy: { createdAt: 'desc' } })).map(tenderView);
+    },
+    async getTender(reference) {
+      const t = await db.tender.findUnique({ where: { reference } });
+      return t ? tenderView(t) : null;
+    },
+    async addBid(b) {
+      await db.bid.create({ data: {
+        bidId: b.bidId, tenderRef: b.tenderId, supplierId: b.supplierId, supplierRef: b.supplierRef,
+        fileName: b.fileName, cid: b.cid, cipherHash: b.cipherHash, txId: b.txId, submittedAt: new Date(b.submittedAt),
+      } });
+    },
+  };
 }
-
-async function write(data) {
-  await fs.mkdir(config.dataDir, { recursive: true });
-  await fs.writeFile(file(), JSON.stringify(data, null, 2));
-}
-
-export const fileStore = {
-  async addTender(t) { const d = await read(); d.tenders.unshift(t); await write(d); },
-  async listTenders() { return (await read()).tenders; },
-  async getTender(ref) { return (await read()).tenders.find((t) => t.reference === ref) ?? null; },
-  async addBid(b) { const d = await read(); d.bids.unshift(b); await write(d); },
-};

@@ -4,17 +4,18 @@ import express from 'express';
 import multer from 'multer';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { root, actors } from './config.js';
+import { root, actors, committeeIdentities as defaultCommittee } from './config.js';
 import { sha256, encrypt, newKey } from './sealed.js';
 import { sign, verify } from './receipt.js';
 import { authRoutes } from './auth-routes.js';
 import { supplierRoutes, bidBlocker } from './supplier-routes.js';
+import { evaluationRoutes } from './evaluation-routes.js';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
 const ID = /^[A-Za-z0-9._/-]{3,64}$/;
 
-export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, registries }) {
+export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, registries, committeeIdentities = defaultCommittee }) {
   const app = express();
   app.use(express.json());
   app.use(express.static(path.join(root, 'public')));
@@ -24,8 +25,9 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
   const officer = [auth.requireAuth, auth.requireRole('OFFICER')];
   const bidder = [auth.requireAuth, auth.requireRole('SUPPLIER')];
 
-  app.use('/api', authRoutes({ db, auth }));
+  app.use('/api', authRoutes({ db, auth, committeeIdentities }));
   app.use('/api', supplierRoutes({ db, auth, registries }));
+  app.use('/api', evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity: actors.officer }));
 
   // 3.5.3: publish a tender. The document goes to IPFS; its SHA-256 hash and the closing time go on the ledger.
   app.post('/api/tenders', officer, upload.single('document'), wrap(async (req, res) => {
@@ -46,7 +48,7 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
     // Title and file name stay off-chain (ledger rule: hashes, IDs, amounts and statuses only)
     const record = { reference, title: title ?? '', fileName: req.file.originalname, docHash, cid,
       closingTime, txId: tx.txId, block: tx.block, publishedAt: new Date().toISOString() };
-    await store.addTender(record);
+    await store.addTender({ ...record, publishedById: req.user.id });
     await auth.audit(req.user.id, 'tender.published', { reference, txId: tx.txId }, req.ip);
     res.status(201).json(record);
   }));
@@ -99,7 +101,8 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
 
     const receipt = sign({ bidId, tenderId, supplierRef, cipherHash, cid,
       submittedAt: tx.result.submittedAt, txId: tx.txId, block: tx.block }, ...(await receiptSigner()));
-    await store.addBid({ bidId, tenderId, supplierRef, cid, cipherHash, fileName: req.file.originalname });
+    await store.addBid({ bidId, tenderId, supplierRef, supplierId: req.user.supplier.pacraNumber, cid, cipherHash,
+      fileName: req.file.originalname, txId: tx.txId, submittedAt: tx.result.submittedAt });
     await auth.audit(req.user.id, 'bid.submitted', { bidId, tenderId, txId: tx.txId }, req.ip);
     res.status(201).json(receipt);
   }));

@@ -12,7 +12,15 @@ const CODE = /^[A-Z0-9]{2,12}$/;
 const bad = (message) => new AuthError(400, message);
 const wrap = (fn) => (req, res, next) => fn(req, res).catch(next);
 
-export function authRoutes({ db, auth }) {
+export function authRoutes({ db, auth, committeeIdentities = [] }) {
+  // The next enrolled committee ledger identity no user holds yet
+  async function freeCommitteeIdentity() {
+    const taken = new Set((await db.user.findMany({ where: { fabricIdentity: { not: null } } })).map((u) => u.fabricIdentity));
+    const free = committeeIdentities.find((id) => !taken.has(id));
+    if (!free) throw bad('Every enrolled committee ledger identity is in use. Enrol another with the certificate authority first.');
+    return free;
+  }
+
   const r = express.Router();
 
   // Sign-in
@@ -49,7 +57,7 @@ export function authRoutes({ db, auth }) {
 
     const user = await db.user.create({ data: {
       email: clean, name: String(name).trim(), role, passwordHash: await hashPassword(password),
-      entityId: entityId || null,
+      entityId: entityId || null, fabricIdentity: role === 'COMMITTEE' ? await freeCommitteeIdentity() : null,
     } });
     await auth.audit(req.user.id, 'user.created', { userId: user.id, email: clean, role }, req.ip);
     res.status(201).json(publicUser(user));
@@ -72,6 +80,8 @@ export function authRoutes({ db, auth }) {
     if (role !== undefined) data.role = role;
     if (status !== undefined) data.status = status;
     if (entityId !== undefined) data.entityId = entityId || null;
+    if (role === 'COMMITTEE' && !target.fabricIdentity) data.fabricIdentity = await freeCommitteeIdentity();
+    if (role !== undefined && role !== 'COMMITTEE' && target.fabricIdentity) data.fabricIdentity = null;
     const user = await db.user.update({ where: { id: target.id }, data, include: { supplier: true } });
     await auth.audit(req.user.id, 'user.updated', { userId: user.id, ...data }, req.ip);
     res.json(publicUser(user));
