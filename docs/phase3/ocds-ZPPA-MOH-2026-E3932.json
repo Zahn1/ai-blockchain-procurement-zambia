@@ -1,0 +1,200 @@
+{
+  "uri": "/api/public/ocds",
+  "version": "1.1",
+  "publishedDate": "2026-10-18T07:40:57.587Z",
+  "publisher": {
+    "name": "ZPPA Transparent Procurement prototype"
+  },
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "publicationPolicy": "Built from the permissioned ledger; bid contents and personal data are not published.",
+  "releases": [
+    {
+      "ocid": "ocds-zmproc-ZPPA-MOH-2026-E3932",
+      "id": "ocds-zmproc-ZPPA-MOH-2026-E3932-70df7fe40a32",
+      "date": "2026-10-18T07:25:16Z",
+      "tag": [
+        "compiled"
+      ],
+      "initiationType": "tender",
+      "language": "en",
+      "parties": [
+        {
+          "id": "ZM-ENTITY-MOH",
+          "name": "Ministry of Health",
+          "roles": [
+            "buyer",
+            "procuringEntity"
+          ]
+        },
+        {
+          "id": "ZM-PACRA-120260000101",
+          "name": "Alpha Computers Limited",
+          "roles": [
+            "supplier",
+            "payee"
+          ]
+        }
+      ],
+      "buyer": {
+        "id": "ZM-ENTITY-MOH",
+        "name": "Ministry of Health"
+      },
+      "tender": {
+        "id": "ZPPA/MOH/2026/E3932",
+        "title": "Supply of 40 laptops",
+        "status": "complete",
+        "value": {
+          "amount": 150000,
+          "currency": "ZMW"
+        },
+        "tenderPeriod": {
+          "startDate": "2026-10-18T07:07:24Z",
+          "endDate": "2026-10-18T07:08:23Z"
+        },
+        "numberOfTenderers": 2,
+        "documents": [
+          {
+            "id": "ZPPA/MOH/2026/E3932-doc-1",
+            "documentType": "tenderNotice",
+            "title": "tender-document.txt",
+            "format": "application/octet-stream",
+            "url": "ipfs://bafkreifl37nufwgxut35uxjcdj2coyfkwmfrm7dkqhyacyf2sipvv36l4q",
+            "hash": {
+              "scheme": "SHA-256",
+              "value": "abdfdb42d8d7a4f7da5d221a742760aab30b167c6a81f00160ba921f5aefcbe4"
+            }
+          }
+        ],
+        "amendments": []
+      },
+      "awards": [
+        {
+          "id": "AWD-191E9F",
+          "status": "active",
+          "date": "2026-10-18T07:25:16Z",
+          "value": {
+            "amount": 138500,
+            "currency": "ZMW"
+          },
+          "suppliers": [
+            {
+              "id": "ZM-PACRA-120260000101",
+              "name": "Alpha Computers Limited"
+            }
+          ]
+        }
+      ],
+      "contracts": [
+        {
+          "id": "AWD-191E9F",
+          "awardID": "AWD-191E9F",
+          "status": "active",
+          "value": {
+            "amount": 138500,
+            "currency": "ZMW"
+          },
+          "dateSigned": "2026-10-18T07:25:18Z",
+          "documents": [
+            {
+              "id": "AWD-191E9F-contract",
+              "documentType": "contractSigned",
+              "title": "Signed contract",
+              "hash": {
+                "scheme": "SHA-256",
+                "value": "b199fa049b2343c8c2e78ee3e419d9311aa3e5fe5a7be7e66840d4d13fa73a0c"
+              }
+            }
+          ],
+          "milestones": [
+            {
+              "id": "MS-1",
+              "title": "Delivery of 20 laptops to Lusaka",
+              "type": "delivery",
+              "dueDate": "2026-11-08T21:59:59Z",
+              "status": "met",
+              "dateMet": "2026-10-18T07:25:24Z",
+              "value": {
+                "amount": 60000,
+                "currency": "ZMW"
+              },
+              "documents": [
+                {
+                  "id": "AWD-191E9F-MS-1-certificate",
+                  "documentType": "completionCertificate",
+                  "hash": {
+                    "scheme": "SHA-256",
+                    "value": "ea26816beeacc9d6fab14622c37078f39dbc96cfe16d6ca888bfbabafdd1d3d8"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "MS-2",
+              "title": "Delivery of 20 laptops and installation",
+              "type": "delivery",
+              "dueDate": "2026-11-29T21:59:59Z",
+              "status": "met",
+              "dateMet": "2026-10-18T07:25:30Z",
+              "value": {
+                "amount": 78500,
+                "currency": "ZMW"
+              },
+              "documents": [
+                {
+                  "id": "AWD-191E9F-MS-2-certificate",
+                  "documentType": "completionCertificate",
+                  "hash": {
+                    "scheme": "SHA-256",
+                    "value": "9d7e9f3357431df49cbc194eaed6cd6d9797c7640bf44f8deef05daaa2e10f54"
+                  }
+                }
+              ]
+            }
+          ],
+          "implementation": {
+            "transactions": [
+              {
+                "id": "PAY-AWD-191E9F-MS-1",
+                "source": "IFMIS",
+                "date": "2026-10-18T07:25:26Z",
+                "value": {
+                  "amount": 60000,
+                  "currency": "ZMW"
+                },
+                "payer": {
+                  "id": "ZM-ENTITY-MOH",
+                  "name": "Ministry of Health"
+                },
+                "payee": {
+                  "id": "ZM-PACRA-120260000101",
+                  "name": "Alpha Computers Limited"
+                },
+                "uri": "ifmis:IFMIS-2026-000001",
+                "relatedMilestone": "MS-1"
+              },
+              {
+                "id": "PAY-AWD-191E9F-MS-2",
+                "source": "IFMIS",
+                "date": "2026-10-18T07:26:02Z",
+                "value": {
+                  "amount": 78500,
+                  "currency": "ZMW"
+                },
+                "payer": {
+                  "id": "ZM-ENTITY-MOH",
+                  "name": "Ministry of Health"
+                },
+                "payee": {
+                  "id": "ZM-PACRA-120260000101",
+                  "name": "Alpha Computers Limited"
+                },
+                "uri": "ifmis:IFMIS-2026-000002",
+                "relatedMilestone": "MS-2"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -122,7 +122,7 @@
     <button role="tab" aria-selected="false" data-tab="evaluation" data-roles="OFFICER,COMMITTEE">Evaluation</button>
     <button role="tab" aria-selected="false" data-tab="contracts" data-roles="OFFICER,INSPECTOR">Contracts</button>
     <button role="tab" aria-selected="false" data-tab="oversight" data-roles="REGULATOR">Oversight</button>
-    <button role="tab" aria-selected="false" data-tab="verify">Verify and ledger</button>
+    <button role="tab" aria-selected="false" data-tab="verify">Public portal</button>
     <button role="tab" aria-selected="false" data-tab="admin" data-roles="ADMIN">Administration</button>
   </nav>
 
@@ -178,12 +178,31 @@
 
   <!-- Verification -->
   <section role="tabpanel" id="verify">
+    <div class="card">
+      <h2>Search tenders, contracts and payments</h2>
+      <p class="lead">Open to everyone, no sign-in. Search by reference, title, company or IFMIS payment reference.</p>
+      <form id="pub-search" class="inline" style="border:0;padding:0;margin:0"><input id="pub-q" placeholder="e.g. laptops, Alpha, IFMIS-2026-000001">
+        <button type="submit">Search</button></form>
+      <div id="pub-results"></div>
+    </div>
+    <div class="card">
+      <h2>Open data (OCDS)</h2>
+      <p class="lead">Download procurement records in the Open Contracting Data Standard, including tender amendments, contract milestones and payments. Bid contents and personal data are not included.</p>
+      <div class="inline"><select id="pub-ocds-tender"></select><button type="button" id="pub-ocds-one">Download this tender</button>
+        <button type="button" id="pub-ocds-all">Download everything</button></div>
+    </div>
     <div class="grid">
       <form class="card" id="verify-form">
-        <h2>Check a document against the ledger</h2>
-        <p class="lead">Upload a copy of a tender document. If even one character has changed, its hash will not match the one on the ledger.</p>
-        <label for="verify-tender">Tender</label>
-        <select id="verify-tender" name="reference" required></select>
+        <h2>Check a published record against the ledger</h2>
+        <p class="lead">Upload a copy of a tender document, signed contract or completion certificate. If even one character has changed, its hash will not match the one on the ledger.</p>
+        <label for="verify-kind">What is it?</label>
+        <select id="verify-kind" name="kind"><option value="tender">Tender document or addendum</option>
+          <option value="contract">Signed contract</option><option value="certificate">Milestone completion certificate</option></select>
+        <div id="verify-tender-wrap"><label for="verify-tender">Tender</label>
+        <select id="verify-tender" name="reference"></select></div>
+        <div id="verify-contract-wrap" hidden><label for="verify-award">Contract reference (e.g. AWD-191E9F)</label>
+        <input id="verify-award" name="awardId"></div>
+        <div id="verify-ms-wrap" hidden><label for="verify-ms">Milestone (e.g. MS-1)</label><input id="verify-ms" name="milestoneId"></div>
         <label for="verify-file">Document</label>
         <input id="verify-file" name="document" type="file" required>
         <button class="btn" type="submit">Check hash</button>
@@ -355,7 +374,7 @@ async function loadTenders() {
     ${tenders.map((t) => `<tr><td class="mono">${esc(t.reference)}</td><td>${esc(t.title)}</td><td>${when(t.closingTime)}</td>
       <td>${new Date(t.closingTime) > now ? 'Open' : 'Closed'}</td></tr>`).join('')}
   </table>` : '<p class="empty">No tenders published yet.</p>';
-  for (const sel of ['#bid-tender', '#verify-tender', '#ledger-tender', '#ev-tender']) {
+  for (const sel of ['#bid-tender', '#verify-tender', '#ledger-tender', '#ev-tender', '#pub-ocds-tender']) {
     const keep = $(sel).value;
     $(sel).innerHTML = tenders.map((t) => `<option value="${esc(t.reference)}">${esc(t.reference)} · ${esc(t.title)}</option>`).join('');
     if (keep) $(sel).value = keep;
@@ -427,14 +446,47 @@ async function showCipher(cid, target) {
   $(target).innerHTML = `<p class="note">First bytes of the file as stored on IPFS (${bytes.length} bytes). Without the key it cannot be read.</p><pre>${esc(rows.join('\n'))}</pre>`;
 }
 
+// ---------- Public portal (3.5.9) ----------
+$('#verify-kind').addEventListener('change', () => {
+  const kind = $('#verify-kind').value;
+  $('#verify-tender-wrap').hidden = kind !== 'tender';
+  $('#verify-contract-wrap').hidden = kind === 'tender';
+  $('#verify-ms-wrap').hidden = kind !== 'certificate';
+});
+
+$('#pub-search').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const r = await (await fetch(`/api/public/search?q=${encodeURIComponent($('#pub-q').value)}`)).json();
+  const table = (title, rows, head, cells) => `<h3>${title} (${rows.length})</h3>${rows.length
+    ? `<div class="table-scroll"><table><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr>${rows.map((x) => `<tr>${cells(x).map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`
+    : '<p class="empty">None found.</p>'}`;
+  $('#pub-results').innerHTML =
+    table('Tenders', r.tenders, ['Reference', 'Title', 'Buyer', 'Closing', 'Awarded'],
+      (x) => [`<span class="mono">${esc(x.reference)}</span>`, esc(x.title), esc(x.buyer ?? ''), when(x.closingTime), x.awarded ? 'Yes' : 'No'])
+    + table('Contracts', r.contracts, ['Contract', 'Tender', 'Supplier', 'Value', 'Status', 'Milestones paid'],
+      (x) => [`<span class="mono">${esc(x.awardId)}</span>`, `${esc(x.tenderRef)}<br>${esc(x.title)}`, esc(x.supplier ?? ''), kwacha(x.value), esc(x.status), `${x.paid} of ${x.milestones}`])
+    + table('Payments', r.payments, ['Paid', 'Contract', 'Milestone', 'Amount', 'IFMIS reference'],
+      (x) => [when(x.paidAt), `<span class="mono">${esc(x.awardId)}</span><br>${esc(x.title)}`, `${esc(x.milestoneId)} ${esc(x.description)}`, kwacha(x.amount), `<span class="mono">${esc(x.ifmisRef)}</span>`]);
+});
+
+function download(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+$('#pub-ocds-one').addEventListener('click', () => download(`/api/public/ocds?reference=${encodeURIComponent($('#pub-ocds-tender').value)}`));
+$('#pub-ocds-all').addEventListener('click', () => download('/api/public/ocds'));
+
 // Verification
 $('#verify-form').addEventListener('submit', (e) => {
   e.preventDefault();
   withButton(e.target, async () => {
-    const { ok, data } = await send('/api/verify', new FormData(e.target));
+    const { ok, data } = await send('/api/public/verify', new FormData(e.target));
     if (!ok) return show($('#verify-result'), false, 'Could not check', `<p>${esc(data.error)}</p>`);
     show($('#verify-result'), data.matches,
-      data.matches ? 'Match: this is the published document' : 'No match: this document differs from the published version',
+      data.matches ? `Match: this is the ${data.record} recorded on the ledger` : `No match: this differs from the ${data.record} recorded on the ledger`,
       fields([['Hash of your file', data.hash], ['Hash on the ledger', data.onLedger.join(', ')]]));
   });
 });

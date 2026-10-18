@@ -1,0 +1,14 @@
+# 3.5.9 public portal, live network, no sign-in (18 October 2026 09:40)
+== search 'Alpha'
+{"tenders":[],"contracts":[{"awardId":"AWD-191E9F","supplier":"Alpha Computers Limited","value":13850000,"paid":2,"milestones":2}],"payments":[]}
+== check the signed contract
+{"record":"signed contract AWD-191E9F","matches":true}
+== check an altered copy
+{"record":"signed contract AWD-191E9F","matches":false}
+== check the MS-1 completion certificate
+{"record":"completion certificate for AWD-191E9F MS-1","matches":true}
+== OCDS for ZPPA/MOH/2026/E3932
+{"ocid":"ocds-zmproc-ZPPA-MOH-2026-E3932","tender":{"status":"complete","value":{"amount":150000,"currency":"ZMW"},"tenderers":2},"award":"Alpha Computers Limited","milestones":[["MS-1","Delivery of 20 laptops to Lusaka","met"],["MS-2","Delivery of 20 laptops and installation","met"]],"transactions":[[60000,"ifmis:IFMIS-2026-000001"],[78500,"ifmis:IFMIS-2026-000002"]]}
+== personal data in the OCDS file?
+no email addresses
+people names found: 0

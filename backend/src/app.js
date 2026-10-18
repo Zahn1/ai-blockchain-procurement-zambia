@@ -13,6 +13,7 @@ import { supplierRoutes, bidBlocker } from './supplier-routes.js';
 import { evaluationRoutes } from './evaluation-routes.js';
 import { contractRoutes } from './contract-routes.js';
 import { oversightRoutes } from './oversight-routes.js';
+import { publicRoutes, publicCid } from './public-routes.js';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
@@ -34,6 +35,7 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
   app.use('/api', evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity: actors.officer }));
   app.use('/api', contractRoutes({ db, auth, ledger, ipfs, ifmis, officerIdentity: actors.officer }));
   app.use('/api', oversightRoutes({ db, auth, ledger, officerIdentity: actors.officer }));
+  app.use('/api', publicRoutes({ db, ledger, officerIdentity: actors.officer }));
 
   // 3.5.3: publish a tender. The document goes to IPFS; its SHA-256 hash and the closing time go on the ledger.
   app.post('/api/tenders', officer, upload.single('document'), wrap(async (req, res) => {
@@ -118,9 +120,11 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
     res.json({ valid: verify(req.body) });
   });
 
-  // Raw IPFS content, to show that a stored bid is unreadable ciphertext.
+  // Raw IPFS content: tender documents, and bids only as their unreadable encrypted files (3.5.9: no bid contents
+  // or personal data in public). Signed contracts and certificates are checked by hash, not served.
   app.get('/api/ipfs/:cid', wrap(async (req, res) => {
     if (!/^[a-z0-9]{20,100}$/i.test(req.params.cid)) return bad(res, 'Invalid CID.');
+    if (!(await publicCid(db, req.params.cid))) return res.status(404).json({ error: 'Not a published file.' });
     res.type('application/octet-stream').send(await ipfs.cat(req.params.cid));
   }));
 

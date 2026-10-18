@@ -82,6 +82,20 @@ Notes: alerts raised before the decision names were aligned keep their old statu
 
 Live evidence: `docs/phase3/live-3.5.8-run.txt`; chaincode 1.3 upgrade log.
 
+## 3.5.9 Public Verification Portal and Open Data
+
+> *"The system must allow members of the public to search tenders, contracts and payments without logging in, to check that any published record matches its hash on the ledger, and to download open data in OCDS format, including amendments, milestones and payments. Bid contents and personal data must not be shown."*
+
+| Clause | Status | How it is met | Code | Tests and evidence |
+|---|---|---|---|---|
+| Members of the public **search tenders, contracts and payments without logging in** | ✅ | The Public portal tab, shown before sign-in. Search by reference, title, company or IFMIS reference; a company matches only the contracts and payments it was awarded | `public-routes.js` `/public/search`; `index.html` | *finds tenders, contracts and payments*; searches (4); *a company that only bid is not matched to a contract it did not win*; live: search for *laptops* signed out |
+| **Check that any published record matches its hash on the ledger** | ✅ | Tender documents and addenda, signed contracts and milestone completion certificates are hashed and compared with the hash on the ledger. Nothing is stored | `/public/verify` | *a genuine … matches* (4 kinds); *an altered document does not match*; live: contract and certificate match, altered copy does not |
+| **Download open data in OCDS format** | ✅ | An OCDS 1.1 release package per tender or for everything: buyer and supplier parties, tender, award, contract, document hashes; CC BY 4.0 | `/public/ocds` | *is a release package with the tender, award, contract, milestones and payments*; *the full download includes every procurement*; live file `docs/phase3/ocds-ZPPA-MOH-2026-E3932.json` |
+| … **including amendments, milestones and payments** | ✅ | Amendments from the tender's ledger history; contract milestones with due dates, status and certificate hashes; payments as implementation transactions with their IFMIS references | `/public/ocds` | *includes amendments from the tender's ledger history*; live: two milestones met, two IFMIS transactions |
+| **Bid contents and personal data must not be shown** | ✅ | Public output names companies (as award notices do) but no person: no officers, committee members, inspectors or emails. Bids appear only as code names and hashes. Public file access is limited to tender documents and encrypted bids; signed contracts and certificates are checked by hash, not served | `public-routes.js`; `app.js` `/api/ipfs/:cid` | *shows no personal data*; *contains no bid contents or personal data*; *Files the public can fetch* (4); live OCDS file: no emails, no names |
+
+Live evidence: `docs/phase3/live-3.5.9-run.txt`.
+
 ## Summary of all functional requirements
 
 | Requirement | Status | Where |
@@ -94,5 +108,5 @@ Live evidence: `docs/phase3/live-3.5.8-run.txt`; chaincode 1.3 upgrade log.
 | 3.5.6 Smart Contract Award and Milestone Payment | ✅ | Phase 3, step 4 (IFMIS stand-in) |
 | 3.5.7 AI Risk Scoring and Explained Alerts | 🟡 | Data ready (Phase 1); models in Phase 4 |
 | 3.5.8 Alert Review and Audit Trail | ✅ | Phase 3, step 5a (chaincode 1.3) |
-| 3.5.9 Public Verification Portal and Open Data | 🟡 | Public document and receipt checks work without signing in; search and OCDS download in Phase 3, step 5 |
+| 3.5.9 Public Verification Portal and Open Data | ✅ | Phase 3, step 5b |
 | 3.5.10 Reporting and Notifications | ⬜ | Phase 3, step 5 |
