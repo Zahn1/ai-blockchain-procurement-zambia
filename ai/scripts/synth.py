@@ -41,6 +41,7 @@ def load(path):
 
 
 def set_values(r, est, ratio):
+    est = round(est, -1)  # whole tens of kwacha, like real estimates, so rounding cannot reveal a synthetic row
     r["est_value"] = round(est, 2)
     r["log_est_value"] = round(math.log10(est), 4)
     r["award_ratio"] = round(ratio, 4)
@@ -49,7 +50,9 @@ def set_values(r, est, ratio):
 
 # Each pattern edits a copy of a clean tender. Value-band edges come from build_dataset output.
 def single_bidder_high(r, rng, edges):
-    set_values(r, rng.uniform(edges[3], edges[3] * 8), rng.uniform(0.97, 1.08))
+    # Only the size and the number of bidders change; the award ratio stays the source tender's own,
+    # so the ratio cannot reveal a synthetic row (found with SHAP in Phase 4)
+    set_values(r, rng.uniform(edges[3], edges[3] * 8), r["award_ratio"])
     r["value_band"], r["n_bidders"] = 4, 1
 
 
@@ -59,7 +62,7 @@ def inflated_award(r, rng, edges):
 
 
 def rushed_tender(r, rng, edges):
-    set_values(r, rng.uniform(edges[3], edges[3] * 6), rng.uniform(0.98, 1.1))
+    set_values(r, rng.uniform(edges[3], edges[3] * 6), r["award_ratio"])
     r["value_band"], r["period_days"], r["n_bidders"] = 4, rng.choice([0, 0, 1]), rng.choice([1, 2])
     r["end_weekday"] = rng.choice([4, 5, 6])
 
@@ -75,7 +78,7 @@ def split_purchase(r, rng, edges):
     # Just under a value-band edge, repeated with the same supplier in one month.
     # The rules have no flag for this, so it tests what the models add beyond the rules.
     edge = rng.choice(edges[1:])
-    set_values(r, edge * rng.uniform(0.9, 0.995), rng.uniform(0.98, 1.02))
+    set_values(r, edge * rng.uniform(0.9, 0.995), r["award_ratio"])
     r["value_band"] = edges.index(edge)
     r["pair_awards_same_month"] = rng.randint(3, 8)
     r["n_bidders"] = rng.choice([1, 1, 2])

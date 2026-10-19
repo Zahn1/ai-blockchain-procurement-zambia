@@ -1,0 +1,28 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.17, pytest-8.3.5, pluggy-1.7.0 -- /Users/zhani/Desktop/AI And Blockchain Procurement System/ai/.venv/bin/python3.11
+cachedir: .pytest_cache
+rootdir: /Users/zhani/Desktop/AI And Blockchain Procurement System/ai
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.15.1
+collecting ... collected 17 items
+
+tests/test_service.py::test_health_reports_the_model_version PASSED      [  5%]
+tests/test_service.py::test_a_normal_tender_scores_low_and_raises_no_alert PASSED [ 11%]
+tests/test_service.py::test_known_risk_patterns_raise_an_alert_with_a_plain_english_reason[changes0-won 80% of this buyer's awards] PASSED [ 17%]
+tests/test_service.py::test_known_risk_patterns_raise_an_alert_with_a_plain_english_reason[changes1-same month] PASSED [ 23%]
+tests/test_service.py::test_known_risk_patterns_raise_an_alert_with_a_plain_english_reason[changes2-above it] PASSED [ 29%]
+tests/test_service.py::test_explanations_show_at_most_three_model_factors_in_sentences PASSED [ 35%]
+tests/test_service.py::test_the_graph_model_flags_bidders_who_keep_bidding_together PASSED [ 41%]
+tests/test_service.py::test_unknown_bidders_give_the_graph_model_no_evidence PASSED [ 47%]
+tests/test_service.py::test_contract_payment_anomalies_raise_alerts[changes0-130% of the contract value] PASSED [ 52%]
+tests/test_service.py::test_contract_payment_anomalies_raise_alerts[changes1-before the milestone was certified] PASSED [ 58%]
+tests/test_service.py::test_contract_payment_anomalies_raise_alerts[changes2-duplicate payment] PASSED [ 64%]
+tests/test_service.py::test_a_normal_contract_raises_no_alert PASSED     [ 70%]
+tests/test_service.py::test_invalid_input_is_rejected[body0] PASSED      [ 76%]
+tests/test_service.py::test_invalid_input_is_rejected[body1] PASSED      [ 82%]
+tests/test_service.py::test_invalid_input_is_rejected[body2] PASSED      [ 88%]
+tests/test_service.py::test_invalid_input_is_rejected[body3] PASSED      [ 94%]
+tests/test_service.py::test_scores_are_reproducible PASSED               [100%]
+
+============================== 17 passed in 2.91s ==============================

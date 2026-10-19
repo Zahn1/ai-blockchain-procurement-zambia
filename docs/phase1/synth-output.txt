@@ -3,9 +3,9 @@ synthetic tenders: 10,000 · contracts: 10,000
 
 How well do the rules alone catch each pattern? (rule_label = 1)
   none                       0 / 5,000  (0.0%)
-  single_bidder_high       832 / 1,000  (83.2%)
-  inflated_award           668 / 1,000  (66.8%)
-  rushed_tender            522 / 1,000  (52.2%)
-  favoured_supplier         86 / 1,000  (8.6%)
-  split_purchase           103 / 1,000  (10.3%)
-contract patterns: {'none': 8449, 'payment_before_completion': 525, 'duplicate_payment': 520, 'overpayment': 506}
+  single_bidder_high       774 / 1,000  (77.4%)
+  inflated_award           683 / 1,000  (68.3%)
+  rushed_tender            508 / 1,000  (50.8%)
+  favoured_supplier        104 / 1,000  (10.4%)
+  split_purchase            76 / 1,000  (7.6%)
+contract patterns: {'none': 8460, 'payment_before_completion': 524, 'overpayment': 507, 'duplicate_payment': 509}

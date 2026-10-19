@@ -65,17 +65,17 @@ Synthetic rows are made from 8,095 clean awarded tenders (no flags, no data erro
 
 | Pattern | What is changed | Caught by rules alone |
 |---|---|---:|
-| `single_bidder_high` | Top value band, one bidder | 83.2% |
-| `inflated_award` | Award 1.25–2.5× the estimate | 66.8% |
-| `rushed_tender` | Top value band, open 0–1 days, often closing late in the week | 52.2% |
-| `favoured_supplier` | 55–90% of a buyer's awards go to one supplier | 8.6% |
-| `split_purchase` | Value just under a band edge, 3–8 same-month awards to one supplier | 10.3% |
+| `single_bidder_high` | Top value band, one bidder | 77.4% |
+| `inflated_award` | Award 1.25–2.5× the estimate | 68.3% |
+| `rushed_tender` | Top value band, open 0–1 days, often closing late in the week | 50.8% |
+| `favoured_supplier` | 55–90% of a buyer's awards go to one supplier | 10.4% |
+| `split_purchase` | Value just under a band edge, 3–8 same-month awards to one supplier | 7.6% |
 | `none` (clean) | Values varied by ±10% | 0.0% false positives |
 
 **Contracts:** 10,000 synthetic contract summaries (milestones, completion, payments). 15% contain one anomaly:
-- `overpayment`: 506
-- `payment_before_completion`: 525
-- `duplicate_payment`: 520
+- `overpayment`: 507
+- `payment_before_completion`: 524
+- `duplicate_payment`: 509
 
 ### 3.3 How each label is used (Phase 4)
 
@@ -102,5 +102,12 @@ The synthetic generator uses a fixed seed (42). Running it twice gives byte-iden
 
 | File | SHA-256 |
 |---|---|
-| `synthetic_tenders.csv` | `354a5494…770a` |
-| `synthetic_contracts.csv` | `3bb6f540…6a55` |
+| `synthetic_tenders.csv` | `a2678960…5778` |
+| `synthetic_contracts.csv` | `6dfbbaeb…6bf0` |
+
+## Revision (Phase 4)
+
+Reading the SHAP explanations of the first trained model showed two tell-tale signs of synthetic rows: pattern rows drew
+a new award ratio near 1.0 while real awards very often equal the estimate exactly, and estimates were not rounded. The
+generator now keeps the source tender's own award ratio for patterns that are not about price, and rounds estimates to
+whole tens of kwacha. The tables above are from the regenerated data. See `docs/phase4/model-evaluation.md`.

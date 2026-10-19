@@ -1,0 +1,61 @@
+data: 178,732 real tenders, 10,000 synthetic tenders, 10,000 synthetic contracts, 289,548 bids
+graph: evaluating on an injected cartel ...
+graph: fitting on the real ZPPA network ...
+graph: {'groups': 417, 'linked_pairs': 60534, 'bidders': 23928, 'cartel_in_top5pct': 1.0, 'control_in_top5pct': 0.0, 'cartel_median_percentile': 0.9954345052928407, 'control_median_percentile': 0.6959917642056263}
+leakage check: real vs synthetic clean tenders AUC = 0.644 (0.5 = indistinguishable)
+supervised: training gradient boosting ...
+unsupervised: training Isolation Forest on real tenders ...
+tenders: {
+ "roc_auc": 0.9905635555555555,
+ "recall_at_threshold": 0.906,
+ "false_positive_rate": 0.022,
+ "rules_recall": 0.43733333333333335,
+ "rules_false_positive_rate": 0.0,
+ "by_pattern": {
+  "favoured_supplier": {
+   "n": 300,
+   "model_flagged": 0.9933333333333333,
+   "rules_flagged": 0.12333333333333334
+  },
+  "inflated_award": {
+   "n": 300,
+   "model_flagged": 0.7166666666666667,
+   "rules_flagged": 0.6633333333333333
+  },
+  "none": {
+   "n": 1500,
+   "model_flagged": 0.022,
+   "rules_flagged": 0.0
+  },
+  "rushed_tender": {
+   "n": 300,
+   "model_flagged": 0.9966666666666667,
+   "rules_flagged": 0.5133333333333333
+  },
+  "single_bidder_high": {
+   "n": 300,
+   "model_flagged": 0.9033333333333333,
+   "rules_flagged": 0.7966666666666666
+  },
+  "split_purchase": {
+   "n": 300,
+   "model_flagged": 0.92,
+   "rules_flagged": 0.09
+  }
+ },
+ "real_alert_rate": 0.04425060985162142,
+ "real_alerts": 7909
+}
+contracts: training ...
+contracts: {
+ "roc_auc": 1.0,
+ "recall_at_threshold": 1.0,
+ "false_positive_rate": 0.0027580772261623326,
+ "by_pattern": {
+  "duplicate_payment": 1.0,
+  "none": 0.0027580772261623326,
+  "overpayment": 1.0,
+  "payment_before_completion": 1.0
+ }
+}
+saved models risk-1.0.0 in 84 s

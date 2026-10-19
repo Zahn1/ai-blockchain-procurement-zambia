@@ -1,0 +1,12 @@
+# AI risk scoring (Chapter 3, 3.5.7). Same versions in Colab and in the service.
+numpy==2.2.6
+pandas==2.2.3
+scikit-learn==1.6.1
+shap==0.47.2
+networkx==3.4.2
+joblib==1.4.2
+fastapi==0.115.12
+uvicorn==0.34.2
+pydantic==2.11.4
+pytest==8.3.5
+httpx==0.28.1

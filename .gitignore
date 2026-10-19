@@ -37,3 +37,5 @@ CLAUDE.md
 backend/node_modules/
 backend/data/
 backend/.env
+ai/.venv/
+ai/data/processed/bids.csv
