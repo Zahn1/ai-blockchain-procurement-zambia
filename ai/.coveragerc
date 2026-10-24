@@ -1,0 +1,4 @@
+# Coverage for the AI service tests. train.py is the offline training script; it is checked by running the training
+# (docs/phase4/train-output.txt and the Colab notebook), not by unit tests, so it is left out of the measurement.
+[run]
+omit = risk/train.py

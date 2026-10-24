@@ -1,0 +1,94 @@
+
+ RUN  v2.1.8 /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend
+      Coverage enabled with v8
+
+stderr | src/__tests__/shell.test.jsx > sign-in starts with email and password, and links to registration and the public portal
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ✓ src/__tests__/shell.test.jsx (6 tests) 80ms
+stderr | src/__tests__/oversight-reports.test.jsx > risk alerts > unreviewed alerts come first, with the AI's reasons in plain words
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/__tests__/tenders-bids.test.jsx > officer > sees the tender register and can filter to open tenders
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/__tests__/admin.test.jsx > users > bidders and the administrator's own role cannot be changed here
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/__tests__/public-register.test.jsx > public portal, signed out > searches tenders, contracts and payments; companies are named
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/__tests__/evaluation-contracts.test.jsx > committee member > approves opening, which is signed on the ledger
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/__tests__/oversight-reports.test.jsx
+Error: Not implemented: navigation (except hash changes)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at navigateFetch (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/window/navigation.js:77:3)
+    at exports.navigate (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/window/navigation.js:55:3)
+    at Timeout._onTimeout (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/nodes/HTMLHyperlinkElementUtils-impl.js:81:7)
+    at listOnTimeout (node:internal/timers:581:17)
+    at processTimers (node:internal/timers:519:7) undefined
+
+ ✓ src/__tests__/public-register.test.jsx (6 tests) 460ms
+ ✓ src/__tests__/oversight-reports.test.jsx (6 tests) 488ms
+ ✓ src/__tests__/tenders-bids.test.jsx (11 tests) 580ms
+ ✓ src/__tests__/admin.test.jsx (6 tests) 589ms
+ ✓ src/__tests__/evaluation-contracts.test.jsx (12 tests) 779ms
+
+ Test Files  6 passed (6)
+      Tests  47 passed (47)
+   Start at  14:23:17
+   Duration  2.46s (transform 376ms, setup 751ms, collect 2.25s, tests 2.98s, environment 3.15s, prepare 481ms)
+
+ % Coverage report from v8
+
+=============================== Coverage summary ===============================
+Statements   : 87.7% ( 2054/2342 )
+Branches     : 80.41% ( 690/858 )
+Functions    : 74.83% ( 232/310 )
+Lines        : 87.7% ( 2054/2342 )
+================================================================================
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |    87.7 |    80.41 |   74.83 |    87.7 |                   
+ src               |   75.75 |    94.73 |      75 |   75.75 |                   
+  App.jsx          |     100 |      100 |     100 |     100 |                   
+  main.jsx         |       0 |        0 |       0 |       0 | 1-16              
+  nav.js           |     100 |      100 |     100 |     100 |                   
+ src/components    |   97.87 |    92.66 |   84.37 |   97.87 |                   
+  Layout.jsx       |   94.28 |    81.25 |   55.55 |   94.28 | 61-64             
+  PublicShell.jsx  |     100 |      100 |     100 |     100 |                   
+  ui.jsx           |   98.94 |    94.38 |   95.23 |   98.94 | 190-191           
+ src/lib           |    91.2 |    76.78 |      80 |    91.2 |                   
+  api.js           |     100 |    72.41 |   71.42 |     100 | 10,27,29,32,40    
+  auth.jsx         |   77.77 |      100 |     100 |   77.77 | 13-15,26-28       
+  format.js        |    90.9 |    76.19 |   83.33 |    90.9 | 8-9               
+ src/pages         |   86.43 |    78.33 |   73.35 |   86.43 |                   
+  AdminBidders.jsx |    97.7 |    88.37 |   90.47 |    97.7 | 21,86             
+  AdminUsers.jsx   |   95.61 |    88.67 |   69.56 |   95.61 | 74-77,125         
+  AuditLog.jsx     |   97.36 |       75 |   88.88 |   97.36 | 13                
+  Bids.jsx         |   97.61 |    90.47 |     100 |   97.61 | 37                
+  ...actDetail.jsx |   90.09 |    74.44 |      64 |   90.09 | ...74,184-187,220 
+  Contracts.jsx    |   13.43 |      100 |      25 |   13.43 | 20-84             
+  Dashboard.jsx    |   56.68 |    68.42 |      25 |   56.68 | ...-61,78-117,162 
+  Evaluation.jsx   |   28.57 |    77.77 |   33.33 |   28.57 | 21-48             
+  ...ionTender.jsx |   92.85 |    80.45 |   81.08 |   92.85 | 51,55,58-71       
+  Oversight.jsx    |   99.39 |    74.07 |   93.75 |   99.39 | 112               
+  ...ntHistory.jsx |     100 |    77.77 |   66.66 |     100 | 16-17,25,54,58,73 
+  PublicPortal.jsx |   99.35 |    77.19 |   78.12 |   99.35 | 111               
+  ...ishTender.jsx |     100 |       80 |      80 |     100 | 33,83,94          
+  Register.jsx     |     100 |    88.23 |     100 |     100 | 21,73             
+  Reports.jsx      |     100 |    71.42 |      75 |     100 | 23-29             
+  SignIn.jsx       |   55.84 |    14.28 |      20 |   55.84 | ...63,66-71,74-77 
+  SubmitBid.jsx    |   91.34 |       75 |    62.5 |   91.34 | 11-18,74          
+  TenderDetail.jsx |   85.14 |    63.41 |   83.33 |   85.14 | ...38,118,120-122 
+  Tenders.jsx      |     100 |    88.23 |      90 |     100 | 28,44             
+-------------------|---------|----------|---------|---------|-------------------

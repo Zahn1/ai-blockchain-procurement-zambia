@@ -1,0 +1,16 @@
+.........................                                                [100%]
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.11.17-final-0 _______________
+
+Name                  Stmts   Miss  Cover
+-----------------------------------------
+risk/__init__.py          0      0   100%
+risk/features.py         27      1    96%
+risk/graph.py            73      0   100%
+risk/model.py           141     22    84%
+risk/scoring.py           8      0   100%
+service/__init__.py       0      0   100%
+service/app.py           51      0   100%
+-----------------------------------------
+TOTAL                   300     23    92%
+25 passed in 3.35s

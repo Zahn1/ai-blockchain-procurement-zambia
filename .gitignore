@@ -43,3 +43,7 @@ ai/data/processed/bids.csv
 # Front end
 frontend/node_modules/
 frontend/dist/
+
+# Coverage output (Phase 6)
+.coverage
+coverage/

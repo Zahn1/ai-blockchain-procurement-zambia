@@ -1,0 +1,49 @@
+
+> procurement-backend@0.1.0 test
+> node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --coverage --coverageReporters=text-summary --coverageReporters=text
+
+(node:8670) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+=============================== Coverage summary ===============================
+Statements   : 88.42% ( 1222/1382 )
+Branches     : 75.14% ( 644/857 )
+Functions    : 86.91% ( 299/344 )
+Lines        : 93.12% ( 1030/1106 )
+================================================================================
+-----------------------|---------|----------|---------|---------|-------------------------------
+File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s             
+-----------------------|---------|----------|---------|---------|-------------------------------
+All files              |   88.42 |    75.14 |   86.91 |   93.12 |                               
+ src                   |    88.1 |     74.6 |   86.54 |   92.82 |                               
+  app.js               |   87.87 |    73.46 |   83.33 |   91.56 | 73,78-85,148-149              
+  auth-routes.js       |   84.03 |    72.11 |   79.16 |   94.31 | 44-45,98,105,123              
+  auth.js              |   93.54 |    86.11 |   94.44 |   98.71 | 30                            
+  config.js            |     100 |      100 |     100 |     100 |                               
+  contract-routes.js   |    82.8 |    73.86 |   82.14 |   90.32 | 79-82,88-90,94-95,165-167,198 
+  dashboard-routes.js  |   72.09 |    66.66 |   65.38 |   72.97 | 38-54,68-72                   
+  evaluation-routes.js |   92.34 |    76.74 |   94.73 |      98 | 51-53,160                     
+  evaluation.js        |     100 |    73.52 |     100 |     100 | 18,29-30                      
+  ifmis.js             |    87.5 |       80 |     100 |   85.71 | 12                            
+  notify.js            |   93.02 |    55.55 |      95 |   97.14 | 40                            
+  oversight-routes.js  |   92.45 |    62.96 |   86.36 |   97.46 | 33,79                         
+  public-routes.js     |   96.15 |    73.11 |     100 |   98.85 | 84                            
+  receipt.js           |      90 |       50 |     100 |    87.5 | 20                            
+  registries.js        |   96.96 |       90 |     100 |     100 | 20-33                         
+  reports.js           |   94.33 |    77.77 |     100 |    98.8 | 73                            
+  risk.js              |    87.5 |    57.14 |      80 |    87.5 | 13-19                         
+  sealed.js            |   43.24 |        0 |   44.44 |   43.75 | 36-44,51-70                   
+  store.js             |      50 |        0 |      50 |   57.14 | 19-23                         
+  supplier-routes.js   |   85.07 |    74.07 |      75 |    92.3 | 23-26,69-70                   
+ src/standins          |   92.72 |    81.25 |    92.3 |   97.77 |                               
+  registry-data.js     |     100 |      100 |     100 |     100 |                               
+  services.js          |   92.45 |    81.25 |    92.3 |   97.67 | 41                            
+ test                  |     100 |      100 |     100 |     100 |                               
+  helpers.js           |     100 |      100 |     100 |     100 |                               
+-----------------------|---------|----------|---------|---------|-------------------------------
+
+Test Suites: 10 passed, 10 total
+Tests:       175 passed, 175 total
+Snapshots:   0 total
+Time:        17.16 s, estimated 18 s
+Ran all test suites.
