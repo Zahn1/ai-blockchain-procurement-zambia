@@ -6,13 +6,14 @@ import { AuthProvider } from '../lib/auth.jsx';
 import App from '../App.jsx';
 
 export let calls;
+/** Mocks the API for `user`; with no user, nobody is signed in. */
 export function serve(user, routes) {
   calls = [];
-  sessionStorage.setItem('procurement.token', 'test-token');
+  if (user) sessionStorage.setItem('procurement.token', 'test-token');
   globalThis.fetch = vi.fn(async (url, init = {}) => {
     const path = url.replace(/^\/api/, '');
     calls.push({ path, method: init.method ?? 'GET', body: init.body });
-    const [status, body] = path === '/auth/me' ? [200, user] : (routes[`${init.method ?? 'GET'} ${path}`] ?? [404, { error: 'Not found' }]);
+    const [status, body] = path === '/auth/me' ? (user ? [200, user] : [401, { error: 'Sign in.' }]) : (routes[`${init.method ?? 'GET'} ${path}`] ?? [404, { error: 'Not found' }]);
     return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
   });
 }

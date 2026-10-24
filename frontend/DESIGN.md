@@ -13,3 +13,9 @@ density 8): **Minimalism / Swiss style**, *Trust & Authority*, avoiding "AI purp
 | Status | Dot + word | Readable without colour (WCAG 1.4.1) |
 | Motion | Colour and background transitions only, 150 ms; none under reduced motion | Functional, never decorative |
 | Accessibility | Text contrast 4.5:1+, visible focus ring, labels on every field, 44px touch targets on phones | NFR 3.6.2 (WCAG 2.1 AA) |
+
+## Reference designs
+
+The procurement history timeline (`/oversight/history`) follows the 21st.dev "Activity Timeline" pattern: events grouped by
+day along a vertical rail. It was rebuilt with this project's own components and colours rather than copied, because the
+original is TypeScript on shadcn/ui, which this front end does not use.
