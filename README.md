@@ -60,6 +60,17 @@ cd ai && python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt &
 
 # E-mail notifications in development: Mailpit catches them at http://127.0.0.1:8025
 brew install mailpit && mailpit --listen 127.0.0.1:8025 --smtp 127.0.0.1:1025
+
+# Front end on http://localhost:5173 (calls the back end on port 3000)
+cd frontend && npm install && npm run dev
+```
+
+```bash
+# Phase 6 checks against the running system (need the demo accounts in backend/data/live, git-ignored)
+cd backend
+node system-test/run.mjs           # one full procurement, all ten requirements -> docs/phase6/system-test-results.md
+node system-test/performance.mjs   # ledger, API and AI timings -> docs/phase6/performance.md
+node system-test/privacy-scan.mjs  # searches the ledger for personal data -> docs/phase6/privacy-scan.md
 ```
 
 Fabric's scripts do not support paths with spaces, so clone the repository to a path without them.
@@ -73,5 +84,5 @@ Fabric's scripts do not support paths with spaces, so clone the repository to a 
 | 2 Blockchain | 2–4 | Done |
 | 3 Back end | 3–5 | Done |
 | 4 AI models | 3–6 | Done: supervised, Isolation Forest and graph-based models; FastAPI service |
-| 5 Front end | 5–7 | |
-| 6 Testing and evaluation | 7–8 | |
+| 5 Front end | 5–7 | Done: React screens for every role, the public portal and registration |
+| 6 Testing and evaluation | 7–8 | Done except the usability sessions with participants: see [`docs/phase6/evaluation-summary.md`](docs/phase6/evaluation-summary.md) |
