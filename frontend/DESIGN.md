@@ -12,7 +12,7 @@ density 8): **Minimalism / Swiss style**, *Trust & Authority*, avoiding "AI purp
 | Figures | One bordered summary strip; tabular numerals | Compare at a glance without decorative icon tiles |
 | Status | Dot + word | Readable without colour (WCAG 1.4.1) |
 | Motion | Colour and background transitions only, 150 ms; none under reduced motion | Functional, never decorative |
-| Accessibility | Text contrast 4.5:1+, visible focus ring, labels on every field, 44px touch targets on phones | NFR 3.6.2 (WCAG 2.1 AA) |
+| Accessibility | Text contrast 4.5:1+, visible focus ring, labels on every field, 44px touch targets on phones | NFR-10 (WCAG 2.1 AA) |
 
 ## Reference designs
 

@@ -41,7 +41,7 @@ export default function AuditLog() {
           <Table rows={shown} empty="Nothing matches." columns={[
             { key: 'at', label: 'When', nowrap: true, render: (r) => when(r.at) },
             { key: 'action', label: 'Action', mono: true, render: (r) => <span className={FAILED.test(r.action) ? 'font-medium text-red-700' : ''}>{r.action}</span> },
-            { key: 'user', label: 'User', render: (r) => r.user ?? <span className="text-slate-400">system</span> },
+            { key: 'user', label: 'User', render: (r) => r.user ?? <span className="text-slate-500">system</span> },
             { key: 'detail', label: 'Detail', wide: true, render: (r) => <span className="break-all text-xs text-slate-600">{describe(r.detail)}</span> },
             { key: 'ip', label: 'IP address', mono: true, render: (r) => r.ip ?? '–' },
           ]} />

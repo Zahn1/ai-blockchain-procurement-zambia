@@ -83,7 +83,7 @@ export function Field({ label, hint, error, children, id }) {
   );
 }
 
-const inputClass = 'block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 transition-colors duration-150 hover:border-slate-400 focus:border-brand-700 focus:outline-none focus:ring-1 focus:ring-brand-700';
+const inputClass = 'block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 transition-colors duration-150 hover:border-slate-400 focus:border-brand-700 focus:outline-none focus:ring-1 focus:ring-brand-700';
 export const Input = (props) => <input {...props} className={cx(inputClass, props.className)} />;
 export const Select = ({ children, ...props }) => <select {...props} className={cx(inputClass, props.className)}>{children}</select>;
 export const Textarea = (props) => <textarea {...props} className={cx(inputClass, props.className)} />;
@@ -104,7 +104,7 @@ export function Score({ value }) {
   const high = value >= 70;
   return (
     <span className={cx('inline-flex items-baseline gap-1.5 font-mono text-sm', high ? 'font-semibold text-red-700' : 'text-slate-700')}>
-      {value}<span className="font-sans text-xs font-normal text-slate-500">{high ? 'high' : value >= 40 ? 'medium' : 'low'}</span>
+      {value}<span className="font-sans text-xs font-normal text-slate-600">{high ? 'high' : value >= 40 ? 'medium' : 'low'}</span>
     </span>
   );
 }
@@ -132,7 +132,8 @@ export function Message({ tone = 'info', title, children }) {
 export function Table({ columns, rows, empty = 'Nothing to show yet.', rowKey }) {
   if (!rows?.length) return <p className="px-5 py-10 text-center text-sm text-slate-500">{empty}</p>;
   return (
-    <div className="overflow-x-auto">
+    // Focusable so keyboard users can scroll a wide table sideways (WCAG 2.1.1)
+    <div className="overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2" tabIndex={0}>
       <table className="min-w-full text-sm">
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50">
@@ -185,14 +186,14 @@ export function Details({ items }) {
 /** A hash or transaction ID: shortened, full value on hover, with a copy button. */
 export function Hash({ value, n = 12 }) {
   const [copied, setCopied] = useState(false);
-  if (!value) return <span className="text-slate-400">–</span>;
+  if (!value) return <span className="text-slate-500">–</span>;
   const copy = async () => {
     try { await navigator.clipboard.writeText(value); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* clipboard blocked */ }
   };
   return (
     <span className="inline-flex items-center gap-1.5">
       <code className="font-mono text-xs text-slate-700" title={value}>{value.length > n ? `${value.slice(0, n)}…` : value}</code>
-      <button type="button" onClick={copy} className="rounded p-1 text-slate-400 transition-colors duration-150 hover:bg-slate-100 hover:text-slate-700"
+      <button type="button" onClick={copy} className="rounded p-1 text-slate-500 transition-colors duration-150 hover:bg-slate-100 hover:text-slate-700"
         aria-label={copied ? 'Copied' : 'Copy full value'}>
         {copied ? <Check className="h-3.5 w-3.5" aria-hidden /> : <Copy className="h-3.5 w-3.5" aria-hidden />}
       </button>

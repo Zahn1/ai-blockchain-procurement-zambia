@@ -176,7 +176,7 @@ export default function Oversight() {
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-mono text-xs text-slate-600">{a.subjectId}</span>
                         <span className="mt-0.5 block text-sm text-slate-900">{a.explanation?.reasons?.[0]?.text ?? 'No explanation stored'}</span>
-                        <span className="mt-1 block text-xs text-slate-500">{when(a.raisedAt)}</span>
+                        <span className="mt-1 block text-xs text-slate-600">{when(a.raisedAt)}</span>
                       </span>
                     </button>
                   </li>

@@ -84,7 +84,7 @@ function TopAlerts() {
       { key: 'id', label: 'Alert', mono: true },
       { key: 'subjectId', label: 'On', render: (a) => <span><span className="text-xs text-slate-500"><span className="capitalize">{a.subjectType}</span></span><br /><span className="font-mono text-xs">{a.subjectId}</span></span> },
       { key: 'score', label: 'Score', align: 'right', render: (a) => <Score value={a.score} /> },
-      { key: 'why', label: 'Main reason', wide: true, render: (a) => a.explanation?.reasons?.[0]?.text ?? <span className="text-slate-400">–</span> },
+      { key: 'why', label: 'Main reason', wide: true, render: (a) => a.explanation?.reasons?.[0]?.text ?? <span className="text-slate-500">–</span> },
     ]} />
   );
 }
@@ -111,7 +111,7 @@ function AuditTrail() {
     <Table rows={rows.slice(0, 8)} empty="No activity yet." columns={[
       { key: 'at', label: 'When', nowrap: true, render: (r) => when(r.at) },
       { key: 'action', label: 'Action', mono: true },
-      { key: 'user', label: 'User', render: (r) => r.user ?? <span className="text-slate-400">system</span> },
+      { key: 'user', label: 'User', render: (r) => r.user ?? <span className="text-slate-500">system</span> },
     ]} />
   );
 }
