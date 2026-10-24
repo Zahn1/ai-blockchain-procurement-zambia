@@ -1,19 +1,33 @@
 @import "tailwindcss";
 
-/* One accent (green), neutral greys, and red/amber only for alerts. Colours chosen for WCAG 2.1 AA contrast. */
+/* Design system: Minimalism / Swiss style for a government oversight tool (ui-ux-pro-max), see DESIGN.md.
+   Navy for actions and the current page; amber only for warnings; red only for risk. Borders, not shadows. */
 @theme {
-  --color-brand-50: #ecfdf5;
-  --color-brand-100: #d1fae5;
-  --color-brand-600: #059669;
-  --color-brand-700: #047857;
-  --color-brand-800: #065f46;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-brand-50: #eff4ff;
+  --color-brand-100: #dbe6fe;
+  --color-brand-600: #1e40af;
+  --color-brand-700: #1e3a8a;
+  --color-brand-800: #172f6e;
+  --color-warn-50: #fffbeb;
+  --color-warn-700: #b45309;
+  --font-sans: "Fira Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius-md: 6px;
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-slate-50 text-[15px] leading-normal text-slate-900 antialiased;
+  font-feature-settings: "tnum" 1; /* figures line up in tables */
 }
 
 :focus-visible {
-  @apply outline-2 outline-offset-2 outline-brand-600;
+  @apply outline-2 outline-offset-2 outline-brand-700;
+}
+
+button, a, select, [role="button"] {
+  @apply cursor-pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; }
 }
