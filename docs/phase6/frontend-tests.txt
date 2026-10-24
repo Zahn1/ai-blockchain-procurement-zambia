@@ -6,7 +6,7 @@ stderr | src/__tests__/shell.test.jsx > sign-in starts with email and password, 
 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
 
- ✓ src/__tests__/shell.test.jsx (6 tests) 80ms
+ ✓ src/__tests__/shell.test.jsx (6 tests) 79ms
 stderr | src/__tests__/oversight-reports.test.jsx > risk alerts > unreviewed alerts come first, with the AI's reasons in plain words
 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
@@ -15,11 +15,11 @@ stderr | src/__tests__/tenders-bids.test.jsx > officer > sees the tender registe
 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
 
-stderr | src/__tests__/admin.test.jsx > users > bidders and the administrator's own role cannot be changed here
+stderr | src/__tests__/public-register.test.jsx > public portal, signed out > searches tenders, contracts and payments; companies are named
 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
 
-stderr | src/__tests__/public-register.test.jsx > public portal, signed out > searches tenders, contracts and payments; companies are named
+stderr | src/__tests__/admin.test.jsx > users > bidders and the administrator's own role cannot be changed here
 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
 
@@ -27,6 +27,35 @@ stderr | src/__tests__/evaluation-contracts.test.jsx > committee member > approv
 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
 
+stderr | src/__tests__/accessibility.test.jsx > sign-in
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13407:49
+    at Object.get (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:7719:23)
+    at _isIconLigature (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13406:41)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27313:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27312:35)
+    at Rule.colorContrastMatches [as matches] (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27277:12) undefined
+
+stderr | src/__tests__/accessibility.test.jsx > officer dashboard
+Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13407:49
+    at Object.get (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:7719:23)
+    at _isIconLigature (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13406:41)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27313:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27312:35)
+    at Rule.colorContrastMatches [as matches] (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27277:12) undefined
+
+ ✓ src/__tests__/public-register.test.jsx (6 tests) 386ms
 stderr | src/__tests__/oversight-reports.test.jsx
 Error: Not implemented: navigation (except hash changes)
     at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
@@ -36,29 +65,245 @@ Error: Not implemented: navigation (except hash changes)
     at listOnTimeout (node:internal/timers:581:17)
     at processTimers (node:internal/timers:519:7) undefined
 
- ✓ src/__tests__/public-register.test.jsx (6 tests) 460ms
- ✓ src/__tests__/oversight-reports.test.jsx (6 tests) 488ms
- ✓ src/__tests__/tenders-bids.test.jsx (11 tests) 580ms
- ✓ src/__tests__/admin.test.jsx (6 tests) 589ms
- ✓ src/__tests__/evaluation-contracts.test.jsx (12 tests) 779ms
+ ✓ src/__tests__/oversight-reports.test.jsx (6 tests) 504ms
+stderr | src/__tests__/accessibility.test.jsx > tender register
+Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13407:49
+    at Object.get (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:7719:23)
+    at _isIconLigature (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13406:41)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27313:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27312:35)
+    at Rule.colorContrastMatches [as matches] (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27277:12) undefined
 
- Test Files  6 passed (6)
-      Tests  47 passed (47)
-   Start at  14:23:17
-   Duration  2.46s (transform 376ms, setup 751ms, collect 2.25s, tests 2.98s, environment 3.15s, prepare 481ms)
+ ✓ src/__tests__/admin.test.jsx (6 tests) 612ms
+ ✓ src/__tests__/tenders-bids.test.jsx (11 tests) 580ms
+stderr | src/__tests__/accessibility.test.jsx > publish tender
+Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13407:49
+    at Object.get (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:7719:23)
+    at _isIconLigature (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13406:41)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27313:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27312:35)
+    at Rule.colorContrastMatches [as matches] (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27277:12) undefined
+
+ ✓ src/__tests__/evaluation-contracts.test.jsx (12 tests) 804ms
+stderr | src/__tests__/accessibility.test.jsx > my bids
+Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13407:49
+    at Object.get (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:7719:23)
+    at _isIconLigature (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13406:41)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27313:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27312:35)
+    at Rule.colorContrastMatches [as matches] (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27277:12) undefined
+
+stderr | src/__tests__/accessibility.test.jsx > risk alerts
+Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13407:49
+    at Object.get (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:7719:23)
+    at _isIconLigature (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13406:41)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27313:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27312:35)
+    at Rule.colorContrastMatches [as matches] (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27277:12) undefined
+
+stderr | src/__tests__/accessibility.test.jsx > reports
+Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13407:49
+    at Object.get (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:7719:23)
+    at _isIconLigature (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13406:41)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27313:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27312:35)
+    at Rule.colorContrastMatches [as matches] (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27277:12) undefined
+
+stderr | src/__tests__/accessibility.test.jsx > users
+Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13407:49
+    at Object.get (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:7719:23)
+    at _isIconLigature (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13406:41)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27313:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27312:35)
+    at Rule.colorContrastMatches [as matches] (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27277:12) undefined
+
+stderr | src/__tests__/accessibility.test.jsx > public portal
+Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13407:49
+    at Object.get (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:7719:23)
+    at _isIconLigature (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13406:41)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27313:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27312:35)
+    at Rule.colorContrastMatches [as matches] (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27277:12) undefined
+
+stderr | src/__tests__/accessibility.test.jsx > registration
+Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13407:49
+    at Object.get (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:7719:23)
+    at _isIconLigature (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:13406:41)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27313:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27312:35)
+    at Rule.colorContrastMatches [as matches] (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27277:12) undefined
+
+stderr | src/__tests__/accessibility.test.jsx > control: the check does catch problems (an image with no text, an unlabelled field)
+Error: Not implemented: window.getComputedStyle(elt, pseudoElt)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at window.getComputedStyle (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:895:7)
+    at getPseudoElementArea2 (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26053:26)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:1617:30
+    at findPseudoElement (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26045:26)
+    at Object.colorContrastEvaluate (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:25953:23)
+    at Check.run (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27616:34)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27753:17
+    at pop (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8169:18)
+    at Object.defer (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8191:11) undefined
+Error: Not implemented: window.getComputedStyle(elt, pseudoElt)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at window.getComputedStyle (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:895:7)
+    at getPseudoElementArea2 (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26053:26)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:1617:30
+    at findPseudoElement (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26046:25)
+    at Object.colorContrastEvaluate (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:25953:23)
+    at Check.run (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27616:34)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27753:17
+    at pop (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8169:18)
+    at Object.defer (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8191:11) undefined
+Error: Not implemented: window.getComputedStyle(elt, pseudoElt)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at window.getComputedStyle (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:895:7)
+    at getPseudoElementArea2 (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26053:26)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:1617:30
+    at findPseudoElement (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26045:26)
+    at Object.colorContrastEvaluate (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:25953:23)
+    at Check.run (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27616:34)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27753:17
+    at pop (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8169:18)
+    at Object.defer (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8191:11) undefined
+Error: Not implemented: window.getComputedStyle(elt, pseudoElt)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at window.getComputedStyle (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:895:7)
+    at getPseudoElementArea2 (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26053:26)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:1617:30
+    at findPseudoElement (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26046:25)
+    at Object.colorContrastEvaluate (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:25953:23)
+    at Check.run (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27616:34)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27753:17
+    at pop (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8169:18)
+    at Object.defer (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8191:11) undefined
+Error: Not implemented: window.getComputedStyle(elt, pseudoElt)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at window.getComputedStyle (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:895:7)
+    at getPseudoElementArea2 (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26053:26)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:1617:30
+    at findPseudoElement (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26045:26)
+    at Object.colorContrastEvaluate (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:25953:23)
+    at Check.run (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27616:34)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27753:17
+    at pop (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8169:18)
+    at Object.defer (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8191:11) undefined
+Error: Not implemented: window.getComputedStyle(elt, pseudoElt)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at window.getComputedStyle (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:895:7)
+    at getPseudoElementArea2 (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26053:26)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:1617:30
+    at findPseudoElement (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26046:25)
+    at Object.colorContrastEvaluate (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:25953:23)
+    at Check.run (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27616:34)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27753:17
+    at pop (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8169:18)
+    at Object.defer (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8191:11) undefined
+Error: Not implemented: window.getComputedStyle(elt, pseudoElt)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at window.getComputedStyle (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:895:7)
+    at getPseudoElementArea2 (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26053:26)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:1617:30
+    at findPseudoElement (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26045:26)
+    at Object.colorContrastEvaluate (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:25953:23)
+    at Check.run (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27616:34)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27753:17
+    at pop (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8169:18)
+    at Object.defer (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8191:11) undefined
+Error: Not implemented: window.getComputedStyle(elt, pseudoElt)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at window.getComputedStyle (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:895:7)
+    at getPseudoElementArea2 (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26053:26)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:1617:30
+    at findPseudoElement (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26046:25)
+    at Object.colorContrastEvaluate (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:25953:23)
+    at Check.run (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27616:34)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27753:17
+    at pop (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8169:18)
+    at Object.defer (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8191:11) undefined
+Error: Not implemented: window.getComputedStyle(elt, pseudoElt)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at window.getComputedStyle (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:895:7)
+    at getPseudoElementArea2 (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26053:26)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:1617:30
+    at findPseudoElement (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26045:26)
+    at Object.colorContrastEvaluate (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:25953:23)
+    at Check.run (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27616:34)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27753:17
+    at pop (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8169:18)
+    at Object.defer (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8191:11) undefined
+Error: Not implemented: window.getComputedStyle(elt, pseudoElt)
+    at module.exports (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at window.getComputedStyle (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:895:7)
+    at getPseudoElementArea2 (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26053:26)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:1617:30
+    at findPseudoElement (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:26046:25)
+    at Object.colorContrastEvaluate (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:25953:23)
+    at Check.run (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27616:34)
+    at /Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:27753:17
+    at pop (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8169:18)
+    at Object.defer (/Users/zhani/Desktop/AI And Blockchain Procurement System/frontend/node_modules/axe-core/axe.js:8191:11) undefined
+
+ ✓ src/__tests__/accessibility.test.jsx (11 tests) 1443ms
+
+ Test Files  7 passed (7)
+      Tests  58 passed (58)
+   Start at  14:40:42
+   Duration  3.10s (transform 449ms, setup 934ms, collect 2.78s, tests 4.41s, environment 3.53s, prepare 497ms)
 
  % Coverage report from v8
 
 =============================== Coverage summary ===============================
 Statements   : 87.7% ( 2054/2342 )
-Branches     : 80.41% ( 690/858 )
-Functions    : 74.83% ( 232/310 )
+Branches     : 80.37% ( 692/861 )
+Functions    : 75.8% ( 235/310 )
 Lines        : 87.7% ( 2054/2342 )
 ================================================================================
 -------------------|---------|----------|---------|---------|-------------------
 File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
 -------------------|---------|----------|---------|---------|-------------------
-All files          |    87.7 |    80.41 |   74.83 |    87.7 |                   
+All files          |    87.7 |    80.37 |    75.8 |    87.7 |                   
  src               |   75.75 |    94.73 |      75 |   75.75 |                   
   App.jsx          |     100 |      100 |     100 |     100 |                   
   main.jsx         |       0 |        0 |       0 |       0 | 1-16              
@@ -66,19 +311,19 @@ All files          |    87.7 |    80.41 |   74.83 |    87.7 |
  src/components    |   97.87 |    92.66 |   84.37 |   97.87 |                   
   Layout.jsx       |   94.28 |    81.25 |   55.55 |   94.28 | 61-64             
   PublicShell.jsx  |     100 |      100 |     100 |     100 |                   
-  ui.jsx           |   98.94 |    94.38 |   95.23 |   98.94 | 190-191           
- src/lib           |    91.2 |    76.78 |      80 |    91.2 |                   
+  ui.jsx           |   98.94 |    94.38 |   95.23 |   98.94 | 191-192           
+ src/lib           |    91.2 |    76.36 |      80 |    91.2 |                   
   api.js           |     100 |    72.41 |   71.42 |     100 | 10,27,29,32,40    
   auth.jsx         |   77.77 |      100 |     100 |   77.77 | 13-15,26-28       
-  format.js        |    90.9 |    76.19 |   83.33 |    90.9 | 8-9               
- src/pages         |   86.43 |    78.33 |   73.35 |   86.43 |                   
+  format.js        |    90.9 |       75 |   83.33 |    90.9 | 8-9               
+ src/pages         |   86.43 |    78.31 |   74.51 |   86.43 |                   
   AdminBidders.jsx |    97.7 |    88.37 |   90.47 |    97.7 | 21,86             
   AdminUsers.jsx   |   95.61 |    88.67 |   69.56 |   95.61 | 74-77,125         
   AuditLog.jsx     |   97.36 |       75 |   88.88 |   97.36 | 13                
   Bids.jsx         |   97.61 |    90.47 |     100 |   97.61 | 37                
   ...actDetail.jsx |   90.09 |    74.44 |      64 |   90.09 | ...74,184-187,220 
   Contracts.jsx    |   13.43 |      100 |      25 |   13.43 | 20-84             
-  Dashboard.jsx    |   56.68 |    68.42 |      25 |   56.68 | ...-61,78-117,162 
+  Dashboard.jsx    |   56.68 |    69.56 |      40 |   56.68 | ...-61,78-117,162 
   Evaluation.jsx   |   28.57 |    77.77 |   33.33 |   28.57 | 21-48             
   ...ionTender.jsx |   92.85 |    80.45 |   81.08 |   92.85 | 51,55,58-71       
   Oversight.jsx    |   99.39 |    74.07 |   93.75 |   99.39 | 112               
