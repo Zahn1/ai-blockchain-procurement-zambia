@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usability Session Pack</title>
+<style>
+  :root { --ink: #0f172a; --muted: #475569; --line: #cbd5e1; --navy: #1e3a8a; --tint: #eff4ff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e2e8f0; color: var(--ink); font: 11pt/1.45 "Fira Sans", "Segoe UI", Arial, sans-serif; }
+  .sheet { width: 210mm; min-height: 297mm; margin: 12mm auto; padding: 16mm 18mm; background: #fff; box-shadow: 0 1px 4px rgb(0 0 0 / .15); }
+  .tag { font-size: 8.5pt; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h1 { margin: 2mm 0 1mm; font-size: 18pt; }
+  h2 { margin: 6mm 0 2mm; font-size: 12.5pt; color: var(--navy); }
+  p, li { margin: 0 0 2mm; }
+  ol, ul { padding-left: 6mm; margin: 0 0 3mm; }
+  .sub { color: var(--muted); margin-bottom: 5mm; }
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 10pt; }
+  th, td { border: 1px solid var(--line); padding: 2mm 2.5mm; vertical-align: top; text-align: left; }
+  th { background: #f1f5f9; font-weight: 600; }
+  .write { height: 9mm; }
+  .tall { height: 22mm; }
+  .box { border: 1px solid var(--line); border-radius: 2mm; padding: 3mm 4mm; margin: 3mm 0; }
+  .note { background: var(--tint); border-left: 3px solid var(--navy); padding: 3mm 4mm; margin: 3mm 0; }
+  .task { border: 1px solid var(--line); border-radius: 2mm; padding: 3mm 4mm; margin: 0 0 3.5mm; break-inside: avoid; }
+  .task b { color: var(--navy); }
+  .sus td.n { width: 8mm; text-align: center; font-weight: 600; color: var(--muted); }
+  .sus td.c { width: 11mm; text-align: center; }
+  .scale { display: flex; justify-content: space-between; font-size: 8.5pt; color: var(--muted); }
+  .circle { display: inline-block; width: 5mm; height: 5mm; border: 1px solid var(--ink); border-radius: 50%; }
+  .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 6mm; }
+  .line { border-bottom: 1px solid var(--ink); height: 9mm; }
+  .small { font-size: 9pt; color: var(--muted); }
+  code { font-family: "Fira Code", Menlo, monospace; font-size: 9.5pt; }
+  @media (max-width: 230mm) { .sheet { width: auto; min-height: 0; margin: 0 0 8px; padding: 16px; } }
+  @media print {
+    body { background: #fff; }
+    .sheet { margin: 0; box-shadow: none; width: auto; min-height: 0; page-break-after: always; padding: 0; }
+    @page { size: A4; margin: 15mm 16mm; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 1. Facilitator guide -->
+<section class="sheet">
+  <div class="tag">Usability evaluation · facilitator's guide · not for participants</div>
+  <h1>Transparent Procurement prototype: usability sessions</h1>
+  <p class="sub">Zhaninge Chipeta (202204924), BSc Information Technology, ZCAS University. Chapter 4 evaluation.</p>
+
+  <h2>Aim</h2>
+  <p>To find out whether people can complete the main tasks of each role without help, and how usable they find the system,
+  measured with the System Usability Scale (SUS). Target: 5–8 participants, about 35 minutes each.</p>
+
+  <h2>Before each session</h2>
+  <ol>
+    <li>Start the system (README, “Running the prototype”) and open <code>http://localhost:5173</code> in a fresh browser window.</li>
+    <li>Sign in the four role accounts in four separate browser windows or profiles, so the participant never needs the
+      authenticator app: officer <code>officer@moh.test</code>, bidder <code>grace@alpha.test</code>,
+      regulator <code>regulator@zppa.test</code>, and a private window that is not signed in (public).</li>
+    <li>Put the files from <code>docs/phase6/usability/files/</code> on the desktop.</li>
+    <li>Give the participant number <b>P1, P2 …</b>; their tender reference is <code>ZPPA/MOH/2026/UX-P1</code> and so on.</li>
+  </ol>
+
+  <h2>During the session</h2>
+  <ol>
+    <li>Read the information sheet together and collect the signed consent form (sheet 2).</li>
+    <li>Give the task sheet (sheet 3). Switch to the right browser window for each task. Ask them to think aloud.</li>
+    <li>Do not help unless they are stuck for two minutes or ask. Record on the observation sheet (sheet 4):
+      <b>S</b> succeeded unaided, <b>H</b> succeeded with help, <b>F</b> failed or gave up; time in seconds; what went wrong.</li>
+    <li>After the tasks, the SUS questionnaire (sheet 5) and the three short questions.</li>
+  </ol>
+
+  <h2>Afterwards</h2>
+  <p>Type each participant's results into <code>results.csv</code> (one row each), then run
+  <code>python3 docs/phase6/usability/score.py</code>. It writes <code>results.md</code> with each SUS score, the mean and
+  the task success rates. A SUS score of 68 is average; above 80 is good.</p>
+  <div class="note">Only real sessions count. Do not fill in example rows: Chapter 4 reports what participants did.</div>
+</section>
+
+<!-- 2. Information and consent -->
+<section class="sheet">
+  <div class="tag">Sheet 2 · participant information and consent</div>
+  <h1>Taking part in a usability test</h1>
+  <p class="sub">Transparent Procurement prototype, a final-year project at ZCAS University.</p>
+
+  <h2>What is this about?</h2>
+  <p>I am testing a prototype system that records government procurement (tenders, bids, contracts and payments) on a
+  shared ledger so it cannot be changed without detection. I want to know whether it is easy to use. <b>I am testing the
+  system, not you.</b> There are no wrong answers.</p>
+
+  <h2>What will you do?</h2>
+  <p>About eight short tasks, such as publishing a tender or checking a document, while thinking aloud. Then a short
+  questionnaire. It takes about 35 minutes. All data in the system is invented; you will not use any real accounts.</p>
+
+  <h2>Your information</h2>
+  <ul>
+    <li>I will note what you do, how long each task takes and what you say. Nothing is recorded on video or audio.</li>
+    <li>Your name is not kept with your answers; you are identified only by a participant number such as P3.</li>
+    <li>Results appear in my dissertation only as numbers and anonymous quotes.</li>
+    <li>You can stop at any time without giving a reason, and ask for your answers to be removed until 30 November 2026.</li>
+  </ul>
+
+  <h2>Consent</h2>
+  <div class="box">
+    <p>☐ I have read this sheet and had the chance to ask questions.</p>
+    <p>☐ I understand that taking part is voluntary and that I can stop at any time.</p>
+    <p>☐ I agree that my anonymous results and comments may be used in the dissertation.</p>
+    <div class="sign">
+      <div><div class="line"></div><div class="small">Name</div></div>
+      <div><div class="line"></div><div class="small">Signature and date</div></div>
+    </div>
+  </div>
+  <p class="small">Contact: Zhaninge Chipeta, zhanichipeta04@gmail.com · Participant number: ______</p>
+</section>
+
+<!-- 3. Tasks -->
+<section class="sheet">
+  <div class="tag">Sheet 3 · your tasks</div>
+  <h1>Tasks</h1>
+  <p class="sub">Please think aloud as you work. Tell me when you think you have finished each task.</p>
+
+  <div class="task"><b>1 · Procurement officer.</b> Publish a tender for 120 office chairs. Use the reference
+    <code>ZPPA/MOH/2026/UX-P__</code> (your number), estimated value K45,000, closing in 60 minutes, with the document
+    <i>tender-chairs.txt</i> from the desktop.</div>
+  <div class="task"><b>2 · Bidder (Alpha Computers).</b> Submit a bid for the chairs tender you just published, using
+    <i>bid-chairs.txt</i>. Keep proof that you submitted it.</div>
+  <div class="task"><b>3 · Member of the public.</b> Someone has emailed you <i>tender-chairs-altered.txt</i> and says it
+    is the official tender for your chairs tender. Find out whether that is true.</div>
+  <div class="task"><b>4 · Procurement officer.</b> The supplier on contract <code>AWD-1823F9</code> says they have not
+    been paid for the second milestone. Find out why.</div>
+  <div class="task"><b>5 · Bidder (Alpha Computers).</b> Which of your company's bids have been successful?</div>
+  <div class="task"><b>6 · Regulator.</b> Look at the highest-scoring risk alert that has not been reviewed yet. Decide
+    what should happen and record your decision with a reason.</div>
+  <div class="task"><b>7 · Regulator.</b> When was the contract for tender <code>ZPPA/MOH/2026/F0001</code> signed, and what is
+    the IFMIS reference of its first payment?</div>
+  <div class="task"><b>8 · Member of the public.</b> Which company won tender <code>ZPPA/MOH/2026/F0001</code>, and how
+    much has it been paid so far?</div>
+</section>
+
+<!-- 4. Observation sheet -->
+<section class="sheet">
+  <div class="tag">Sheet 4 · observation · facilitator</div>
+  <h1>Observation sheet</h1>
+  <p>Participant: <b>P____</b> &nbsp;·&nbsp; Date: __________ &nbsp;·&nbsp; Background: ☐ IT student ☐ other student
+    ☐ procurement or finance work ☐ other: __________</p>
+  <table>
+    <thead><tr><th style="width:9mm">Task</th><th style="width:44mm">Success criterion</th><th style="width:16mm">S / H / F</th><th style="width:16mm">Time (s)</th><th>Errors, hesitations, quotes</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Tender published with the right reference, value, closing time and file</td><td></td><td></td><td class="tall"></td></tr>
+      <tr><td>2</td><td>Bid submitted to the right tender; receipt saved or clearly noted</td><td></td><td></td><td class="tall"></td></tr>
+      <tr><td>3</td><td>Concludes the file is <i>not</i> the published version</td><td></td><td></td><td class="tall"></td></tr>
+      <tr><td>4</td><td>Says MS-2 has not yet been certified by the inspector (or gives the held reason shown)</td><td></td><td></td><td class="tall"></td></tr>
+      <tr><td>5</td><td>Identifies the bids marked “Won”</td><td></td><td></td><td class="tall"></td></tr>
+      <tr><td>6</td><td>Decision recorded on the ledger with a reason of 20+ characters</td><td></td><td></td><td class="tall"></td></tr>
+      <tr><td>7</td><td>Gives the signing date and time and IFMIS-2026-000001</td><td></td><td></td><td class="tall"></td></tr>
+      <tr><td>8</td><td>Alpha Computers Limited; amount paid as shown in Payments</td><td></td><td></td><td class="tall"></td></tr>
+    </tbody>
+  </table>
+  <p class="small">S = succeeded unaided · H = succeeded with help · F = failed or gave up. Time from reading the task to saying “done”.</p>
+</section>
+
+<!-- 5. SUS -->
+<section class="sheet">
+  <div class="tag">Sheet 5 · questionnaire</div>
+  <h1>About the system you just used</h1>
+  <p class="sub">Participant P____. For each statement, circle one number. Answer quickly; your first reaction is best.
+    If you are not sure, circle 3.</p>
+  <div class="scale" style="margin-left:8mm;margin-right:0"><span>&nbsp;</span><span style="width:57mm;display:flex;justify-content:space-between"><span>Strongly disagree</span><span>Strongly agree</span></span></div>
+  <table class="sus">
+    <tbody>
+      <tr><td class="n">1</td><td>I think that I would like to use this system frequently.</td><td class="c">1</td><td class="c">2</td><td class="c">3</td><td class="c">4</td><td class="c">5</td></tr>
+      <tr><td class="n">2</td><td>I found the system unnecessarily complex.</td><td class="c">1</td><td class="c">2</td><td class="c">3</td><td class="c">4</td><td class="c">5</td></tr>
+      <tr><td class="n">3</td><td>I thought the system was easy to use.</td><td class="c">1</td><td class="c">2</td><td class="c">3</td><td class="c">4</td><td class="c">5</td></tr>
+      <tr><td class="n">4</td><td>I think that I would need the support of a technical person to be able to use this system.</td><td class="c">1</td><td class="c">2</td><td class="c">3</td><td class="c">4</td><td class="c">5</td></tr>
+      <tr><td class="n">5</td><td>I found the various functions in this system were well integrated.</td><td class="c">1</td><td class="c">2</td><td class="c">3</td><td class="c">4</td><td class="c">5</td></tr>
+      <tr><td class="n">6</td><td>I thought there was too much inconsistency in this system.</td><td class="c">1</td><td class="c">2</td><td class="c">3</td><td class="c">4</td><td class="c">5</td></tr>
+      <tr><td class="n">7</td><td>I would imagine that most people would learn to use this system very quickly.</td><td class="c">1</td><td class="c">2</td><td class="c">3</td><td class="c">4</td><td class="c">5</td></tr>
+      <tr><td class="n">8</td><td>I found the system very cumbersome to use.</td><td class="c">1</td><td class="c">2</td><td class="c">3</td><td class="c">4</td><td class="c">5</td></tr>
+      <tr><td class="n">9</td><td>I felt very confident using the system.</td><td class="c">1</td><td class="c">2</td><td class="c">3</td><td class="c">4</td><td class="c">5</td></tr>
+      <tr><td class="n">10</td><td>I needed to learn a lot of things before I could get going with this system.</td><td class="c">1</td><td class="c">2</td><td class="c">3</td><td class="c">4</td><td class="c">5</td></tr>
+    </tbody>
+  </table>
+  <p class="small">System Usability Scale © Digital Equipment Corporation, 1986 (J. Brooke). Free to use with acknowledgement.</p>
+
+  <h2>Three short questions</h2>
+  <p>1. What was the easiest thing to do?</p><div class="line"></div>
+  <p style="margin-top:4mm">2. What was the hardest or most confusing thing?</p><div class="line"></div>
+  <p style="margin-top:4mm">3. Would you trust a record more if you could check it against the ledger yourself? Why?</p><div class="line"></div>
+</section>
+
+</body>
+</html>
