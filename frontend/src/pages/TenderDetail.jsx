@@ -5,7 +5,7 @@ import { Download, Send } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { useAuth } from '../lib/auth.jsx';
 import { kwacha, tenderStage, when } from '../lib/format.js';
-import { BackLink, Badge, Button, ButtonLink, Card, Details, Field, Hash, Message, PageHeader, Spinner, Table } from '../components/ui.jsx';
+import { BackLink, Badge, Button, ButtonLink, Card, Details, Field, Hash, Message, PageHeader, Spinner, Table, fileInputClass } from '../components/ui.jsx';
 
 function VerifyDocument({ reference }) {
   const [file, setFile] = useState(null);
@@ -29,7 +29,7 @@ function VerifyDocument({ reference }) {
       <form onSubmit={check} className="space-y-4">
         <Field label="Document" id="verify-file">
           <input id="verify-file" type="file" required onChange={(e) => { setFile(e.target.files[0] ?? null); setResult(null); }}
-            className="block w-full text-sm text-slate-700 file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-slate-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-800 hover:file:bg-slate-50" />
+            className={fileInputClass} />
         </Field>
         <Button type="submit" variant="secondary" busy={busy}>Check against the ledger</Button>
         {error && <Message tone="error">{error}</Message>}

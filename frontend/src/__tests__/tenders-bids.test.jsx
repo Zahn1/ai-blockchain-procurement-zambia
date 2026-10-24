@@ -1,10 +1,8 @@
 // Front end, step 2: officers publish tenders (3.5.3) and bidders submit sealed bids (3.5.4).
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { AuthProvider } from '../lib/auth.jsx';
+import { cleanup, fireEvent, screen } from '@testing-library/react';
 import { tenderStage } from '../lib/format.js';
-import App from '../App.jsx';
+import { at, calls, serve, submit } from './helpers.jsx';
 
 const future = new Date(Date.now() + 3_600_000).toISOString();
 const past = new Date(Date.now() - 3_600_000).toISOString();
@@ -16,21 +14,6 @@ const TENDERS = [
 ];
 const ledgerTender = { id: 'ZPPA/T/1', estValue: 8_650_000, closingTime: future, docHashes: ['ab'.repeat(32)], quorum: 2,
   approvals: [], openingApproved: false, status: 'PUBLISHED', version: 1, publishedBy: 'ZPPAMSP' };
-
-let calls;
-function serve(user, routes) {
-  calls = [];
-  sessionStorage.setItem('procurement.token', 'test-token');
-  globalThis.fetch = vi.fn(async (url, init = {}) => {
-    const path = url.replace(/^\/api/, '');
-    calls.push({ path, method: init.method ?? 'GET', body: init.body });
-    const [status, body] = path === '/auth/me' ? [200, user] : (routes[`${init.method ?? 'GET'} ${path}`] ?? [404, { error: 'Not found' }]);
-    return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
-  });
-}
-// jsdom cannot attach a real file to a required file input, so submit the form directly rather than via its button
-const submit = (name) => fireEvent.submit(screen.getByRole('button', { name }).closest('form'));
-const at = (path) => render(<MemoryRouter initialEntries={[path]}><AuthProvider><App /></AuthProvider></MemoryRouter>);
 
 beforeEach(() => sessionStorage.clear());
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });

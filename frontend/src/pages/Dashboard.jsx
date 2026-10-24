@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { useAuth } from '../lib/auth.jsx';
 import { ROLE_NAMES, day, kwacha, kwachaShort, when } from '../lib/format.js';
+import { contractLink, contractStage } from './Contracts.jsx';
 import { Badge, Card, Figures, Message, PageHeader, Score, Spinner, Table } from '../components/ui.jsx';
 
 // [label, value, tone, hint]: tone only when the figure needs someone's attention
@@ -115,11 +116,25 @@ function AuditTrail() {
   );
 }
 
+function MyContracts() {
+  const [rows, setRows] = useState(null);
+  useEffect(() => { api('/contracts').then(setRows).catch(() => setRows([])); }, []);
+  if (!rows) return <Spinner />;
+  return (
+    <Table rows={rows.slice(0, 8)} rowKey={(c) => c.awardId} empty="You have not been assigned a contract yet." columns={[
+      { key: 'awardId', label: 'Award', mono: true, render: (c) => <Link to={contractLink(c.awardId)} className="font-medium text-brand-700 hover:underline">{c.awardId}</Link> },
+      { key: 'title', label: 'Tender' },
+      { key: 'todo', label: 'To certify', align: 'right', render: (c) => c.milestones.filter((m) => !m.certifyTxId).length },
+      { key: 'stage', label: 'Status', render: (c) => { const [label, tone] = contractStage(c); return <Badge tone={tone}>{label}</Badge>; } },
+    ]} />
+  );
+}
+
 const PANELS = {
   OFFICER: ['Recent tenders', RecentTenders, '/tenders'],
   SUPPLIER: ['My recent bids', MyBids, '/bids'],
   COMMITTEE: ['Tenders', RecentTenders, '/evaluation'],
-  INSPECTOR: ['Tenders', RecentTenders, '/contracts'],
+  INSPECTOR: ['My contracts', MyContracts, '/contracts'],
   REGULATOR: ['Unreviewed alerts', TopAlerts, '/oversight'],
   ADMIN: ['Recent activity', AuditTrail, '/admin/users'],
 };

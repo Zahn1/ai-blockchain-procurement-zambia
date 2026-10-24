@@ -207,3 +207,27 @@ export function BackLink({ to, children }) {
     </Link>
   );
 }
+
+/** A process as numbered steps: each is [label, done, detail]. The first not done is the current one. */
+export function Steps({ steps }) {
+  const current = steps.findIndex(([, done]) => !done);
+  return (
+    <ol className="grid grid-cols-1 overflow-hidden rounded-md border border-slate-200 bg-white lg:grid-flow-col lg:auto-cols-fr">
+      {steps.map(([label, done, detail], i) => (
+        <li key={label} aria-current={i === current ? 'step' : undefined}
+          className={cx('flex gap-3 border-slate-200 px-4 py-3', i > 0 && 'border-t lg:border-t-0 lg:border-l', i === current && 'bg-brand-50')}>
+          <span className={cx('flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
+            done ? 'bg-brand-700 text-white' : i === current ? 'border-2 border-brand-700 text-brand-700' : 'border border-slate-300 text-slate-500')}>
+            {done ? <Check className="h-3.5 w-3.5" aria-label="Done" /> : i + 1}
+          </span>
+          <div className="min-w-0 leading-tight">
+            <p className={cx('text-sm font-medium', done || i === current ? 'text-slate-900' : 'text-slate-500')}>{label}</p>
+            {detail && <p className="mt-0.5 text-xs text-slate-500">{detail}</p>}
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+export const fileInputClass = 'block w-full text-sm text-slate-700 file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-solid file:border-slate-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-800 hover:file:bg-slate-50';

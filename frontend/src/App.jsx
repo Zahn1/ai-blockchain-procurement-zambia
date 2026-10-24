@@ -10,10 +10,14 @@ import PublishTender from './pages/PublishTender.jsx';
 import TenderDetail from './pages/TenderDetail.jsx';
 import Bids from './pages/Bids.jsx';
 import SubmitBid from './pages/SubmitBid.jsx';
+import Evaluation from './pages/Evaluation.jsx';
+import EvaluationTender from './pages/EvaluationTender.jsx';
+import Contracts from './pages/Contracts.jsx';
+import ContractDetail from './pages/ContractDetail.jsx';
 import { NAV } from './nav.js';
 
 // Built sections; the rest show a placeholder until their step of Phase 5
-const PAGES = { '/tenders': Tenders, '/bids': Bids };
+const PAGES = { '/tenders': Tenders, '/bids': Bids, '/evaluation': Evaluation, '/contracts': Contracts };
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -35,6 +39,8 @@ export default function App() {
           <Route path="/tender" element={<TenderDetail />} />
           {user.role === 'OFFICER' && <Route path="/tenders/new" element={<PublishTender />} />}
           {user.role === 'SUPPLIER' && <Route path="/bids/new" element={<SubmitBid />} />}
+          {['OFFICER', 'COMMITTEE'].includes(user.role) && <Route path="/evaluation/tender" element={<EvaluationTender />} />}
+          {['OFFICER', 'INSPECTOR'].includes(user.role) && <Route path="/contracts/detail" element={<ContractDetail />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       )}

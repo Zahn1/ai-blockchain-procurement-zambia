@@ -70,6 +70,20 @@ export function evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity
     res.json({ appointed: members.map((m) => m.name) });
   }));
 
+  // The tenders to evaluate: every tender for an officer, only those a member is appointed to for the committee
+  r.get('/evaluation/tenders', staff, wrap(async (req, res) => {
+    const mine = req.user.role === 'COMMITTEE';
+    const tenders = await db.tender.findMany({ where: mine ? { committee: { some: { userId: req.user.id } } } : {},
+      include: { committee: true, recommendation: true, contract: true, bids: true }, orderBy: { closingTime: 'desc' } });
+    res.json(tenders.map((t) => ({
+      reference: t.reference, title: t.title, closingTime: t.closingTime, closed: now() >= t.closingTime,
+      committee: t.committee.length, approvals: t.committee.filter((m) => m.approvedAt).length,
+      approvedByMe: mine ? !!t.committee.find((m) => m.userId === req.user.id)?.approvedAt : null,
+      bids: t.bids.length, opened: t.bids.filter((b) => b.integrity !== null).length,
+      recommended: !!t.recommendation, awarded: !!t.contract,
+    })));
+  }));
+
   // Everything the officer or a member needs to see
   r.get('/evaluation', staff, wrap(async (req, res) => {
     const tender = await loadTender(req.query.reference);

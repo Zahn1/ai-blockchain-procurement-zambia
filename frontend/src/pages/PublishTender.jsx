@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { kwacha, when } from '../lib/format.js';
-import { BackLink, Button, ButtonLink, Card, Details, Field, Hash, Input, Message, PageHeader, Select } from '../components/ui.jsx';
+import { BackLink, Button, ButtonLink, Card, Details, Field, Hash, Input, Message, PageHeader, Select, fileInputClass } from '../components/ui.jsx';
 import { tenderLink } from './Tenders.jsx';
 
 const UNITS = { minutes: 1, hours: 60, days: 60 * 24 };
@@ -92,7 +92,7 @@ export default function PublishTender() {
             </Field>
             <Field label="Tender document" id="document" hint="PDF or Word, up to 20 MB. Stored on IPFS; its SHA-256 hash goes on the ledger.">
               <input id="document" type="file" required onChange={(e) => setFile(e.target.files[0] ?? null)}
-                className="block w-full text-sm text-slate-700 file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-slate-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-800 hover:file:bg-slate-50" />
+                className={fileInputClass} />
             </Field>
           </div>
         </Card>

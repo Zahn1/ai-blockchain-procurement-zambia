@@ -194,6 +194,21 @@ describe('Committee', () => {
   });
 });
 
+describe('Tenders to evaluate', () => {
+  test('a member sees only the tenders they are appointed to, with where each stands', async () => {
+    const { app, ledger } = makeApp();
+    await toOpened(app, ledger);
+    await db.tender.update({ where: { reference: REF }, data: { closingTime: new Date(Date.now() - 1000) } }); // as closeTender did on the ledger
+    const outsider = await signedIn('COMMITTEE', { fabricIdentity: 'committee3' });
+    const [mine] = (await request(app).get('/api/evaluation/tenders').set(as(members[0]))).body;
+    expect(mine).toMatchObject({ reference: REF, closed: true, committee: 2, approvals: 2, approvedByMe: true, bids: 3, opened: 3,
+      recommended: false, awarded: false });
+    expect((await request(app).get('/api/evaluation/tenders').set(as(outsider))).body).toEqual([]);
+    expect((await request(app).get('/api/evaluation/tenders').set(as(officer))).body.map((t) => t.reference)).toEqual([REF]);
+    expect((await request(app).get('/api/evaluation/tenders').set(as(bidders[0]))).status).toBe(403);
+  });
+});
+
 describe('Opening: after closing, with the committee members\' digital signatures', () => {
   test('approval before the closing time is refused by the ledger', async () => {
     const { app } = makeApp();
