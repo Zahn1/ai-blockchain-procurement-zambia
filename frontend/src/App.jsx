@@ -17,11 +17,15 @@ import ContractDetail from './pages/ContractDetail.jsx';
 import Oversight from './pages/Oversight.jsx';
 import ProcurementHistory from './pages/ProcurementHistory.jsx';
 import Reports from './pages/Reports.jsx';
+import AdminUsers from './pages/AdminUsers.jsx';
+import AdminBidders from './pages/AdminBidders.jsx';
+import AuditLog from './pages/AuditLog.jsx';
 import { NAV } from './nav.js';
 
 // Built sections; the rest show a placeholder until their step of Phase 5
 const PAGES = { '/tenders': Tenders, '/bids': Bids, '/evaluation': Evaluation, '/contracts': Contracts,
-  '/oversight': Oversight, '/oversight/history': ProcurementHistory, '/reports': Reports };
+  '/oversight': Oversight, '/oversight/history': ProcurementHistory, '/reports': Reports,
+  '/admin/users': AdminUsers, '/admin/bidders': AdminBidders, '/admin/audit': AuditLog };
 
 export default function App() {
   const { user, loading } = useAuth();

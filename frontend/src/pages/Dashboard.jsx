@@ -136,7 +136,7 @@ const PANELS = {
   COMMITTEE: ['Tenders', RecentTenders, '/evaluation'],
   INSPECTOR: ['My contracts', MyContracts, '/contracts'],
   REGULATOR: ['Unreviewed alerts', TopAlerts, '/oversight'],
-  ADMIN: ['Recent activity', AuditTrail, '/admin/users'],
+  ADMIN: ['Recent activity', AuditTrail, '/admin/audit'],
 };
 
 export default function Dashboard() {
