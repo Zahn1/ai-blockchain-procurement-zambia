@@ -58,7 +58,9 @@ export function oversightRoutes({ db, auth, ledger, officerIdentity, now = () =>
 
   // The complete history of one procurement, built from the ledger (and labelled where a detail is off-chain)
   r.get('/oversight/history', regulator, wrap(async (req, res) => {
-    const reference = String(req.query.reference ?? '');
+    // A tender reference, or an award ID (alerts on a contract name the award)
+    const asked = String(req.query.reference ?? '');
+    const reference = (await db.contract.findUnique({ where: { awardId: asked } }))?.tenderRef ?? asked;
     const tender = await db.tender.findUnique({ where: { reference },
       include: { recommendation: true, contract: true, committee: { include: { user: true } } } });
     if (!tender) throw fail(404, 'Tender not found.');

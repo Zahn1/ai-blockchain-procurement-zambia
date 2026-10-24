@@ -11,7 +11,7 @@ describe('navigation by role', () => {
   const labels = (role) => navFor(role).map((n) => n.label);
   test.each([
     ['SUPPLIER', ['Dashboard', 'My bids', 'Public portal']],
-    ['REGULATOR', ['Dashboard', 'Risk alerts', 'Reports', 'Public portal']],
+    ['REGULATOR', ['Dashboard', 'Risk alerts', 'Procurement history', 'Reports', 'Public portal']],
     ['INSPECTOR', ['Dashboard', 'Contracts', 'Public portal']],
   ])('%s sees only its own sections', (role, expected) => {
     expect(labels(role)).toEqual(expected);

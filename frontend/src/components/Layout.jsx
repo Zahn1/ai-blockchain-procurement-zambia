@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { Landmark, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../lib/auth.jsx';
-import { navGroups } from '../nav.js';
+import { NAV, navGroups } from '../nav.js';
 import { ROLE_NAMES } from '../lib/format.js';
 
 export function Wordmark() {
@@ -18,6 +18,9 @@ export function Wordmark() {
   );
 }
 
+// A section is only current on its own path when another section lives under it (e.g. /oversight and /oversight/history)
+const exact = (to) => to === '/' || NAV.some((n) => n.to.startsWith(`${to}/`));
+
 function Sidebar({ onNavigate }) {
   const { user } = useAuth();
   return (
@@ -30,7 +33,7 @@ function Sidebar({ onNavigate }) {
             <ul className="space-y-0.5">
               {items.map(({ to, label, icon: Icon }) => (
                 <li key={to}>
-                  <NavLink to={to} end={to === '/'} onClick={onNavigate}
+                  <NavLink to={to} end={exact(to)} onClick={onNavigate}
                     className={({ isActive }) => `flex min-h-9 items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-150 ${
                       isActive ? 'bg-brand-50 font-semibold text-brand-700' : 'font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}>
                     <Icon className="h-4 w-4 shrink-0" aria-hidden /> {label}

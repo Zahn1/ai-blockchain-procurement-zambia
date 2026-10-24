@@ -1,5 +1,5 @@
 // Sidebar sections for each role (3.5.1: each role sees only its own functions).
-import { Building2, ClipboardCheck, FileBarChart, FileSignature, Gavel, Globe2, LayoutDashboard, Send, ShieldAlert, Users } from 'lucide-react';
+import { Building2, ClipboardCheck, FileBarChart, FileSignature, Gavel, Globe2, History, LayoutDashboard, Send, ShieldAlert, Users } from 'lucide-react';
 
 export const NAV = [
   { to: '/', label: 'Dashboard', group: 'Overview', icon: LayoutDashboard, roles: ['ADMIN', 'OFFICER', 'SUPPLIER', 'COMMITTEE', 'INSPECTOR', 'REGULATOR'] },
@@ -8,6 +8,7 @@ export const NAV = [
   { to: '/evaluation', label: 'Evaluation', group: 'Procurement', icon: ClipboardCheck, roles: ['OFFICER', 'COMMITTEE'] },
   { to: '/contracts', label: 'Contracts', group: 'Procurement', icon: FileSignature, roles: ['OFFICER', 'INSPECTOR'] },
   { to: '/oversight', label: 'Risk alerts', group: 'Oversight', icon: ShieldAlert, roles: ['REGULATOR'] },
+  { to: '/oversight/history', label: 'Procurement history', group: 'Oversight', icon: History, roles: ['REGULATOR'] },
   { to: '/reports', label: 'Reports', group: 'Oversight', icon: FileBarChart, roles: ['OFFICER', 'REGULATOR'] },
   { to: '/admin/users', label: 'Users', group: 'Administration', icon: Users, roles: ['ADMIN'] },
   { to: '/admin/bidders', label: 'Bidders and entities', group: 'Administration', icon: Building2, roles: ['ADMIN'] },

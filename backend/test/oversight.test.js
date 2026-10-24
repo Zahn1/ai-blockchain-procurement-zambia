@@ -170,6 +170,15 @@ describe('The complete history of a procurement', () => {
     expect(res.body.fullyPaid).toBe(true);
   });
 
+  test('can be found from the award ID, as alerts on a contract give it', async () => {
+    const { app } = makeApp();
+    await seedProcurement();
+    const res = await request(app).get('/api/oversight/history').query({ reference: AWARD }).set(as(regulator));
+    expect(res.status).toBe(200);
+    expect(res.body.reference).toBe(REF);
+    expect(res.body.events[0].what).toBe('Tender published');
+  });
+
   test('only regulators can see the history', async () => {
     const { app } = makeApp();
     await seedProcurement();

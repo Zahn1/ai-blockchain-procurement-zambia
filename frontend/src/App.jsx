@@ -14,10 +14,14 @@ import Evaluation from './pages/Evaluation.jsx';
 import EvaluationTender from './pages/EvaluationTender.jsx';
 import Contracts from './pages/Contracts.jsx';
 import ContractDetail from './pages/ContractDetail.jsx';
+import Oversight from './pages/Oversight.jsx';
+import ProcurementHistory from './pages/ProcurementHistory.jsx';
+import Reports from './pages/Reports.jsx';
 import { NAV } from './nav.js';
 
 // Built sections; the rest show a placeholder until their step of Phase 5
-const PAGES = { '/tenders': Tenders, '/bids': Bids, '/evaluation': Evaluation, '/contracts': Contracts };
+const PAGES = { '/tenders': Tenders, '/bids': Bids, '/evaluation': Evaluation, '/contracts': Contracts,
+  '/oversight': Oversight, '/oversight/history': ProcurementHistory, '/reports': Reports };
 
 export default function App() {
   const { user, loading } = useAuth();

@@ -1,6 +1,7 @@
 // Stand-ins for the PACRA and ZRA systems that ZPPA's e-GP already integrates with (Chapter 3, 3.5.2).
 // Each is a separate HTTP service; the back end reaches them only through their URLs (PACRA_API_URL, ZRA_API_URL),
 // so pointing those settings at the real services replaces the stand-ins without code changes.
+import fs from 'node:fs';
 import express from 'express';
 import { pacraCompanies, zraTaxpayers } from './registry-data.js';
 
@@ -26,11 +27,14 @@ export function zraStandIn() {
 
 // Stand-in for IFMIS, the government payment system (Chapter 3, 3.5.6). It accepts payment instructions and returns
 // a payment reference. The same payment ID always gets the same reference, so a retried instruction is not paid twice.
-export function ifmisStandIn() {
+// Like the real system it keeps its records: given a file, references carry on after a restart instead of repeating.
+export function ifmisStandIn({ file } = {}) {
   const r = express.Router();
   r.use(express.json());
-  const instructions = new Map();
-  let next = 1;
+  const saved = file && fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : { next: 1, instructions: [] };
+  const instructions = new Map(saved.instructions.map((i) => [i.paymentId, i]));
+  let next = saved.next;
+  const save = () => file && fs.writeFileSync(file, JSON.stringify({ next, instructions: [...instructions.values()] }, null, 2));
   r.post('/api/payment-instructions', (req, res) => {
     const { paymentId, contractRef, milestoneRef, amountNgwee, payeeRef } = req.body ?? {};
     if (!paymentId || !contractRef || !milestoneRef || !(Number(amountNgwee) > 0) || !payeeRef) {
@@ -45,6 +49,7 @@ export function ifmisStandIn() {
       ifmisRef: `IFMIS-${new Date().getUTCFullYear()}-${String(next++).padStart(6, '0')}`, status: 'ACCEPTED',
       receivedAt: new Date().toISOString() };
     instructions.set(paymentId, instruction);
+    save();
     res.status(201).json(instruction);
   });
   return r;

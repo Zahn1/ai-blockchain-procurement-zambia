@@ -1,6 +1,9 @@
 // Tests for Chapter 3, 3.5.6 Smart Contract Award and Milestone Payment.
 // The fake ledger applies the chaincode's payment rules (inspector-only certification, amount check, high-risk hold);
 // the chaincode itself is tested in chaincode/contracts and on the live network. IFMIS is the stand-in, over HTTP.
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import express from 'express';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
@@ -281,6 +284,23 @@ describe('Payment through IFMIS', () => {
     await certify(app, awardId);
     const res = await request(app).post('/api/contracts/pay').set(as(officer)).send({ awardId, milestoneId: 'MS-1' });
     expect(res.status).toBe(409);
+  });
+});
+
+describe('IFMIS stand-in', () => {
+  test('keeps its records, so payment references carry on after a restart instead of repeating', async () => {
+    const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'ifmis-')), 'ifmis.json');
+    const pay = async (paymentId) => {
+      const s = express().use(ifmisStandIn({ file })).listen(0);
+      try {
+        return (await request(s).post('/api/payment-instructions')
+          .send({ paymentId, contractRef: 'AWD-1', milestoneRef: 'MS-1', amountNgwee: 100, payeeRef: 'SUP-A' })).body.ifmisRef;
+      } finally { s.close(); }
+    };
+    const first = await pay('PAY-1');
+    const afterRestart = await pay('PAY-2'); // a new stand-in reading the same file
+    expect(afterRestart).not.toBe(first);
+    expect(await pay('PAY-1')).toBe(first); // a retried instruction still gets its original reference
   });
 });
 

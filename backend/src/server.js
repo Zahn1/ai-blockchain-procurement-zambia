@@ -9,6 +9,7 @@ import { PrismaClient } from '@prisma/client';
 import { createAuth } from './auth.js';
 import { registryClients } from './registries.js';
 import nodemailer from 'nodemailer';
+import { fileURLToPath } from 'node:url';
 import { pacraStandIn, zraStandIn, ifmisStandIn, smsStandIn } from './standins/services.js';
 import { createNotifier, smsClient } from './notify.js';
 import { ifmisClient } from './ifmis.js';
@@ -34,7 +35,7 @@ const app = createApp({ ledger, ipfs, store: dbStore(db), keys, receiptSigner, d
 // Stand-in PACRA and ZRA services (3.5.2), reached by the back end over HTTP like the real ones
 app.use('/stand-in/pacra', pacraStandIn());
 app.use('/stand-in/zra', zraStandIn());
-app.use('/stand-in/ifmis', ifmisStandIn()); // 3.5.6
+app.use('/stand-in/ifmis', ifmisStandIn({ file: fileURLToPath(new URL('../data/ifmis-standin.json', import.meta.url)) })); // 3.5.6
 app.use('/stand-in/sms', smsStandIn()); // 3.5.10
 const server = app.listen(config.port, () => {
   console.log(`Procurement prototype on http://localhost:${config.port}`);
