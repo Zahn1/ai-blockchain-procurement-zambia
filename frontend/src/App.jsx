@@ -5,7 +5,15 @@ import { Spinner } from './components/ui.jsx';
 import SignIn from './pages/SignIn.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import ComingSoon from './pages/ComingSoon.jsx';
+import Tenders from './pages/Tenders.jsx';
+import PublishTender from './pages/PublishTender.jsx';
+import TenderDetail from './pages/TenderDetail.jsx';
+import Bids from './pages/Bids.jsx';
+import SubmitBid from './pages/SubmitBid.jsx';
 import { NAV } from './nav.js';
+
+// Built sections; the rest show a placeholder until their step of Phase 5
+const PAGES = { '/tenders': Tenders, '/bids': Bids };
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -20,9 +28,13 @@ export default function App() {
       ) : (
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
-          {NAV.filter((n) => n.to !== '/' && n.roles.includes(user.role)).map((n) => (
-            <Route key={n.to} path={n.to} element={<ComingSoon title={n.label} />} />
-          ))}
+          {NAV.filter((n) => n.to !== '/' && n.roles.includes(user.role)).map(({ to, label }) => {
+            const Page = PAGES[to];
+            return <Route key={to} path={to} element={Page ? <Page /> : <ComingSoon title={label} />} />;
+          })}
+          <Route path="/tender" element={<TenderDetail />} />
+          {user.role === 'OFFICER' && <Route path="/tenders/new" element={<PublishTender />} />}
+          {user.role === 'SUPPLIER' && <Route path="/bids/new" element={<SubmitBid />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       )}

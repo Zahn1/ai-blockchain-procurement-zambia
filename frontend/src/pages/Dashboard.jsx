@@ -54,7 +54,7 @@ function OpenTenders() {
     <Table rows={open} rowKey={(t) => t.reference} empty="No tenders are open at the moment." columns={[
       { key: 'reference', label: 'Reference', mono: true },
       { key: 'title', label: 'Title' },
-      { key: 'closingTime', label: 'Closes', render: (t) => when(t.closingTime) },
+      { key: 'closingTime', label: 'Closes', nowrap: true, render: (t) => when(t.closingTime) },
     ]} />
   );
 }
@@ -68,7 +68,7 @@ function RecentTenders() {
     <Table rows={tenders.slice(0, 8)} rowKey={(t) => t.reference} empty="No tenders yet." columns={[
       { key: 'reference', label: 'Reference', mono: true },
       { key: 'title', label: 'Title' },
-      { key: 'closingTime', label: 'Closes', render: (t) => when(t.closingTime) },
+      { key: 'closingTime', label: 'Closes', nowrap: true, render: (t) => when(t.closingTime) },
       { key: 'status', label: 'Status', render: (t) => (new Date(t.closingTime) > now ? <Badge tone="success">Open</Badge> : <Badge>Closed</Badge>) },
     ]} />
   );
@@ -96,7 +96,7 @@ function MyBids() {
   return (
     <Table rows={bids.slice(0, 6)} rowKey={(b) => b.bidId} empty="You have not bid yet." columns={[
       { key: 'title', label: 'Tender', render: (b) => <span>{b.title}<br /><span className="font-mono text-xs text-slate-500">{b.tenderRef}</span></span> },
-      { key: 'submittedAt', label: 'Submitted', render: (b) => day(b.submittedAt) },
+      { key: 'submittedAt', label: 'Submitted', nowrap: true, render: (b) => day(b.submittedAt) },
       { key: 'outcome', label: 'Status', render: (b) => <Badge tone={tone[b.outcome]}>{b.outcome}</Badge> },
     ]} />
   );
@@ -108,7 +108,7 @@ function AuditTrail() {
   if (!rows) return <Spinner />;
   return (
     <Table rows={rows.slice(0, 8)} empty="No activity yet." columns={[
-      { key: 'at', label: 'When', render: (r) => when(r.at) },
+      { key: 'at', label: 'When', nowrap: true, render: (r) => when(r.at) },
       { key: 'action', label: 'Action', mono: true },
       { key: 'user', label: 'User', render: (r) => r.user ?? <span className="text-slate-400">system</span> },
     ]} />

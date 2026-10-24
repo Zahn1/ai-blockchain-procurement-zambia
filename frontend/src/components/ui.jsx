@@ -1,5 +1,7 @@
 // Shared building blocks, so every screen looks and behaves the same (see DESIGN.md).
-import { AlertTriangle, CheckCircle2, Info, Loader2, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { AlertTriangle, Check, CheckCircle2, ChevronLeft, Copy, Info, Loader2, XCircle } from 'lucide-react';
 
 const cx = (...c) => c.filter(Boolean).join(' ');
 
@@ -49,26 +51,26 @@ export function Figures({ items }) {
   );
 }
 
+const buttonVariants = {
+  primary: 'bg-brand-700 text-white hover:bg-brand-800 disabled:bg-brand-700/60',
+  secondary: 'border border-slate-300 bg-white text-slate-800 hover:border-slate-400 hover:bg-slate-50',
+  danger: 'bg-red-700 text-white hover:bg-red-800',
+  ghost: 'text-slate-700 hover:bg-slate-100',
+};
+const buttonClass = (variant, className) => cx('inline-flex min-h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors duration-150 disabled:cursor-not-allowed',
+  buttonVariants[variant], className);
+
 export function Button({ variant = 'primary', busy, className, children, ...props }) {
-  const variants = {
-    primary: 'bg-brand-700 text-white hover:bg-brand-800 disabled:bg-brand-700/60',
-    secondary: 'border border-slate-300 bg-white text-slate-800 hover:border-slate-400 hover:bg-slate-50',
-    danger: 'bg-red-700 text-white hover:bg-red-800',
-    ghost: 'text-slate-700 hover:bg-slate-100',
-  };
   return (
-    <button
-      type="button"
-      {...props}
-      disabled={busy || props.disabled}
-      className={cx('inline-flex min-h-9 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors duration-150 disabled:cursor-not-allowed',
-        variants[variant], className)}
-    >
+    <button type="button" {...props} disabled={busy || props.disabled} className={buttonClass(variant, className)}>
       {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
       {children}
     </button>
   );
 }
+
+/** A link that looks like a button, for navigation actions. */
+export const ButtonLink = ({ variant = 'primary', className, ...props }) => <Link {...props} className={buttonClass(variant, className)} />;
 
 export function Field({ label, hint, error, children, id }) {
   return (
@@ -146,7 +148,7 @@ export function Table({ columns, rows, empty = 'Nothing to show yet.', rowKey })
             <tr key={rowKey ? rowKey(r) : i} className="transition-colors duration-150 hover:bg-slate-50">
               {columns.map((c) => (
                 <td key={c.key} className={cx('px-5 py-3 align-top text-slate-800', c.align === 'right' && 'text-right',
-                  c.mono && 'whitespace-nowrap font-mono text-xs text-slate-600', !c.mono && c.align !== 'right' && 'min-w-[9rem]', c.wide && 'min-w-[18rem]')}>
+                  c.mono && 'whitespace-nowrap font-mono text-xs text-slate-600', c.nowrap && 'whitespace-nowrap', !c.mono && !c.nowrap && c.align !== 'right' && 'min-w-[9rem]', c.wide && 'min-w-[18rem]')}>
                   {c.render ? c.render(r) : r[c.key]}
                 </td>
               ))}
@@ -177,5 +179,31 @@ export function Details({ items }) {
         </div>
       ))}
     </dl>
+  );
+}
+
+/** A hash or transaction ID: shortened, full value on hover, with a copy button. */
+export function Hash({ value, n = 12 }) {
+  const [copied, setCopied] = useState(false);
+  if (!value) return <span className="text-slate-400">–</span>;
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(value); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* clipboard blocked */ }
+  };
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <code className="font-mono text-xs text-slate-700" title={value}>{value.length > n ? `${value.slice(0, n)}…` : value}</code>
+      <button type="button" onClick={copy} className="rounded p-1 text-slate-400 transition-colors duration-150 hover:bg-slate-100 hover:text-slate-700"
+        aria-label={copied ? 'Copied' : 'Copy full value'}>
+        {copied ? <Check className="h-3.5 w-3.5" aria-hidden /> : <Copy className="h-3.5 w-3.5" aria-hidden />}
+      </button>
+    </span>
+  );
+}
+
+export function BackLink({ to, children }) {
+  return (
+    <Link to={to} className="mb-3 inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900">
+      <ChevronLeft className="h-4 w-4" aria-hidden /> {children}
+    </Link>
   );
 }
