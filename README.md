@@ -65,6 +65,9 @@ brew install mailpit && mailpit --listen 127.0.0.1:8025 --smtp 127.0.0.1:1025
 cd frontend && npm install && npm run dev
 ```
 
+For a demonstration, `scripts/start-demo.sh` starts everything in one go (also after a restart) and
+`docs/demo/DEMO-SCRIPT.md` walks through one procurement across every role.
+
 ```bash
 # Phase 6 checks against the running system (need the demo accounts in backend/data/live, git-ignored)
 cd backend

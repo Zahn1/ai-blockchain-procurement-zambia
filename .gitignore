@@ -47,3 +47,6 @@ frontend/dist/
 # Coverage output (Phase 6)
 .coverage
 coverage/
+
+# Demo service logs (scripts/start-demo.sh)
+logs/
