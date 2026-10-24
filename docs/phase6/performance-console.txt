@@ -1,0 +1,16 @@
+Ledger read: ReadTender                          n=200  c=1   p50=3 ms  p95=4 ms  318.1/s
+Ledger read: ReadTender                          n=500  c=20  p50=11 ms  p95=16 ms  1715.2/s
+Ledger read: GetTenderHistory                    n=100  c=10  p50=6 ms  p95=10 ms  1584.7/s
+Ledger write: PublishTender, one at a time       n=10   c=1   p50=2035 ms  p95=2043 ms  0.5/s
+Ledger write: PublishTender, concurrent          n=50   c=10  p50=34 ms  p95=52 ms  272.4/s
+Ledger write: PublishTender, concurrent          n=100  c=25  p50=54 ms  p95=95 ms  408.2/s
+API: tender list (database)                      n=100  c=10  p50=4 ms  p95=53 ms  1111.4/s
+API: one tender with ledger history and bids     n=100  c=10  p50=24 ms  p95=34 ms  408.6/s
+API: public search                               n=100  c=10  p50=31 ms  p95=56 ms  289.1/s
+API: regulator alerts (ledger + database)        n=100  c=10  p50=18 ms  p95=23 ms  558.9/s
+API: procurement report (PDF)                    n=20   c=2   p50=41 ms  p95=47 ms  48.1/s
+API: OCDS download, all procurements             n=20   c=2   p50=36 ms  p95=42 ms  55.8/s
+AI: /score                                       n=200  c=10  p50=172 ms  p95=228 ms  54.9/s
+AI: /explain (with SHAP)                         n=100  c=10  p50=210 ms  p95=235 ms  46.8/s
+
+Written to docs/phase6/performance.md
