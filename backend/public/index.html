@@ -907,7 +907,7 @@ async function loadOversight() {
           <button type="submit">Record decision</button></form>` : 'Final';
       return `<tr><td class="mono">${esc(a.id)}</td><td>${esc(a.subjectType)} <span class="mono">${esc(a.subjectId)}</span></td>
         <td>${a.score >= 70 ? `<strong>${a.score}</strong>` : a.score}</td><td>${esc(a.status)}</td><td>${when(a.raisedAt)}</td>
-        <td>${a.decisions.map((d) => `<p style="margin:0 0 6px"><strong>${esc(DECISION_NAMES[d.decision])}</strong> by ${esc(d.by)}, ${when(d.at)}: ${esc(d.reason)}<br><span class="mono">hash ${esc(d.recordHash.slice(0, 16))}… · tx ${esc(d.txId.slice(0, 12))}…</span></p>`).join('') || '<span class="empty">None yet</span>'}</td>
+        <td>${a.explanation ? `<p style="margin:0 0 6px"><strong>Why the AI flagged it${a.explanation.matchesLedger ? '' : ' (WARNING: does not match the ledger hash)'}:</strong></p><ul style="margin:0 0 6px;padding-left:18px">${a.explanation.reasons.map((r) => `<li>${esc(r.text)}</li>`).join('')}</ul>` : ''}${a.decisions.map((d) => `<p style="margin:0 0 6px"><strong>${esc(DECISION_NAMES[d.decision])}</strong> by ${esc(d.by)}, ${when(d.at)}: ${esc(d.reason)}<br><span class="mono">hash ${esc(d.recordHash.slice(0, 16))}… · tx ${esc(d.txId.slice(0, 12))}…</span></p>`).join('') || '<span class="empty">None yet</span>'}</td>
         <td>${form}</td></tr>`;
     }).join('')}</table>` : '<p class="empty">No alerts on the ledger.</p>';
   for (const t of tenders) if (![...$('#ov-tender').options].some((o) => o.value === t.reference)) {

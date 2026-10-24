@@ -66,6 +66,26 @@ Live evidence on the network: `docs/phase3/live-3.5.5-run.txt` (the run) and `do
 
 Live evidence on the network: `docs/phase3/live-3.5.6-run.txt`; chaincode 1.2 upgrade log; end-to-end scenario (30 of 30 steps) in `docs/phase3/e2e-console-chaincode-1.2.txt`.
 
+## 3.5.7 AI Risk Scoring and Explained Alerts
+
+> *"The system must score each procurement event for risk using supervised, unsupervised and graph-based machine-learning models. Where the score exceeds the configured threshold, the system must raise an alert accompanied by an explanation of the main risk factors, such as a single bidder, a price far above the estimate or links between competing bidders."*
+
+| Clause | Status | How it is met | Code | Tests and evidence |
+|---|---|---|---|---|
+| **Supervised** model | ✅ | Gradient boosting on each tender's own details, trained on Phase 1 labels (rules on 178,732 real ZPPA tenders plus injected synthetic patterns); a second model for contracts | `ai/risk/train.py`; `ai/risk/features.py` | `docs/phase4/model-evaluation.md`: recall 90.6% vs 43.7% for rules, 2.2% false positives on held-out synthetic tenders |
+| **Unsupervised** model | ✅ | Isolation Forest on the real ZPPA tenders; counts only in its top 5% | `train.py`; `ai/risk/scoring.py` | Evaluation report; *Unusual combination* reasons in live alerts |
+| **Graph-based** model | ✅ | The bidder co-participation network from ZPPA's published tenderers (23,928 bidders, 417 Louvain groups): rivals in the winner's group, group cohesion, repeat losers, pairs that often bid together. (A graph neural network remains a stretch goal.) | `ai/risk/graph.py` | Injected cartel: 100% in the top 5% of graph risk; random groups 0%; pytest *the graph model flags bidders who keep bidding together* |
+| **Score each procurement event** | ✅ | Each award scores its tender; each milestone certificate scores its contract, before payment. The AI service exposes `/score` and `/explain` | `ai/service/app.py`; `backend/src/risk.js`; `contract-routes.js` | pytest (17); Jest *the tender is scored when it is awarded, and the contract is scored before any payment* |
+| **Where the score exceeds the configured threshold, raise an alert** | ✅ | At 70 or more, an alert is raised on the ledger by the AI service's own identity (`risk-service`, role `ai`). The same threshold is the ledger's high-risk score, so the alert holds the contract's payments until a regulator decides (3.5.6, 3.5.8). One alert per subject per model version | `risk.js` `assess()`; `alert.go` `RaiseAlert`, `HighRiskScore` | Jest *raises the alert on the ledger as the AI service …*; *the same model does not raise a second alert …*; live: score 92, alert on the ledger, payment held |
+| **Accompanied by an explanation of the main risk factors** | ✅ | SHAP values of the supervised model become plain-English sentences, top 3, compared with what is typical for tenders of the same size; the graph and unusualness models add their own reasons. The explanation is stored off-chain and its SHA-256 hash recorded with the alert; regulators see the reasons in the Oversight tab, checked against that hash | `ai/risk/model.py`; `risk.js`; `oversight-routes.js` | pytest *known risk patterns raise an alert with a plain-English reason* (3); live: *Only 1 bidder*, *This supplier has won 100% of this buyer's awards*; hash matches the ledger |
+| … such as **a single bidder** | ✅ | *Only 1 bidder (typical for tenders of this size: …)* | `model.py` | live alert |
+| … **a price far above the estimate** | ✅ | *Awarded at 220% of the estimate: 120% above it.* | `model.py` | pytest |
+| … **links between competing bidders** | ✅ | *Links between competing bidders: two of the bidders have bid together on N other tenders; …* | `graph.py`, `model.py` | pytest with a real ZPPA bidder pair |
+
+Notes: training follows CLAUDE.md (public ZPPA OCDS data and synthetic data only) and the Colab notebook `ai/notebooks/risk_models_colab.ipynb` reruns it with the same seeds. If the AI service is unavailable, the procurement action still goes ahead and the failure is logged. Limits of the evaluation are set out in `docs/phase4/model-evaluation.md`.
+
+Live evidence: `docs/phase4/live-3.5.7-run.txt`.
+
 ## 3.5.8 Alert Review and Audit Trail
 
 > *"The system must allow regulators to review each alert and record a decision (cleared, monitor or refer) together with the reason, and must record the hash of that decision on the ledger. Authorised regulators must be able to view the complete history of any procurement, from tender publication to final payment."*
@@ -125,7 +145,7 @@ Live evidence: `docs/phase3/live-3.5.10-run.txt` and `docs/phase3/reports/`.
 | 3.5.4 Encrypted Bid Submission | ✅ | Prototype; ledger in Phase 2 |
 | 3.5.5 Bid Opening and Evaluation | ✅ | Phase 3, step 3 (ledger rules from Phase 2) |
 | 3.5.6 Smart Contract Award and Milestone Payment | ✅ | Phase 3, step 4 (IFMIS stand-in) |
-| 3.5.7 AI Risk Scoring and Explained Alerts | 🟡 | Data ready (Phase 1); models in Phase 4 |
+| 3.5.7 AI Risk Scoring and Explained Alerts | ✅ | Phase 4 |
 | 3.5.8 Alert Review and Audit Trail | ✅ | Phase 3, step 5a (chaincode 1.3) |
 | 3.5.9 Public Verification Portal and Open Data | ✅ | Phase 3, step 5b |
 | 3.5.10 Reporting and Notifications | ✅ | Phase 3, step 5c (SMS stand-in, Mailpit for e-mail) |

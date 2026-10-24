@@ -21,8 +21,9 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 
 const ID = /^[A-Za-z0-9._/-]{3,64}$/;
 
 const silent = { tenderPublished() {}, bidReceived() {}, contractAwarded() {}, paymentMade() {}, flush: async () => {} };
+const noRisk = { assess: async () => null };
 
-export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, registries, ifmis, notifier = silent,
+export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, registries, ifmis, notifier = silent, risk = noRisk,
   committeeIdentities = defaultCommittee, inspectorIdentities = defaultInspectors, regulatorIdentities = defaultRegulators }) {
   const app = express();
   app.use(express.json());
@@ -36,7 +37,7 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
   app.use('/api', authRoutes({ db, auth, committeeIdentities, inspectorIdentities, regulatorIdentities }));
   app.use('/api', supplierRoutes({ db, auth, registries }));
   app.use('/api', evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity: actors.officer }));
-  app.use('/api', contractRoutes({ db, auth, ledger, ipfs, ifmis, notifier, officerIdentity: actors.officer }));
+  app.use('/api', contractRoutes({ db, auth, ledger, ipfs, ifmis, notifier, risk, officerIdentity: actors.officer }));
   app.use('/api', oversightRoutes({ db, auth, ledger, officerIdentity: actors.officer }));
   app.use('/api', publicRoutes({ db, ledger, officerIdentity: actors.officer }));
   app.use('/api', reportRoutes({ db, auth, ledger, officerIdentity: actors.officer }));

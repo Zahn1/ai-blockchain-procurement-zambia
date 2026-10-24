@@ -1,0 +1,13 @@
+signed in: officer, 2 committee members, bidder, inspector, regulator
+publish 201 ZPPA/MOH/2026/R6578
+only bid: Alpha 201
+recommend 201
+award 201 AWD-7B773D AI risk: {"score":92,"alert":true,"alertId":"ALT-F6C22921"}
+sign 200
+certify 200 contract risk: {"score":0,"alert":false,"alertId":null} payment: {"status":"HELD","reason":"tender ZPPA/MOH/2026/R6578 is flagged as high risk (alert ALT-F6C22921, score 92, OPEN); payment is held until a regulator clears or decides to monitor it"}
+regulator sees alert ALT-F6C22921 score 92 OPEN model risk-1.0.0 | explanation matches ledger hash: true
+   - Only 1 bidder.
+   - This supplier has won 100% of this buyer's awards.
+   - The supplier has won 3 government awards.
+   - Unusual combination of details compared with other ZPPA tenders (more unusual than 100.0% of them).
+REF=ZPPA/MOH/2026/R6578 AWARD=AWD-7B773D

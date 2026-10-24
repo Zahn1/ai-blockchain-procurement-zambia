@@ -36,6 +36,8 @@ export const config = {
   smsUrl: process.env.SMS_API_URL ?? `http://localhost:${process.env.PORT ?? 3000}/stand-in/sms`,
   smtp: { host: process.env.SMTP_HOST ?? '127.0.0.1', port: Number(process.env.SMTP_PORT ?? 1025) },
   mailFrom: process.env.MAIL_FROM ?? 'ZPPA e-Procurement <no-reply@zppa.test>',
+  // AI risk service (3.5.7), ai/service/app.py
+  aiUrl: process.env.AI_API_URL ?? 'http://127.0.0.1:8000',
   dataDir: process.env.DATA_DIR ?? path.join(root, 'data'),
 };
 
@@ -43,6 +45,7 @@ export const config = {
 export const actors = {
   officer: 'officer1',
   gateway: 'gateway',
+  ai: 'risk-service', // raises AI alerts on the ledger (role ai)
 };
 
 // Ledger identities enrolled for evaluation committee members (registerEnroll.sh). Each committee user gets

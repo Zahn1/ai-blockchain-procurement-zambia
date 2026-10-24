@@ -93,7 +93,7 @@ class RiskModels:
                             "text": "Links between competing bidders: " + "; ".join(parts) + "."})
         if a_if > 0:
             reasons.append({"factor": "unusual_combination", "model": "unsupervised", "impact": round(a_if, 3),
-                            "text": f"Unusual combination of details compared with other ZPPA tenders (more unusual than {if_pct:.1%} of them)."})
+                            "text": f"Unusual combination of details compared with other ZPPA tenders (more unusual than {min(if_pct, 0.999):.1%} of them)."})
         return reasons
 
     @staticmethod

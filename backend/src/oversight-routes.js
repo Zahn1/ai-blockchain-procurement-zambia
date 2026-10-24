@@ -17,13 +17,19 @@ export function oversightRoutes({ db, auth, ledger, officerIdentity, now = () =>
 
   // Every alert on the ledger, with the reasons regulators gave; unreviewed and highest scores first
   r.get('/oversight/alerts', regulator, wrap(async (_req, res) => {
-    const [alerts, decisions] = await Promise.all([
+    const [alerts, decisions, explanations] = await Promise.all([
       ledger.evaluate(officerIdentity, 'AlertContract:GetAllAlerts'),
       db.alertDecision.findMany({ include: { decidedBy: true }, orderBy: { createdAt: 'asc' } }),
+      db.riskAlert.findMany(),
     ]);
     const order = { OPEN: 0, REFERRED: 1, MONITOR: 2, CLEARED: 3 };
     res.json(alerts.map((a) => ({
       ...a,
+      // The AI's plain-English reasons (3.5.7), checked against the hash on the ledger
+      explanation: (() => {
+        const x = explanations.find((e) => e.alertId === a.id);
+        return x ? { reasons: x.explanation.reasons, event: x.event, matchesLedger: x.explanationHash === a.explanationHash } : null;
+      })(),
       decisions: decisions.filter((d) => d.alertId === a.id).map((d) => ({
         decision: d.decision, reason: d.reason, by: d.decidedBy.name, at: d.createdAt, recordHash: d.recordHash, txId: d.txId })),
     })).sort((x, y) => (order[x.status] - order[y.status]) || (y.score - x.score) || x.id.localeCompare(y.id)));

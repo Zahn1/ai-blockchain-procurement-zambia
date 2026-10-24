@@ -55,6 +55,9 @@ cd chaincode && go mod vendor && go test ./...
 cd backend && cp .env.example .env    # then fill in the secrets
 npx prisma migrate deploy && node prisma/seed.js && ./start.sh
 
+# AI risk service on http://127.0.0.1:8000 (models are in ai/models; retrain with ai/risk/train.py or the Colab notebook)
+cd ai && python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/uvicorn service.app:app --port 8000
+
 # E-mail notifications in development: Mailpit catches them at http://127.0.0.1:8025
 brew install mailpit && mailpit --listen 127.0.0.1:8025 --smtp 127.0.0.1:1025
 ```
@@ -68,7 +71,7 @@ Fabric's scripts do not support paths with spaces, so clone the repository to a 
 | 0 Environment set-up | 1 | Done |
 | 1 Data and requirements | 1–2 | Done |
 | 2 Blockchain | 2–4 | Done |
-| 3 Back end | 3–5 | Done: all ten Chapter 3 functional requirements (AI models in Phase 4) |
-| 4 AI models | 3–6 | |
+| 3 Back end | 3–5 | Done |
+| 4 AI models | 3–6 | Done: supervised, Isolation Forest and graph-based models; FastAPI service |
 | 5 Front end | 5–7 | |
 | 6 Testing and evaluation | 7–8 | |

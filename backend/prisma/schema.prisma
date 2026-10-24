@@ -240,6 +240,23 @@ model AlertDecision {
   @@index([alertId])
 }
 
+/// An AI risk alert (3.5.7): the score, the model version and the plain-English explanation. The explanation's
+/// SHA-256 hash is on the ledger with the alert (AlertContract), raised by the AI service's own identity.
+model RiskAlert {
+  alertId         String   @id
+  subjectType     String // tender or contract
+  subjectId       String
+  event           String // e.g. TENDER_AWARDED, MILESTONE_CERTIFIED
+  score           Int
+  modelVersion    String
+  explanation     Json
+  explanationHash String
+  txId            String
+  createdAt       DateTime @default(now())
+
+  @@index([subjectId])
+}
+
 /// Every e-mail and SMS notification sent for a key event (3.5.10).
 model Notification {
   id          String   @id @default(uuid())

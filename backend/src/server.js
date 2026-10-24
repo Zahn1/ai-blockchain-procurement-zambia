@@ -12,6 +12,7 @@ import nodemailer from 'nodemailer';
 import { pacraStandIn, zraStandIn, ifmisStandIn, smsStandIn } from './standins/services.js';
 import { createNotifier, smsClient } from './notify.js';
 import { ifmisClient } from './ifmis.js';
+import { aiClient, createRisk } from './risk.js';
 
 const receiptSigner = async () => {
   const { privateKey, cert } = await ledger.loadIdentity(actors.gateway);
@@ -27,7 +28,9 @@ const ifmis = ifmisClient({ url: config.ifmisUrl });
 const notifier = createNotifier({ db, from: config.mailFrom, sms: smsClient({ url: config.smsUrl }),
   mailer: nodemailer.createTransport({ host: config.smtp.host, port: config.smtp.port, secure: false }) });
 
-const app = createApp({ ledger, ipfs, store: dbStore(db), keys, receiptSigner, db, auth, registries, ifmis, notifier });
+const risk = createRisk({ db, ledger, auth, ai: aiClient({ url: config.aiUrl }), aiIdentity: actors.ai, officerIdentity: actors.officer });
+
+const app = createApp({ ledger, ipfs, store: dbStore(db), keys, receiptSigner, db, auth, registries, ifmis, notifier, risk });
 // Stand-in PACRA and ZRA services (3.5.2), reached by the back end over HTTP like the real ones
 app.use('/stand-in/pacra', pacraStandIn());
 app.use('/stand-in/zra', zraStandIn());

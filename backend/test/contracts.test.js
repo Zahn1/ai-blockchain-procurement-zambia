@@ -85,7 +85,7 @@ beforeAll(() => {
 });
 afterAll(async () => { ifmisServer.close(); await db.$disconnect(); });
 
-function makeApp() {
+function makeApp(risk) {
   const ledger = fakeLedger();
   const instructions = [];
   const real = ifmisClient({ url: ifmisUrl });
@@ -93,7 +93,7 @@ function makeApp() {
   const files = new Map();
   const ipfs = { async add(b) { const cid = `bafy${files.size}x${Math.random()}`; files.set(cid, b); return cid; }, async cat(c) { return files.get(c); } };
   const app = createApp({ ledger, ipfs, store: dbStore(db), keys: {}, receiptSigner: async () => [], db, auth: makeAuth(),
-    ifmis, inspectorIdentities: ['inspector1', 'inspector2'] });
+    ifmis, inspectorIdentities: ['inspector1', 'inspector2'], ...(risk ? { risk } : {}) });
   return { app, ledger, instructions };
 }
 
@@ -281,5 +281,31 @@ describe('Payment through IFMIS', () => {
     await certify(app, awardId);
     const res = await request(app).post('/api/contracts/pay').set(as(officer)).send({ awardId, milestoneId: 'MS-1' });
     expect(res.status).toBe(409);
+  });
+});
+
+describe('3.5.7 AI scoring of contract events', () => {
+  test('the tender is scored when it is awarded, and the contract is scored before any payment', async () => {
+    const order = [];
+    const risk = { async assess(kind, subject, event) { order.push(`assess ${kind} ${event}`); return { score: 12, alert: false }; } };
+    const { app, ledger } = makeApp(risk);
+    const realSubmit = ledger.submit.bind(ledger);
+    ledger.submit = async (id, fn, ...args) => { order.push(fn); return realSubmit(id, fn, ...args); };
+    const award = await request(app).post('/api/contracts/award').set(as(officer)).send({ reference: REF });
+    expect(award.body.risk).toEqual({ score: 12, alert: false, alertId: null });
+    const awardId = award.body.awardId;
+    await request(app).post('/api/contracts/sign').set(as(officer)).field('awardId', awardId)
+      .field('inspectorId', inspectors[0].user.id).field('milestones', JSON.stringify(schedule))
+      .attach('contract', Buffer.from('signed contract'), 'contract.pdf');
+    order.length = 0;
+    await certify(app, awardId);
+    expect(order).toEqual(['MilestoneContract:CompleteMilestone', 'assess contract MILESTONE_CERTIFIED', 'MilestoneContract:RecordPayment']);
+  });
+
+  test('an award still goes ahead if scoring fails', async () => {
+    const { app } = makeApp({ async assess() { return null; } });
+    const res = await request(app).post('/api/contracts/award').set(as(officer)).send({ reference: REF });
+    expect(res.status).toBe(201);
+    expect(res.body.risk).toBeNull();
   });
 });

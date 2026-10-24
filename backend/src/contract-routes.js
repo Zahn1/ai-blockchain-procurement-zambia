@@ -33,7 +33,7 @@ const contractView = (c) => ({
   milestones: (c.milestones ?? []).sort((a, b) => a.milestoneId.localeCompare(b.milestoneId, 'en', { numeric: true })).map(milestoneView),
 });
 
-export function contractRoutes({ db, auth, ledger, ipfs, ifmis, notifier, officerIdentity, now = () => new Date() }) {
+export function contractRoutes({ db, auth, ledger, ipfs, ifmis, notifier, risk, officerIdentity, now = () => new Date() }) {
   const r = express.Router();
   const officer = [auth.requireAuth, auth.requireRole('OFFICER')];
   const inspector = [auth.requireAuth, auth.requireRole('INSPECTOR')];
@@ -115,7 +115,9 @@ export function contractRoutes({ db, auth, ledger, ipfs, ifmis, notifier, office
     }, include });
     await auth.audit(req.user.id, 'contract.awarded', { awardId, tender: tender.reference, bidId: bid.bidId, txId: tx.txId }, req.ip);
     notifier?.contractAwarded(c, tender.title);
-    res.status(201).json(contractView(c));
+    // 3.5.7: score the awarded tender; an alert at the threshold holds this contract's payments (3.5.6)
+    const assessed = await risk?.assess('tender', tender.reference, 'TENDER_AWARDED');
+    res.status(201).json({ ...contractView(c), risk: assessed && { score: assessed.score, alert: assessed.alert, alertId: assessed.alertId ?? null } });
   }));
 
   // Sign the contract: its hash, its milestones (amounts and due dates: the payment schedule), and its inspector
@@ -188,8 +190,13 @@ export function contractRoutes({ db, auth, ledger, ipfs, ifmis, notifier, office
     if (m.certifyTxId) throw fail(409, 'This milestone is already certified.');
     if (!req.file) throw fail(400, 'Attach the signed completion certificate.');
     if (!DATE.test(req.body.completionDate ?? '')) throw fail(400, 'Give the completion date on the certificate.');
-    // The end of that day in Zambia, but never later than now (the ledger refuses future dates)
-    const completion = new Date(Math.min(endOfDayInZambia(req.body.completionDate).getTime(), now().getTime() - 5000));
+    // The end of that day in Zambia, but never later than now (the ledger refuses future dates) and never earlier than
+    // the contract signature (the ledger refuses that too, e.g. when certifying seconds after signing)
+    const completion = new Date(Math.max(c.signedAt.getTime(),
+      Math.min(endOfDayInZambia(req.body.completionDate).getTime(), now().getTime() - 5000)));
+    if (endOfDayInZambia(req.body.completionDate) < c.signedAt) {
+      throw fail(400, 'The completion date is before the contract was signed.');
+    }
 
     const certificateHash = sha256(req.file.buffer);
     const cid = await ipfs.add(req.file.buffer, req.file.originalname);
@@ -200,8 +207,11 @@ export function contractRoutes({ db, auth, ledger, ipfs, ifmis, notifier, office
         certifiedById: req.user.id, certifyTxId: tx.txId } });
     await auth.audit(req.user.id, 'milestone.certified', { awardId: c.awardId, milestoneId: m.milestoneId, certificateHash, txId: tx.txId }, req.ip);
 
+    // 3.5.7: score the contract before paying, so a new alert holds this payment straight away
+    const assessed = await risk?.assess('contract', c.awardId, 'MILESTONE_CERTIFIED');
     const payment = await payMilestone(c, m, req.user, req.ip);
-    res.json({ certifyTxId: tx.txId, certificateHash, payment });
+    res.json({ certifyTxId: tx.txId, certificateHash, payment,
+      risk: assessed && { score: assessed.score, alert: assessed.alert, alertId: assessed.alertId ?? null } });
   }));
 
   // Try a held payment again, e.g. after a regulator clears the alert or decides to monitor it
