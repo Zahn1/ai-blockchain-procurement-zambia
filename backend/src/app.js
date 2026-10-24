@@ -15,6 +15,7 @@ import { contractRoutes } from './contract-routes.js';
 import { oversightRoutes } from './oversight-routes.js';
 import { publicRoutes, publicCid } from './public-routes.js';
 import { reportRoutes } from './reports.js';
+import { dashboardRoutes } from './dashboard-routes.js';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
@@ -41,6 +42,7 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
   app.use('/api', oversightRoutes({ db, auth, ledger, officerIdentity: actors.officer }));
   app.use('/api', publicRoutes({ db, ledger, officerIdentity: actors.officer }));
   app.use('/api', reportRoutes({ db, auth, ledger, officerIdentity: actors.officer }));
+  app.use('/api', dashboardRoutes({ db, auth, ledger, officerIdentity: actors.officer }));
 
   // 3.5.3: publish a tender. The document goes to IPFS; its SHA-256 hash and the closing time go on the ledger.
   app.post('/api/tenders', officer, upload.single('document'), wrap(async (req, res) => {

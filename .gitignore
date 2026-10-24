@@ -39,3 +39,7 @@ backend/data/
 backend/.env
 ai/.venv/
 ai/data/processed/bids.csv
+
+# Front end
+frontend/node_modules/
+frontend/dist/
