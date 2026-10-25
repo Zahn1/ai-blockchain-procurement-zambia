@@ -172,3 +172,33 @@ describe('inspector', () => {
     expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
   });
 });
+
+describe('key splitting (FR-BID-07)', () => {
+  const split = (over = {}, mine = {}) => ({ ...evaluation(over), opening: { mode: 'SHAMIR', threshold: 2, shares: 2, provided: 0, collected: 0,
+    mine: { index: 1, collectedAt: null, provided: false, ...mine } } });
+
+  test('a member collects their share once, with a warning to keep it', async () => {
+    serve(MEMBER, { [EV_PATH]: [200, split()], [`GET /evaluation/share?reference=${encodeURIComponent(REF)}`]: [200, { share: 'ZPPA-SHARE:ZPPA/T/1:1:AbC=', index: 1, of: 2 }] });
+    at(`/evaluation/tender?ref=${encodeURIComponent(REF)}`);
+    fireEvent.click(await screen.findByRole('button', { name: 'Collect my key share' }));
+    expect(await screen.findByText('Save this now. It is shown only once.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Your key share')).toHaveValue('ZPPA-SHARE:ZPPA/T/1:1:AbC=');
+  });
+
+  test('approvals alone do not open the bids: the screen waits for the key shares', async () => {
+    serve(MEMBER, { [EV_PATH]: [200, split({ approvals: 2 }, { collectedAt: '2026-10-25T08:00:00Z' })] });
+    at(`/evaluation/tender?ref=${encodeURIComponent(REF)}`);
+    expect(await screen.findByText('Waiting for key shares: 0 of 2')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Open 2 bids/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/0 of 2 key shares/)).toBeInTheDocument();
+  });
+
+  test('after approving, a member provides their share', async () => {
+    serve(MEMBER, { [EV_PATH]: [200, split({ approvals: 2 }, { collectedAt: '2026-10-25T08:00:00Z' })], 'POST /evaluation/share': [200, { provided: 1, needed: 2 }] });
+    at(`/evaluation/tender?ref=${encodeURIComponent(REF)}`);
+    fireEvent.change(await screen.findByLabelText('Provide your key share to open the bids'), { target: { value: 'ZPPA-SHARE:ZPPA/T/1:1:AbC=' } });
+    submit('Provide key share');
+    await waitFor(() => expect(calls.some((c) => c.path === '/evaluation/share' && c.method === 'POST')).toBe(true));
+    expect(JSON.parse(calls.find((c) => c.path === '/evaluation/share').body)).toEqual({ reference: REF, share: 'ZPPA-SHARE:ZPPA/T/1:1:AbC=' });
+  });
+});

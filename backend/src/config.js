@@ -39,6 +39,8 @@ export const config = {
   // AI risk service (3.5.7), ai/service/app.py
   aiUrl: process.env.AI_API_URL ?? 'http://127.0.0.1:8000',
   dataDir: process.env.DATA_DIR ?? path.join(root, 'data'),
+  // FR-BID-07 (stretch): split each tender's opening key among the committee (SHAMIR_OPENING=on). Off by default.
+  shamirOpening: process.env.SHAMIR_OPENING === 'on',
 };
 
 // Which enrolled user the back end acts as for each action. Each certificate carries its role (see registerEnroll.sh).

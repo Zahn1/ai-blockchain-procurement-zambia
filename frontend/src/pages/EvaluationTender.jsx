@@ -25,6 +25,65 @@ function useAction(reload) {
   return [run, busy, error, done];
 }
 
+/** FR-BID-07: the member's key share, collected once and handed back at opening (only when the key is split). */
+function KeyShare({ ev, reload }) {
+  const o = ev.opening;
+  const mine = o.mine;
+  const [share, setShare] = useState('');
+  const [paste, setPaste] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [run, busy, error] = useAction(reload);
+  if (!mine) return null;
+  const opened = ev.bids.length > 0 && ev.bids.every((b) => b.integrity);
+  const me = ev.committee.find((m) => m.id === ev.me.id);
+
+  const save = () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([`${share}\n`], { type: 'text/plain' }));
+    a.download = `key-share-${ev.reference.replace(/\//g, '-')}-${mine.index}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  return (
+    <div className="space-y-3 border-t border-slate-200 pt-4">
+      <p className="text-sm font-medium text-slate-800">Your key share <span className="font-normal text-slate-500">({mine.index} of {o.shares})</span></p>
+      {share ? (
+        <>
+          <Message tone="warning" title="Save this now. It is shown only once.">
+            The opening key exists only as the committee's shares; nobody can issue yours again. You need it to open the bids.
+          </Message>
+          <Textarea aria-label="Your key share" readOnly rows={3} value={share} className="font-mono text-xs" />
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={async () => { try { await navigator.clipboard.writeText(share); setCopied(true); } catch { /* clipboard blocked */ } }}>{copied ? 'Copied' : 'Copy'}</Button>
+            <Button variant="secondary" onClick={save}>Save as file</Button>
+          </div>
+        </>
+      ) : !mine.collectedAt ? (
+        <>
+          <p className="text-sm text-slate-600">The tender's opening key is split among the committee: any {o.threshold} of {o.shares} shares can open the bids. Collect yours and keep it safe.</p>
+          <Button variant="secondary" busy={busy} onClick={() => run(async () => { const r = await api(`/evaluation/share?reference=${encodeURIComponent(ev.reference)}`); setShare(r.share); return r; })}>
+            Collect my key share
+          </Button>
+        </>
+      ) : (
+        <p className="text-sm text-slate-600">Collected {when(mine.collectedAt)}.</p>
+      )}
+      {!opened && me?.approvedAt && !mine.provided && (
+        <form className="space-y-2" onSubmit={(e) => { e.preventDefault(); run(() => api('/evaluation/share', { body: { reference: ev.reference, share: paste } })); }}>
+          <Field label="Provide your key share to open the bids" id="share-paste">
+            <Textarea id="share-paste" rows={3} required value={paste} onChange={(e) => setPaste(e.target.value)} placeholder="ZPPA-SHARE:…" className="font-mono text-xs" />
+          </Field>
+          <Button type="submit" busy={busy}>Provide key share</Button>
+        </form>
+      )}
+      {!opened && <p className="text-xs text-slate-600">{o.provided} of {o.threshold} shares needed to open have been provided{mine.provided ? ', including yours' : ''}.</p>}
+      {error && <Message tone="error">{error}</Message>}
+    </div>
+  );
+}
+
 function Committee({ ev, reload }) {
   const { user } = useAuth();
   const [candidates, setCandidates] = useState(null);
@@ -72,6 +131,7 @@ function Committee({ ev, reload }) {
         )}
         {error && <Message tone="error">{error}</Message>}
         {done?.txId && <Message tone="success">Your approval is on the ledger in block {done.block}.</Message>}
+        {ev.opening?.mode === 'SHAMIR' && <KeyShare ev={ev} reload={reload} />}
       </div>
     </Card>
   );
@@ -121,14 +181,17 @@ function Bids({ ev, reload }) {
   const [run, busy, error, done] = useAction(reload);
   const member = ev.me.onCommittee;
   const unopened = ev.bids.filter((b) => !b.integrity).length;
-  const canOpen = ev.openingApproved && unopened > 0 && (member || user.role === 'OFFICER');
+  const sharesShort = ev.opening?.mode === 'SHAMIR' && ev.opening.provided < ev.opening.threshold;
+  const canOpen = ev.openingApproved && unopened > 0 && !sharesShort && (member || user.role === 'OFFICER');
   const bid = ev.bids.find((b) => b.bidId === selected);
   const integrity = { MATCH: ['Opened, hash matches', 'success'], MISMATCH: ['Failed integrity check', 'danger'] };
 
   return (
     <>
       <Card title={`Bids (${ev.bids.length})`} padded={false}
-        actions={canOpen && <Button busy={busy} onClick={() => run(() => api('/evaluation/open', { body: { reference: ev.reference } }))}>
+        actions={sharesShort && ev.openingApproved && unopened > 0
+          ? <span className="text-sm text-slate-600">Waiting for key shares: {ev.opening.provided} of {ev.opening.threshold}</span>
+          : canOpen && <Button busy={busy} onClick={() => run(() => api('/evaluation/open', { body: { reference: ev.reference } }))}>
           <LockOpen className="h-4 w-4" aria-hidden /> Open {unopened} bid{unopened === 1 ? '' : 's'}</Button>}>
         {(error || done) && (
           <div className="border-b border-slate-200 p-4">
@@ -242,7 +305,7 @@ export default function EvaluationTender() {
         description={<>Closed {when(ev.closingTime)} · <Link to={tenderLink(ev.reference)} className="font-medium text-brand-700 hover:underline">Ledger record</Link></>} />
       <Steps steps={[
         ['Committee appointed', ev.committee.length >= ev.quorum, ev.committee.length ? `${ev.committee.length} members` : null],
-        ['Opening approved', ev.openingApproved, `${approvals} of ${ev.quorum} on the ledger`],
+        ['Opening approved', ev.openingApproved, `${approvals} of ${ev.quorum} on the ledger${ev.opening?.mode === 'SHAMIR' && !ev.bids.every((b) => b.integrity) ? ` · ${ev.opening.provided} of ${ev.opening.threshold} key shares` : ''}`],
         ['Bids opened', ev.bids.length > 0 && ev.bids.every((b) => b.integrity), `${ev.bids.filter((b) => b.integrity).length} of ${ev.bids.length}`],
         ['Scored', scored, null],
         ['Recommended', !!ev.recommendation, ev.recommendation ? ev.recommendation.bidId : null],

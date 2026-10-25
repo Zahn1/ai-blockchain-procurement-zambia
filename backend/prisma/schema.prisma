@@ -90,24 +90,28 @@ model Supplier {
 
 /// Off-chain details of a tender. The ledger holds its hashes, value, closing time and status (3.5.3).
 model Tender {
-  reference       String            @id
-  title           String
-  fileName        String
-  docHash         String
-  cid             String
-  closingTime     DateTime
-  txId            String
-  block           Int
-  publishedById   String
-  publishedBy     User              @relation("PublishedBy", fields: [publishedById], references: [id])
+  reference        String            @id
+  title            String
+  fileName         String
+  docHash          String
+  cid              String
+  closingTime      DateTime
+  txId             String
+  block            Int
+  publishedById    String
+  publishedBy      User              @relation("PublishedBy", fields: [publishedById], references: [id])
   // Evaluation method (3.5.5): combined score = technical x weight + financial x (100 - weight)
-  technicalWeight Int               @default(70)
-  passMark        Int               @default(60)
-  committee       CommitteeMember[]
-  bids            Bid[]
-  recommendation  Recommendation?
-  contract        Contract?
-  createdAt       DateTime          @default(now())
+  technicalWeight  Int               @default(70)
+  passMark         Int               @default(60)
+  // Who can open the bids (FR-BID-07): SERVER (the back end's master key) or SHAMIR (a quorum of the committee's
+  // key shares). With SHAMIR, bid keys are wrapped with this X25519 public key; its private key exists only as shares.
+  openingMode      String            @default("SERVER")
+  openingPublicKey String?
+  committee        CommitteeMember[]
+  bids             Bid[]
+  recommendation   Recommendation?
+  contract         Contract?
+  createdAt        DateTime          @default(now())
 }
 
 /// Off-chain details of a sealed bid. The ledger holds its ciphertext hash and submission time (3.5.4).
@@ -128,6 +132,7 @@ model Bid {
   plainHash   String?
   openedAt    DateTime?
   priceNgwee  BigInt? // bid price read from the opened document
+  wrappedKey  String? // SHAMIR opening: the bid key wrapped with the tender's public key until opening
   scores      Score[]
 
   @@index([tenderRef])
@@ -135,12 +140,19 @@ model Bid {
 
 /// The evaluation committee appointed for a tender (3.5.5).
 model CommitteeMember {
-  tenderRef    String
-  tender       Tender    @relation(fields: [tenderRef], references: [reference])
-  userId       String
-  user         User      @relation(fields: [userId], references: [id])
-  approvedAt   DateTime? // when this member signed the opening approval on the ledger
-  approvalTxId String?
+  tenderRef         String
+  tender            Tender    @relation(fields: [tenderRef], references: [reference])
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  approvedAt        DateTime? // when this member signed the opening approval on the ledger
+  approvalTxId      String?
+  // SHAMIR opening: this member's key share. Held (sealed) only until the member downloads it; its hash checks the
+  // share they hand back at opening, which is held (sealed) only until the bids are opened.
+  shareIndex        Int?
+  shareHash         String?
+  shareSealed       String?
+  shareDownloadedAt DateTime?
+  sharePending      String?
 
   @@id([tenderRef, userId])
 }

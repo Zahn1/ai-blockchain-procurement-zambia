@@ -134,9 +134,9 @@ Table 4.3 · Testing at each level (copy from `docs/phase6/evaluation-summary.md
 | Level | Tests | Result | Coverage |
 |---|---|---|---|
 | Chaincode unit tests (Go) | 47 | all pass | 76.2% of statements |
-| Back-end unit and integration tests (Jest) | 175 | all pass | 88.4% statements, 75.1% branches |
+| Back-end unit and integration tests (Jest) | 189 | all pass | 88.8% statements, 76.9% branches |
 | AI tests (pytest) | 25 | all pass | 92% |
-| Front-end tests (Vitest), including accessibility | 59 | all pass | 87.7% statements |
+| Front-end tests (Vitest), including accessibility | 62 | all pass | 87.8% statements |
 | System test on the live network | 77 checks | 77 pass | – |
 
 Evidence: `docs/phase6/*-tests.txt`. Explain why `GetTenderHistory` shows 0% in the unit tests (the test mock has no
@@ -181,7 +181,7 @@ Table 4.5 · Non-functional requirements: copy section 3 of `docs/phase6/evaluat
 | NFR-08 ROC-AUC ≥ 0.80 | 0.991 tenders; 1.000 contracts | `model-evaluation.md` |
 | NFR-09 Security | 13 refusals without a session or with the wrong role; Fabric TLS | `system-test-results.md` |
 | NFR-10 Usability, WCAG AA | 19 screens, 0 violations after 3 fixes | `accessibility.md` |
-| NFR-11 Testability | 306 automated tests | test outputs |
+| NFR-11 Testability | 323 automated tests | test outputs |
 | NFR-12 (stretch) | not done | – |
 | NFR-13 Caliper (stretch) | 21,000 transactions, 0 failed; saturation about 440 writes/s | `caliper.md`, `caliper-report.html` |
 
@@ -254,7 +254,8 @@ Cover (see section 5 of `docs/phase6/evaluation-summary.md`):
   awards), and why a regulator, not the score, decides.
 - One laptop: the performance figures show the design's behaviour, not production capacity.
 - Stand-ins for PACRA, ZRA, IFMIS and SMS.
-- Stretch goals not done (4 organisations, Shamir key splitting, GNN) and what they would add; Caliper was done.
+- Stretch goals: Caliper and Shamir key splitting done (`caliper.md`, `key-splitting.md`); four organisations and a GNN not
+  done, and what they would add.
 
 ---
 

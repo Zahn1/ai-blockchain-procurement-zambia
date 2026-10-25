@@ -7,11 +7,12 @@ import express from 'express';
 import { AuthError } from './auth.js';
 import { sha256, decrypt } from './sealed.js';
 import { rankBids, reportHash, MIN_JUSTIFICATION } from './evaluation.js';
+import { tenderKeyPair, wrapKey, unwrapKey, splitKey, parseShare, shareHash, combineShares } from './shamir.js';
 
 const wrap = (fn) => (req, res, next) => fn(req, res).catch(next);
 const fail = (status, message) => new AuthError(status, message);
 
-export function evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity, now = () => new Date() }) {
+export function evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity, shamirOpening = false, now = () => new Date() }) {
   const r = express.Router();
   const staff = [auth.requireAuth, auth.requireRole('OFFICER', 'COMMITTEE')];
   const committee = [auth.requireAuth, auth.requireRole('COMMITTEE')];
@@ -57,17 +58,71 @@ export function evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity
   r.post('/evaluation/committee', officer, wrap(async (req, res) => {
     const tender = await loadTender(req.body.reference);
     if (tender.committee.some((m) => m.approvedAt)) throw fail(409, 'Members have already approved opening; the committee can no longer change.');
+    if (tender.openingMode === 'SHAMIR') throw fail(409, 'The opening key is already split among this committee, so it can no longer change.');
     const ids = [...new Set(req.body.memberIds ?? [])];
     const onLedger = await ledger.evaluate(officerIdentity, 'TenderContract:ReadTender', tender.reference);
     if (ids.length < onLedger.quorum) throw fail(400, `Appoint at least ${onLedger.quorum} committee members.`);
     const members = await db.user.findMany({ where: { id: { in: ids }, role: 'COMMITTEE', status: 'ACTIVE', fabricIdentity: { not: null } } });
     if (members.length !== ids.length) throw fail(400, 'Every member must be an active evaluation committee user.');
-    await db.$transaction([
-      db.committeeMember.deleteMany({ where: { tenderRef: tender.reference } }),
-      db.committeeMember.createMany({ data: ids.map((userId) => ({ tenderRef: tender.reference, userId })) }),
-    ]);
-    await auth.audit(req.user.id, 'committee.appointed', { tender: tender.reference, members: members.map((m) => m.email) }, req.ip);
-    res.json({ appointed: members.map((m) => m.name) });
+    if (!shamirOpening) {
+      await db.$transaction([
+        db.committeeMember.deleteMany({ where: { tenderRef: tender.reference } }),
+        db.committeeMember.createMany({ data: ids.map((userId) => ({ tenderRef: tender.reference, userId })) }),
+      ]);
+    } else {
+      // FR-BID-07: a key pair for this tender; bids already in are re-wrapped for it; the private key is split into one
+      // share per member (any quorum rebuild it) and then exists nowhere else
+      const pair = tenderKeyPair();
+      const shares = await splitKey(pair.privateKey, ids.length, onLedger.quorum, tender.reference);
+      pair.privateKey.fill(0);
+      const bids = await db.bid.findMany({ where: { tenderRef: tender.reference } });
+      const wrapped = await Promise.all(bids.map(async (b) => [b.bidId, wrapKey(await keys.loadBidKey(b.bidId), pair.publicKey)]));
+      const sealed = await Promise.all(shares.map((s) => keys.sealWithMaster(s)));
+      await db.$transaction([
+        db.committeeMember.deleteMany({ where: { tenderRef: tender.reference } }),
+        db.committeeMember.createMany({ data: ids.map((userId, i) => ({ tenderRef: tender.reference, userId,
+          shareIndex: i + 1, shareHash: shareHash(shares[i]), shareSealed: sealed[i] })) }),
+        db.tender.update({ where: { reference: tender.reference }, data: { openingMode: 'SHAMIR', openingPublicKey: pair.publicKey } }),
+        ...wrapped.map(([bidId, w]) => db.bid.update({ where: { bidId }, data: { wrappedKey: w } })),
+      ]);
+      for (const [bidId] of wrapped) await keys.deleteBidKey(bidId);
+    }
+    await auth.audit(req.user.id, 'committee.appointed', { tender: tender.reference, members: members.map((m) => m.email),
+      keySplit: shamirOpening ? `${onLedger.quorum} of ${ids.length}` : null }, req.ip);
+    res.json({ appointed: members.map((m) => m.name), keySplit: shamirOpening ? { threshold: onLedger.quorum, shares: ids.length } : null });
+  }));
+
+  // FR-BID-07: a member collects their key share, once; after that the back end no longer holds it
+  r.get('/evaluation/share', committee, wrap(async (req, res) => {
+    const tender = await loadTender(req.query.reference);
+    mayView(req.user, tender);
+    if (tender.openingMode !== 'SHAMIR') throw fail(404, 'This tender\'s opening key is not split among the committee.');
+    const m = tender.committee.find((x) => x.userId === req.user.id);
+    if (!m.shareSealed) throw fail(409, `You collected your key share on ${m.shareDownloadedAt?.toISOString() ?? 'an earlier date'}. Keep it safe: it cannot be issued again.`);
+    const share = (await keys.unsealWithMaster(m.shareSealed)).toString();
+    await db.committeeMember.update({ where: { tenderRef_userId: { tenderRef: tender.reference, userId: req.user.id } },
+      data: { shareSealed: null, shareDownloadedAt: now() } });
+    await auth.audit(req.user.id, 'share.collected', { tender: tender.reference, shareIndex: m.shareIndex }, req.ip);
+    res.json({ share, index: m.shareIndex, of: tender.committee.length });
+  }));
+
+  // FR-BID-07: at opening, a member who has approved hands back their share; it is checked against its recorded hash
+  r.post('/evaluation/share', committee, wrap(async (req, res) => {
+    const tender = await loadTender(req.body.reference);
+    mayView(req.user, tender);
+    if (tender.openingMode !== 'SHAMIR') throw fail(404, 'This tender\'s opening key is not split among the committee.');
+    const m = tender.committee.find((x) => x.userId === req.user.id);
+    if (!m.approvedAt) throw fail(409, 'Approve opening on the ledger first, then provide your key share.');
+    let parsed;
+    try { parsed = parseShare(req.body.share); } catch (err) { throw fail(400, err.message); }
+    if (parsed.reference !== tender.reference || shareHash(req.body.share) !== m.shareHash) {
+      throw fail(400, 'That is not your key share for this tender.');
+    }
+    await db.committeeMember.update({ where: { tenderRef_userId: { tenderRef: tender.reference, userId: req.user.id } },
+      data: { sharePending: await keys.sealWithMaster(String(req.body.share).trim()) } });
+    await auth.audit(req.user.id, 'share.provided', { tender: tender.reference, shareIndex: m.shareIndex }, req.ip);
+    const { quorum } = await ledger.evaluate(officerIdentity, 'TenderContract:ReadTender', tender.reference);
+    res.json({ provided: tender.committee.filter((x) => x.sharePending || x.userId === req.user.id).length, needed: quorum });
   }));
 
   // The tenders to evaluate: every tender for an officer, only those a member is appointed to for the committee
@@ -105,6 +160,13 @@ export function evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity
       technicalWeight: tender.technicalWeight, passMark: tender.passMark,
       committee: tender.committee.map((m) => ({ id: m.userId, name: m.user.name, approvedAt: m.approvedAt, approvalTxId: m.approvalTxId })),
       me: { id: req.user.id, onCommittee: members.includes(req.user.id) },
+      opening: tender.openingMode === 'SHAMIR' ? (() => {
+        const mine = tender.committee.find((m) => m.userId === req.user.id);
+        return { mode: 'SHAMIR', threshold: onLedger.quorum, shares: tender.committee.length,
+          provided: tender.committee.filter((m) => m.sharePending).length,
+          collected: tender.committee.filter((m) => m.shareDownloadedAt).length,
+          mine: mine ? { index: mine.shareIndex, collectedAt: mine.shareDownloadedAt, provided: !!mine.sharePending } : null };
+      })() : { mode: 'SERVER' },
       bids: bids.map((b) => ({
         bidId: b.bidId, supplierRef: b.supplierRef, submittedAt: b.submittedAt, cipherHash: b.cipherHash,
         onLedger: ledgerBids.some((lb) => lb.id === b.bidId),
@@ -144,6 +206,21 @@ export function evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity
     if (!onLedger.openingApproved) {
       throw fail(409, `Opening needs ${onLedger.quorum} committee approvals on the ledger; it has ${onLedger.approvals.length}.`);
     }
+    // FR-BID-07: rebuild the opening key from the quorum's shares, in memory only
+    let openingKey = null;
+    if (tender.openingMode === 'SHAMIR') {
+      const pending = tender.committee.filter((m) => m.sharePending);
+      if (pending.length < onLedger.quorum) {
+        throw fail(409, `Opening needs ${onLedger.quorum} committee key shares; ${pending.length} provided.`);
+      }
+      try {
+        openingKey = await combineShares(await Promise.all(pending.map(async (m) => (await keys.unsealWithMaster(m.sharePending)).toString())),
+          tender.openingPublicKey);
+      } catch (err) {
+        throw fail(409, err.message);
+      }
+    }
+    const keyFor = async (bid) => (openingKey && bid.wrappedKey ? unwrapKey(bid.wrappedKey, openingKey) : keys.loadBidKey(bid.bidId));
     const ledgerBids = await ledger.evaluate(officerIdentity, 'BidContract:GetBidsForTender', tender.reference);
     const bids = await db.bid.findMany({ where: { tenderRef: tender.reference, integrity: null } });
     const results = [];
@@ -155,7 +232,11 @@ export function evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity
         const sealed = await ipfs.cat(bid.cid);
         if (!recorded) reason = 'The bid is not on the ledger.';
         else if (sha256(sealed) !== recorded.cipherHash) reason = 'The stored file does not match the hash recorded on the ledger.';
-        else plain = decrypt(sealed, await keys.loadBidKey(bid.bidId)); // GCM also detects tampering
+        else {
+          const key = await keyFor(bid);
+          plain = decrypt(sealed, key); // GCM also detects tampering
+          if (openingKey) await keys.storeBidKey(bid.bidId, key); // opened: the committee may now read it
+        }
       } catch {
         reason = reason ?? 'The stored file could not be decrypted: it has been altered or its key is missing.';
       }
@@ -170,6 +251,10 @@ export function evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity
       await db.bid.update({ where: { bidId: bid.bidId }, data: { integrity: 'MATCH', plainHash, openedAt: now() } });
       await auth.audit(req.user.id, 'bid.opened', { bidId: bid.bidId, txId: tx.txId }, req.ip);
       results.push({ bidId: bid.bidId, supplierRef: bid.supplierRef, integrity: 'MATCH', plainHash, txId: tx.txId });
+    }
+    if (openingKey) {
+      openingKey.fill(0);
+      await db.committeeMember.updateMany({ where: { tenderRef: tender.reference }, data: { sharePending: null } });
     }
     res.json({ results });
   }));

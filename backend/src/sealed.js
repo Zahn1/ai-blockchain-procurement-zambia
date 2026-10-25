@@ -1,8 +1,8 @@
 // Sealed bids: AES-256-GCM encryption, SHA-256 hashing and storage of the per-bid keys.
 //
 // Each bid gets its own random 256-bit key. The key is itself encrypted ("wrapped") with a master key and kept
-// off-chain until opening. Prototype limitation: one master key held by the back end. The design's stretch goal
-// replaces it with Shamir secret sharing among committee members, so no single party can open a bid.
+// off-chain until opening. By default one master key is held by the back end; with SHAMIR_OPENING on, bid keys are
+// wrapped for the committee instead and no single party can open a bid (shamir.js, FR-BID-07).
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -68,4 +68,21 @@ export async function loadBidKey(bidId) {
   const wrapped = (await readKeys())[bidId];
   if (!wrapped) throw new Error(`no key stored for bid ${bidId}`);
   return decrypt(Buffer.from(wrapped, 'base64'), await masterKey());
+}
+
+/** Removes a bid's master-wrapped key, e.g. once it is wrapped for the committee's shares instead (FR-BID-07). */
+export async function deleteBidKey(bidId) {
+  const keys = await readKeys();
+  if (!(bidId in keys)) return;
+  delete keys[bidId];
+  await fs.writeFile(keysFile(), JSON.stringify(keys, null, 2), { mode: 0o600 });
+}
+
+/** Seals a small secret (e.g. a key share waiting to be collected) with the master key, as base64. */
+export async function sealWithMaster(bytes) {
+  return encrypt(Buffer.from(bytes), await masterKey()).toString('base64');
+}
+
+export async function unsealWithMaster(text) {
+  return decrypt(Buffer.from(text, 'base64'), await masterKey());
 }

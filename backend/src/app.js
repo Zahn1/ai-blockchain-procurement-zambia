@@ -4,10 +4,11 @@ import express from 'express';
 import multer from 'multer';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { root, actors, committeeIdentities as defaultCommittee, inspectorIdentities as defaultInspectors,
+import { root, config, actors, committeeIdentities as defaultCommittee, inspectorIdentities as defaultInspectors,
   regulatorIdentities as defaultRegulators } from './config.js';
 import { sha256, encrypt, newKey } from './sealed.js';
 import { sign, verify } from './receipt.js';
+import { wrapKey } from './shamir.js';
 import { authRoutes } from './auth-routes.js';
 import { supplierRoutes, bidBlocker } from './supplier-routes.js';
 import { evaluationRoutes } from './evaluation-routes.js';
@@ -25,7 +26,8 @@ const silent = { tenderPublished() {}, bidReceived() {}, contractAwarded() {}, p
 const noRisk = { assess: async () => null };
 
 export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, registries, ifmis, notifier = silent, risk = noRisk,
-  committeeIdentities = defaultCommittee, inspectorIdentities = defaultInspectors, regulatorIdentities = defaultRegulators }) {
+  committeeIdentities = defaultCommittee, inspectorIdentities = defaultInspectors, regulatorIdentities = defaultRegulators,
+  shamirOpening = config.shamirOpening }) {
   const app = express();
   app.use(express.json());
   app.use(express.static(path.join(root, 'public')));
@@ -37,7 +39,7 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
 
   app.use('/api', authRoutes({ db, auth, committeeIdentities, inspectorIdentities, regulatorIdentities }));
   app.use('/api', supplierRoutes({ db, auth, registries }));
-  app.use('/api', evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity: actors.officer }));
+  app.use('/api', evaluationRoutes({ db, auth, ledger, ipfs, keys, officerIdentity: actors.officer, shamirOpening }));
   app.use('/api', contractRoutes({ db, auth, ledger, ipfs, ifmis, notifier, risk, officerIdentity: actors.officer }));
   app.use('/api', oversightRoutes({ db, auth, ledger, officerIdentity: actors.officer }));
   app.use('/api', publicRoutes({ db, ledger, officerIdentity: actors.officer }));
@@ -119,6 +121,12 @@ export function createApp({ ledger, ipfs, store, keys, receiptSigner, db, auth, 
       submittedAt: tx.result.submittedAt, txId: tx.txId, block: tx.block }, ...(await receiptSigner()));
     await store.addBid({ bidId, tenderId, supplierRef, supplierId: req.user.supplier.pacraNumber, cid, cipherHash,
       fileName: req.file.originalname, txId: tx.txId, submittedAt: tx.result.submittedAt });
+    // With key splitting (FR-BID-07) the key is wrapped for the committee's shares and the back end's copy is removed
+    const tender = await db.tender.findUnique({ where: { reference: tenderId }, select: { openingMode: true, openingPublicKey: true } });
+    if (tender?.openingMode === 'SHAMIR') {
+      await db.bid.update({ where: { bidId }, data: { wrappedKey: wrapKey(key, tender.openingPublicKey) } });
+      await keys.deleteBidKey(bidId);
+    }
     await auth.audit(req.user.id, 'bid.submitted', { bidId, tenderId, txId: tx.txId }, req.ip);
     notifier.bidReceived(req.user, receipt);
     res.status(201).json(receipt);

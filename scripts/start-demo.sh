@@ -13,7 +13,8 @@ listening() { lsof -iTCP:"$1" -sTCP:LISTEN -n -P >/dev/null 2>&1; }
 start() { # name port directory command...
   local name=$1 port=$2 dir=$3; shift 3
   if listening "$port"; then echo "$name already running on port $port"; return; fi
-  (cd "$dir" && nohup "$@" >"$LOGS/$name.log" 2>&1 & echo $! >"$LOGS/$name.pid")
+  # cd first, then start in the background, so $! is the service itself (for stop-demo.sh)
+  (cd "$dir" || exit 1; nohup "$@" >"$LOGS/$name.log" 2>&1 & echo $! >"$LOGS/$name.pid")
   echo "$name starting on port $port (log: logs/$name.log)"
 }
 wait_for() { # name url

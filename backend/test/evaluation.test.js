@@ -57,7 +57,7 @@ function fakeLedger() {
   };
 }
 
-function makeApp() {
+function makeApp({ shamirOpening = false } = {}) {
   const ledger = fakeLedger();
   const files = new Map();
   const bidKeys = new Map();
@@ -68,6 +68,9 @@ function makeApp() {
   const keys = {
     async storeBidKey(id, key) { bidKeys.set(id, key); },
     async loadBidKey(id) { return bidKeys.get(id); },
+    async deleteBidKey(id) { bidKeys.delete(id); },
+    async sealWithMaster(bytes) { return Buffer.from(bytes).toString('base64'); },
+    async unsealWithMaster(text) { return Buffer.from(text, 'base64'); },
   };
   const receiptSigner = async () => {
     const crypto = await import('node:crypto');
@@ -75,8 +78,8 @@ function makeApp() {
     return [privateKey, publicKey.export({ type: 'spki', format: 'pem' })];
   };
   const app = createApp({ ledger, ipfs, store: dbStore(db), keys, receiptSigner, db, auth: makeAuth(),
-    committeeIdentities: ['committee1', 'committee2', 'committee3'] });
-  return { app, ledger, files };
+    committeeIdentities: ['committee1', 'committee2', 'committee3'], shamirOpening });
+  return { app, ledger, files, bidKeys };
 }
 
 const REF = 'ZPPA/MOH/2026/0501';
@@ -354,5 +357,108 @@ describe('Scores and the recommended award', () => {
     await request(app).post('/api/evaluation/recommend').set(as(members[0])).send({ reference: REF, bidId: ids[1] });
     const res = await request(app).post('/api/evaluation/score').set(as(members[1])).send({ bidId: ids[0], technicalScore: 100, comment: 'Changed my mind' });
     expect(res.status).toBe(409);
+  });
+});
+
+describe('Key splitting among the committee (FR-BID-07, SHAMIR_OPENING=on)', () => {
+  const appoint = (app) => request(app).post('/api/evaluation/committee').set(as(officer)).send({ reference: REF, memberIds: members.map((m) => m.user.id) });
+  const collect = (app, m) => request(app).get('/api/evaluation/share').query({ reference: REF }).set(as(m));
+  const provide = (app, m, share) => request(app).post('/api/evaluation/share').set(as(m)).send({ reference: REF, share });
+  async function approveAll(app, ledger) {
+    ledger.closeTender(REF);
+    for (const m of members) await request(app).post('/api/evaluation/approve').set(as(m)).send({ reference: REF });
+  }
+
+  test('appointing the committee splits the opening key and removes the back end\'s copies of the bid keys', async () => {
+    const { app, bidKeys } = makeApp({ shamirOpening: true });
+    const ids = await publishAndBid(app);
+    expect(ids.every((id) => bidKeys.has(id))).toBe(true);
+    const res = await appoint(app);
+    expect(res.body.keySplit).toEqual({ threshold: 2, shares: 2 });
+    expect(ids.some((id) => bidKeys.has(id))).toBe(false);
+    const bids = await db.bid.findMany({ where: { tenderRef: REF } });
+    expect(bids.every((b) => b.wrappedKey)).toBe(true);
+    expect((await db.tender.findUnique({ where: { reference: REF } })).openingMode).toBe('SHAMIR');
+  });
+
+  test('bids arriving after the split are wrapped for the committee too', async () => {
+    const { app, bidKeys } = makeApp({ shamirOpening: true });
+    await request(app).post('/api/tenders').set(as(officer)).field('reference', REF).field('title', 'Laptops')
+      .field('estValueKwacha', '150000').field('closesInMinutes', '5').attach('document', Buffer.from('tender doc'), 't.txt');
+    await appoint(app);
+    const bid = await request(app).post('/api/bids').set(as(bidders[0])).field('tenderId', REF).attach('bid', Buffer.from('Bid: K130,000'), 'b.txt');
+    expect(bidKeys.has(bid.body.bidId)).toBe(false);
+    expect((await db.bid.findUnique({ where: { bidId: bid.body.bidId } })).wrappedKey).toBeTruthy();
+  });
+
+  test('each member collects their share once; it cannot be issued again', async () => {
+    const { app } = makeApp({ shamirOpening: true });
+    await publishAndBid(app);
+    await appoint(app);
+    const first = await collect(app, members[0]);
+    expect(first.status).toBe(200);
+    expect(first.body).toMatchObject({ index: expect.any(Number), of: 2, share: expect.stringMatching(/^ZPPA-SHARE:/) });
+    expect((await collect(app, members[0])).status).toBe(409);
+    expect((await collect(app, bidders[0])).status).toBe(403);
+  });
+
+  test('the committee cannot be changed once the key is split', async () => {
+    const { app } = makeApp({ shamirOpening: true });
+    await publishAndBid(app);
+    await appoint(app);
+    const again = await appoint(app);
+    expect(again.status).toBe(409);
+    expect(again.body.error).toMatch(/split/);
+  });
+
+  test('approvals on the ledger are not enough: opening needs the quorum\'s key shares', async () => {
+    const { app, ledger } = makeApp({ shamirOpening: true });
+    await publishAndBid(app);
+    await appoint(app);
+    const shares = [(await collect(app, members[0])).body.share, (await collect(app, members[1])).body.share];
+    await approveAll(app, ledger);
+    const none = await request(app).post('/api/evaluation/open').set(as(officer)).send({ reference: REF });
+    expect(none.status).toBe(409);
+    expect(none.body.error).toMatch(/needs 2 committee key shares; 0 provided/);
+    expect((await provide(app, members[0], shares[0])).body).toEqual({ provided: 1, needed: 2 });
+    expect((await request(app).post('/api/evaluation/open').set(as(officer)).send({ reference: REF })).body.error).toMatch(/1 provided/);
+  });
+
+  test('a share must be the member\'s own, given after they approved', async () => {
+    const { app, ledger } = makeApp({ shamirOpening: true });
+    await publishAndBid(app);
+    await appoint(app);
+    const shares = [(await collect(app, members[0])).body.share, (await collect(app, members[1])).body.share];
+    expect((await provide(app, members[0], shares[0])).status).toBe(409); // not approved yet
+    await approveAll(app, ledger);
+    expect((await provide(app, members[0], shares[1])).status).toBe(400); // someone else's share
+    expect((await provide(app, members[0], 'not a share')).status).toBe(400);
+  });
+
+  test('with the quorum\'s shares the bids open, can be read, and the shares are dropped', async () => {
+    const { app, ledger } = makeApp({ shamirOpening: true });
+    const ids = await publishAndBid(app);
+    await appoint(app);
+    const shares = [(await collect(app, members[0])).body.share, (await collect(app, members[1])).body.share];
+    await approveAll(app, ledger);
+    for (const [i, m] of members.entries()) await provide(app, m, shares[i]);
+    const opened = await request(app).post('/api/evaluation/open').set(as(members[0])).send({ reference: REF });
+    expect(opened.status).toBe(200);
+    expect(opened.body.results.map((r) => r.integrity)).toEqual(['MATCH', 'MATCH', 'MATCH']);
+    const file = await request(app).get('/api/evaluation/bid-file').query({ bidId: ids[0] }).set(as(members[1]));
+    expect(file.text).toMatch(/^Bid 0: price/);
+    const committee = await db.committeeMember.findMany({ where: { tenderRef: REF } });
+    expect(committee.every((m) => m.sharePending === null && m.shareSealed === null)).toBe(true);
+    const view = await request(app).get('/api/evaluation').query({ reference: REF }).set(as(members[0]));
+    expect(view.body.opening).toMatchObject({ mode: 'SHAMIR', threshold: 2, shares: 2, collected: 2, provided: 0 });
+  });
+
+  test('with the setting off, nothing changes: the back end opens with its own key', async () => {
+    const { app, ledger, bidKeys } = makeApp();
+    const ids = await toOpened(app, ledger);
+    expect(ids.every((id) => bidKeys.has(id))).toBe(true);
+    const view = await request(app).get('/api/evaluation').query({ reference: REF }).set(as(members[0]));
+    expect(view.body.opening).toEqual({ mode: 'SERVER' });
+    expect(view.body.bids.every((b) => b.integrity === 'MATCH')).toBe(true);
   });
 });
