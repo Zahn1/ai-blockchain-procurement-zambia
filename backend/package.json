@@ -32,7 +32,7 @@
   "devDependencies": {
     "jest": "^30.5.2",
     "prisma": "^6.19.3",
-    "puppeteer-core": "^23.10.4",
+    "puppeteer-core": "^25.13.0",
     "supertest": "^7.3.1"
   },
   "prisma": {
@@ -41,5 +41,13 @@
   "jest": {
     "testEnvironment": "node",
     "globalSetup": "./test/global-setup.js"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "11.1.1"
+    },
+    "@prisma/config": {
+      "deepmerge-ts": "8.0.2"
+    }
   }
 }

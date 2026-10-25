@@ -199,6 +199,14 @@ slowness; all 160 test writes were checked on the ledger afterwards.
 
 ---
 
+### Security of third-party code (subsection of 4.6)
+
+Cover: how dependencies were audited and the before/after counts (back end 16 → 0, front end 10 → 0, AI 8 → 0,
+chaincode 6 → 1 not applicable); which findings were in code that actually runs; why the chaincode fix waits for the
+next upgrade; the two-week rule for new versions. Evidence: `docs/phase6/dependency-audit.md`.
+
+---
+
 ## 4.7 Usability evaluation  *(to complete after the sessions)*
 
 Cover:

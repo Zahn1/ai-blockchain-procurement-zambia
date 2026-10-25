@@ -15,6 +15,7 @@ IPFS, PostgreSQL, the AI risk service and the React front end, on one MacBook Pr
 | Performance | Ledger reads and writes, API, AI service; Hyperledger Caliper | 14 measurements; 7 Caliper rounds | 0 failures | – | `performance.md`, `caliper.md` |
 | Security and privacy | Tampering, early opening, late bids, role access, ledger scan | in the system test, plus the scan | all pass | – | `system-test-results.md`, `privacy-scan.md` |
 | Accessibility | WCAG 2.1 A and AA, automated and in a real browser | 19 screens | 0 violations after fixes | – | `accessibility.md` |
+| Dependency audit | Known vulnerabilities in third-party packages (npm audit, pip-audit, govulncheck) | 4 components | 0 left in the app's dependencies after upgrades | – | `dependency-audit.md` |
 | Usability | Tasks and SUS with participants | kit ready | **to be run** | – | `usability/` |
 
 `GetTenderHistory` shows 0% in the chaincode unit tests because it reads the peer's history database, which the test
