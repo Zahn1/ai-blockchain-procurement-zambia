@@ -1,0 +1,38 @@
+# Caliper benchmark for the procurement network (stretch goal NFR-13).
+# Reads at a fixed rate, then writes at rising fixed rates until the network saturates.
+test:
+  name: procurement-ledger
+  description: Ledger reads and tender publication on the two-organisation network (ZPPA and OAG, majority endorsement)
+  workers:
+    number: 8
+  rounds:
+    - label: read-tender-200tps
+      description: Query one tender
+      txNumber: 4000
+      rateControl: { type: fixed-rate, opts: { tps: 200 } }
+      workload: { module: workload/read-tender.js, arguments: { reference: ZPPA/MOH/2026/F0001 } }
+    - label: publish-tender-25tps
+      description: Publish tenders at 25 per second
+      txNumber: 500
+      rateControl: { type: fixed-rate, opts: { tps: 25 } }
+      workload: { module: workload/publish-tender.js }
+    - label: publish-tender-50tps
+      txNumber: 1000
+      rateControl: { type: fixed-rate, opts: { tps: 50 } }
+      workload: { module: workload/publish-tender.js }
+    - label: publish-tender-100tps
+      txNumber: 1500
+      rateControl: { type: fixed-rate, opts: { tps: 100 } }
+      workload: { module: workload/publish-tender.js }
+    - label: publish-tender-200tps
+      txNumber: 2000
+      rateControl: { type: fixed-rate, opts: { tps: 200 } }
+      workload: { module: workload/publish-tender.js }
+    - label: publish-tender-400tps
+      txNumber: 4000
+      rateControl: { type: fixed-rate, opts: { tps: 400 } }
+      workload: { module: workload/publish-tender.js }
+    - label: publish-tender-800tps
+      txNumber: 8000
+      rateControl: { type: fixed-rate, opts: { tps: 800 } }
+      workload: { module: workload/publish-tender.js }

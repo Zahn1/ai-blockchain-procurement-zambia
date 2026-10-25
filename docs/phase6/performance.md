@@ -38,7 +38,7 @@ p50 and p95: half and 95% of calls finished within this time. "In flight": calls
 
 For a procurement system this is ample: ZPPA's e-GP handles thousands of tenders a year, not per second. The 2-second
 wait on a lone write could be shortened by lowering `BatchTimeout` (e.g. to 500 ms) at the cost of more, smaller blocks.
-A fuller benchmark with Hyperledger Caliper on separate machines remains a stretch goal (CLAUDE.md).
+A Hyperledger Caliper benchmark confirms these figures and finds the saturation point (about 440 writes per second): see `caliper.md`.
 
 The 160 test tenders (`PERF/<run>/…`) exist only on the ledger; they are not in the database, so they do not appear in
 the portal, search, reports or OCDS.

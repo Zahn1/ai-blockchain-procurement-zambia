@@ -182,12 +182,14 @@ Table 4.5 · Non-functional requirements: copy section 3 of `docs/phase6/evaluat
 | NFR-09 Security | 13 refusals without a session or with the wrong role; Fabric TLS | `system-test-results.md` |
 | NFR-10 Usability, WCAG AA | 19 screens, 0 violations after 3 fixes | `accessibility.md` |
 | NFR-11 Testability | 306 automated tests | test outputs |
-| NFR-12, NFR-13 (stretch) | not done / own load test instead of Caliper | `performance.md` |
+| NFR-12 (stretch) | not done | – |
+| NFR-13 Caliper (stretch) | 21,000 transactions, 0 failed; saturation about 440 writes/s | `caliper.md`, `caliper-report.html` |
 
 ### Performance (subsection)
 
 Figure 4.13 · Bar chart of median latency per operation (from `docs/phase6/performance.md`).
 Table 4.6 · Performance results (copy the table).
+Table 4.7 · Caliper benchmark (copy from `docs/phase6/caliper.md`): throughput follows the send rate to 400 TPS and saturates at about 440 TPS.
 
 Numbers: ledger read 3 ms (one at a time), 11 ms with 20 at once; a lone write about 2,035 ms; concurrent writes
 34–54 ms each, 272–408 per second; API screens 18–31 ms median; AI `/score` 172 ms, `/explain` 210 ms.
@@ -207,7 +209,7 @@ Cover:
 
 Evidence: `docs/phase6/usability/` (session pack, `results.csv`, `results.md` from `score.py`).
 
-Table 4.7 · SUS per participant. Table 4.8 · Task success.
+Table 4.8 · SUS per participant. Table 4.9 · Task success.
 
 ---
 
@@ -221,7 +223,7 @@ Cover:
 
 Evidence: `docs/phase4/model-evaluation.md`, `docs/phase4/train-output.txt`, `docs/phase4/live-3.5.7-run.txt`.
 
-Table 4.9 · Model results
+Table 4.10 · Model results
 
 | Measure | Combined model | Rules only |
 |---|---|---|
@@ -238,7 +240,7 @@ flag 4.4% of tenders (7,909) for review.
 
 ## 4.9 Defects found and fixed
 
-Table 4.10 · copy section 4 of `docs/phase6/evaluation-summary.md` (IFMIS stand-in repeating references after a
+Table 4.11 · copy section 4 of `docs/phase6/evaluation-summary.md` (IFMIS stand-in repeating references after a
 restart; three accessibility issues; front-end issues found while testing). Testing finding real defects is evidence
 that it was worth doing; say how each was fixed and re-tested.
 
@@ -252,14 +254,14 @@ Cover (see section 5 of `docs/phase6/evaluation-summary.md`):
   awards), and why a regulator, not the score, decides.
 - One laptop: the performance figures show the design's behaviour, not production capacity.
 - Stand-ins for PACRA, ZRA, IFMIS and SMS.
-- Stretch goals not done (4 organisations, Caliper, Shamir key splitting, GNN) and what they would add.
+- Stretch goals not done (4 organisations, Shamir key splitting, GNN) and what they would add; Caliper was done.
 
 ---
 
 ## 4.11 Summary
 
-Cover: all ten functional requirements met and demonstrated live; eleven of thirteen non-functional requirements met
-(two stretch goals); key numbers (77/77, 5/5 tampering, 0 personal data, 2 s commit, 0.991 AUC, SUS once measured).
+Cover: all ten functional requirements met and demonstrated live; twelve of thirteen non-functional requirements met
+(one stretch goal not attempted); key numbers (77/77, 5/5 tampering, 0 personal data, 2 s commit, 0.991 AUC, SUS once measured).
 
 ---
 

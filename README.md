@@ -74,6 +74,7 @@ cd backend
 node system-test/run.mjs           # one full procurement, all ten requirements -> docs/phase6/system-test-results.md
 node system-test/performance.mjs   # ledger, API and AI timings -> docs/phase6/performance.md
 node system-test/privacy-scan.mjs  # searches the ledger for personal data -> docs/phase6/privacy-scan.md
+cd ../benchmark && npm install && ./run.sh   # Hyperledger Caliper benchmark -> docs/phase6/caliper.md
 ```
 
 Fabric's scripts do not support paths with spaces, so clone the repository to a path without them.

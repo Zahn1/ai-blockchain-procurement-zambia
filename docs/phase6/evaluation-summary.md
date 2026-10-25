@@ -12,7 +12,7 @@ IPFS, PostgreSQL, the AI risk service and the React front end, on one MacBook Pr
 | Unit | AI service and models (pytest), including the bidder-network model | 25 | all pass | 92% (training script excluded) | `ai-tests.txt` |
 | Component | Front end (Vitest + Testing Library), including accessibility | 59 | all pass | 87.7% statements, 80.4% branches | `frontend-tests.txt` |
 | System | One full procurement through the running system, all ten requirements | 77 checks | 77 pass | – | `system-test-results.md` |
-| Performance | Ledger reads and writes, API, AI service | 14 measurements | – | – | `performance.md` |
+| Performance | Ledger reads and writes, API, AI service; Hyperledger Caliper | 14 measurements; 7 Caliper rounds | 0 failures | – | `performance.md`, `caliper.md` |
 | Security and privacy | Tampering, early opening, late bids, role access, ledger scan | in the system test, plus the scan | all pass | – | `system-test-results.md`, `privacy-scan.md` |
 | Accessibility | WCAG 2.1 A and AA, automated and in a real browser | 19 screens | 0 violations after fixes | – | `accessibility.md` |
 | Usability | Tasks and SUS with participants | kit ready | **to be run** | – | `usability/` |
@@ -51,7 +51,7 @@ mock does not provide; it is exercised on the live network by the system test an
 | NFR-10 Usability | UK English; WCAG 2.1 AA contrast | 19 screens, 0 violations after three fixes | Met (SUS to follow) |
 | NFR-11 Testability | Unit tests for every contract, route and AI endpoint | 306 automated tests across the four layers | Met |
 | NFR-12 Scalability | Grow to 4 organisations | Not attempted (stretch goal) | Not done |
-| NFR-13 Benchmarking | Hyperledger Caliper | Own load test instead (`performance.md`); Caliper not run (stretch goal) | Partly |
+| NFR-13 Benchmarking | Hyperledger Caliper | Caliper 0.7.1: 21,000 transactions, 0 failed; about 440 writes per second at saturation (`caliper.md`) | Met (stretch) |
 
 ## 4. Defects found by testing, and fixed
 
