@@ -56,7 +56,7 @@ export default function Layout() {
   const [open, setOpen] = useState(false);
   return (
     <div className="min-h-screen lg:flex">
-      <aside className="hidden w-64 shrink-0 lg:block"><div className="fixed inset-y-0 w-64"><Sidebar /></div></aside>
+      <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:block"><div className="fixed inset-y-0 w-64"><Sidebar /></div></aside>
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-slate-900/40" onClick={() => setOpen(false)} aria-hidden />

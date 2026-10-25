@@ -188,7 +188,7 @@ function Recommendation({ ev, reload }) {
           ['Recommended bid', <span className="font-mono">{rec.bidId}</span>],
           ['Top-ranked bid', <span className="font-mono">{rec.recommendedBidId}</span>],
           ['Decided', when(rec.createdAt)],
-          ['Evaluation report hash', <Hash value={rec.reportHash} n={20} />],
+          ['Evaluation report hash', <Hash value={rec.reportHash} n={14} />],
           rec.justification && ['Justification for departing from the ranking', rec.justification],
         ]} />
         <p className="mt-4 text-sm text-slate-600">The report hash goes on the ledger with the award, so the evaluation cannot be changed afterwards.</p>

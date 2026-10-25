@@ -1,5 +1,5 @@
 // Shared building blocks, so every screen looks and behaves the same (see DESIGN.md).
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, Check, CheckCircle2, ChevronLeft, Copy, Info, Loader2, XCircle } from 'lucide-react';
 
@@ -129,8 +129,44 @@ export function Message({ tone = 'info', title, children }) {
   );
 }
 
+/** True while the screen is narrower than `px` (phones). False where the browser cannot tell, e.g. in tests. */
+function useNarrow(px = 640) {
+  const query = `(max-width: ${px - 1}px)`;
+  const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia?.(query);
+    if (!mq) return undefined;
+    const update = () => setNarrow(mq.matches);
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, [query]);
+  return narrow;
+}
+
 export function Table({ columns, rows, empty = 'Nothing to show yet.', rowKey }) {
+  const narrow = useNarrow();
   if (!rows?.length) return <p className="px-5 py-10 text-center text-sm text-slate-500">{empty}</p>;
+  const cell = (c, r) => (c.render ? c.render(r) : r[c.key]);
+
+  // On a phone each row becomes a card of label and value pairs, so nothing is cut off
+  if (narrow) {
+    return (
+      <ul className="divide-y divide-slate-200">
+        {rows.map((r, i) => (
+          <li key={rowKey ? rowKey(r) : i} className="space-y-2 px-4 py-3 text-sm">
+            {columns.filter((c) => c.label).map((c) => (
+              <div key={c.key} className="grid grid-cols-[7.5rem_1fr] gap-3">
+                <span className="text-xs font-medium text-slate-600">{c.label}</span>
+                <span className={cx('min-w-0 break-words text-slate-800', c.mono && 'font-mono text-xs')}>{cell(c, r)}</span>
+              </div>
+            ))}
+            {columns.filter((c) => !c.label).map((c) => <div key={c.key}>{cell(c, r)}</div>)}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
   return (
     // Focusable so keyboard users can scroll a wide table sideways (WCAG 2.1.1)
     <div className="overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2" tabIndex={0}>
@@ -138,7 +174,7 @@ export function Table({ columns, rows, empty = 'Nothing to show yet.', rowKey })
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50">
             {columns.map((c) => (
-              <th key={c.key} scope="col" className={cx('px-5 py-2.5 text-left text-xs font-semibold text-slate-600', c.align === 'right' && 'text-right')}>
+              <th key={c.key} scope="col" className={cx('px-4 py-2.5 text-left text-xs font-semibold text-slate-600 first:pl-5 last:pr-5', c.align === 'right' && 'text-right')}>
                 {c.label}
               </th>
             ))}
@@ -148,9 +184,9 @@ export function Table({ columns, rows, empty = 'Nothing to show yet.', rowKey })
           {rows.map((r, i) => (
             <tr key={rowKey ? rowKey(r) : i} className="transition-colors duration-150 hover:bg-slate-50">
               {columns.map((c) => (
-                <td key={c.key} className={cx('px-5 py-3 align-top text-slate-800', c.align === 'right' && 'text-right',
+                <td key={c.key} className={cx('px-4 py-3 align-top text-slate-800 first:pl-5 last:pr-5', c.align === 'right' && 'text-right',
                   c.mono && 'whitespace-nowrap font-mono text-xs text-slate-600', c.nowrap && 'whitespace-nowrap', !c.mono && !c.nowrap && c.align !== 'right' && 'min-w-[9rem]', c.wide && 'min-w-[18rem]')}>
-                  {c.render ? c.render(r) : r[c.key]}
+                  {cell(c, r)}
                 </td>
               ))}
             </tr>

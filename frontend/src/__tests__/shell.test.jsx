@@ -36,3 +36,18 @@ test('sign-in starts with email and password, and links to registration and the 
   expect(screen.getByRole('link', { name: 'Register as a bidder' })).toHaveAttribute('href', '/register');
   expect(screen.getByRole('link', { name: /search and verify public records/ })).toHaveAttribute('href', '/public');
 });
+
+test('on a phone, table rows become cards so no column is cut off', async () => {
+  const { Table } = await import('../components/ui.jsx');
+  const original = window.matchMedia;
+  window.matchMedia = (q) => ({ matches: q.includes('max-width'), addEventListener() {}, removeEventListener() {} });
+  try {
+    render(<Table rowKey={(r) => r.id} rows={[{ id: 'MS-1', amount: 'K41,000.00' }]}
+      columns={[{ key: 'id', label: 'ID', mono: true }, { key: 'amount', label: 'Amount', align: 'right' }]} />);
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(screen.getByText('Amount')).toBeInTheDocument();
+    expect(screen.getByText('K41,000.00')).toBeInTheDocument();
+  } finally {
+    window.matchMedia = original;
+  }
+});
