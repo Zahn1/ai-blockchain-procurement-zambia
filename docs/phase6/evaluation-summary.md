@@ -10,7 +10,7 @@ IPFS, PostgreSQL, the AI risk service and the React front end, on one MacBook Pr
 | Unit | Chaincode (Go): tender, bid, award, milestone and alert contracts | 47 | all pass | 76.2% of statements | `chaincode-tests.txt` |
 | Unit and integration | Back-end API (Jest + Supertest, real PostgreSQL, fake ledger) | 175 | all pass | 88.4% statements, 75.1% branches | `backend-tests.txt` |
 | Unit | AI service and models (pytest), including the bidder-network model | 25 | all pass | 92% (training script excluded) | `ai-tests.txt` |
-| Component | Front end (Vitest + Testing Library), including accessibility | 58 | all pass | 87.7% statements, 80.4% branches | `frontend-tests.txt` |
+| Component | Front end (Vitest + Testing Library), including accessibility | 59 | all pass | 87.7% statements, 80.4% branches | `frontend-tests.txt` |
 | System | One full procurement through the running system, all ten requirements | 77 checks | 77 pass | – | `system-test-results.md` |
 | Performance | Ledger reads and writes, API, AI service | 14 measurements | – | – | `performance.md` |
 | Security and privacy | Tampering, early opening, late bids, role access, ledger scan | in the system test, plus the scan | all pass | – | `system-test-results.md`, `privacy-scan.md` |
@@ -49,7 +49,7 @@ mock does not provide; it is exercised on the live network by the system test an
 | NFR-08 Model quality | ROC-AUC ≥ 0.80 on held-out data | 0.991 (see the synthetic-data caveat in section 5) | Met |
 | NFR-09 Security | JWT on every non-public route; TLS between Fabric nodes | 13 refusals without a session or with the wrong role; Fabric network runs with TLS | Met |
 | NFR-10 Usability | UK English; WCAG 2.1 AA contrast | 19 screens, 0 violations after three fixes | Met (SUS to follow) |
-| NFR-11 Testability | Unit tests for every contract, route and AI endpoint | 305 automated tests across the four layers | Met |
+| NFR-11 Testability | Unit tests for every contract, route and AI endpoint | 306 automated tests across the four layers | Met |
 | NFR-12 Scalability | Grow to 4 organisations | Not attempted (stretch goal) | Not done |
 | NFR-13 Benchmarking | Hyperledger Caliper | Own load test instead (`performance.md`); Caliper not run (stretch goal) | Partly |
 
